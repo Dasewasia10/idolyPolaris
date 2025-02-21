@@ -49,16 +49,9 @@ const ChatPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetch("https://diveidolypapi.my.id/api/stamps", {
-      method: "GET",
-      mode: "cors",
-      credentials: "include", // Izinkan pengiriman cookie jika diperlukan
-      redirect: "follow",
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Failed to fetch");
-        return response.json();
-      })
+    // Fetch stamps data
+    fetch("https://www.diveidolypapi.my.id/api/stamps", { redirect: "follow" })
+      .then((response) => response.json())
       .then((data) => {
         const formattedStamps = data.map((stamp: Stamp) => ({
           ...stamp,
@@ -66,8 +59,8 @@ const ChatPage: React.FC = () => {
         }));
         setStamps(formattedStamps);
         console.log("formattedStamps: ", formattedStamps);
-      })
-      .catch((error) => console.error("Error fetching stamps:", error));
+      });
+    console.log("stamp: ", stamps);
   }, []);
 
   useEffect(() => {
