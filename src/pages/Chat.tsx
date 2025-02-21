@@ -49,9 +49,16 @@ const ChatPage: React.FC = () => {
   };
 
   useEffect(() => {
-    // Fetch stamps data
-    fetch("https://diveidolypapi.my.id/api/stamps", { redirect: "follow" })
-      .then((response) => response.json())
+    fetch("https://diveidolypapi.my.id/api/stamps", {
+      method: "GET",
+      mode: "cors",
+      credentials: "include", // Izinkan pengiriman cookie jika diperlukan
+      redirect: "follow",
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch");
+        return response.json();
+      })
       .then((data) => {
         const formattedStamps = data.map((stamp: Stamp) => ({
           ...stamp,
@@ -59,8 +66,8 @@ const ChatPage: React.FC = () => {
         }));
         setStamps(formattedStamps);
         console.log("formattedStamps: ", formattedStamps);
-      });
-    console.log("stamp: ", stamps);
+      })
+      .catch((error) => console.error("Error fetching stamps:", error));
   }, []);
 
   useEffect(() => {
@@ -459,7 +466,7 @@ const ChatPage: React.FC = () => {
                 src={
                   selectedIcon
                     ? selectedIcon.src
-                    : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.webp`
+                    : "https://api.diveidolypapi.my.id/iconCharacter/chara-makino.png"
                 }
                 alt="icon"
                 className="h-12 w-12 rounded-full"
