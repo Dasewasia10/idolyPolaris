@@ -50,7 +50,7 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     // Fetch stamps data
-    fetch("https://diveidolypapi.my.id/api/stamp")
+    fetch("https://diveidolypapi.my.id/api/stamps")
       .then((response) => response.json())
       .then((data) => {
         const formattedStamps = data.map((stamp: Stamp) => ({
