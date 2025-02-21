@@ -1,0 +1,92 @@
+{
+  "name": "idolychat",
+  "private": true,
+  "version": "0.0.3",
+  "type": "module",
+  "main": "main.cjs",
+  "author": "Dasewasia",
+  "description": "Chat imitation with Idoly Pride characters.",
+  "build": {
+    "appId": "com.electron.idolychat",
+    "productName": "IdolyChat",
+    "files": [
+      "node_modules/**/*",
+      "dist/**/*",
+      "main.cjs",
+      "database/dist/idolychat-api.exe"
+    ],
+    "directories": {
+      "buildResources": "public"
+    },
+    "extraMetadata": {
+      "main": "main.cjs"
+    },
+    "extraResources": [
+      {
+        "from": "database/dist/idolychat-api.exe",
+        "to": "idolychat-api.exe"
+      }
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "zip"
+    },
+    "linux": {
+      "target": "deb"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build-vite": "tsc -b && vite build",
+    "build-react": "react-scripts build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "watch": "npx tailwindcss -i ./src/index.css -o ./dist/main.css --watch",
+    "tgen": "npx tailwindcss -i ./src/index.css -o ./dist/main.css",
+    "start": "react-scripts start",
+    "start-all": "concurrently \"npm run dev\" \"cmd /c database\\start-api.bat\"",
+    "electron": "electron .",
+    "electron:package:mac": "npm run build-vite && electron-builder -m -c.extraMetadata.main=main.cjs",
+    "electron:package:win": "npm run build-vite && electron-builder -w -c.extraMetadata.main=main.cjs",
+    "electron:package:linux": "npm run build-vite && electron-builder -l -c.extraMetadata.main=main.cjs"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "axios": "^1.7.9",
+    "dom-to-image": "^2.6.0",
+    "dom-to-image-more": "^3.5.0",
+    "file-saver": "^2.0.5",
+    "html2canvas": "^1.4.1",
+    "ldrs": "^1.0.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-draggable": "^4.4.6",
+    "react-router-dom": "^7.0.2",
+    "react-textarea-autosize": "^8.5.7",
+    "tailwind-scrollbar": "^3.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/dom-to-image": "^2.6.7",
+    "@types/file-saver": "^2.0.7",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^15.12.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "typescript": "~5.6.2",
+    "typescript-eslint": "^8.15.0",
+    "vite": "^6.0.1"
+  }
+}

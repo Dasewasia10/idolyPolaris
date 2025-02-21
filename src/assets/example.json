@@ -1,0 +1,18 @@
+{
+    "title": "Conversation Title",
+    "messages": [
+      {
+        "icon": "/assets/icon/chara-sakura.png",
+        "text": "Hello!",
+        "stamp": "/assets/stamp/stamp_bear-hey.webp",
+        "position": "left"
+      },
+      {
+        "icon": "/assets/icon/chara-mana.png",
+        "text": "Hi there!",
+        "stamp": null,
+        "position": "right"
+      }
+    ]
+  }
+  
