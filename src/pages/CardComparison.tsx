@@ -14,7 +14,7 @@ import {
   getPlaceholderImageUrl,
 } from "../utils/imageUtils";
 
-const API_BASE_URL = "https://www.diveidolypapi.my.id/api/";
+const API_BASE_URL = "https://www.diveidolypapi.my.id/api";
 
 // Function to generate unique identifier for Card
 const generateCardId = (card: Card): string => {
