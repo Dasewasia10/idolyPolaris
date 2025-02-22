@@ -1,42 +1,11 @@
 {
-  "name": "idolychat",
+  "name": "polarisidoly",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "main": "main.cjs",
   "author": "Dasewasia",
-  "description": "Chat imitation with Idoly Pride characters.",
-  "build": {
-    "appId": "com.electron.idolychat",
-    "productName": "IdolyChat",
-    "files": [
-      "node_modules/**/*",
-      "dist/**/*",
-      "main.cjs",
-      "database/dist/idolychat-api.exe"
-    ],
-    "directories": {
-      "buildResources": "public"
-    },
-    "extraMetadata": {
-      "main": "main.cjs"
-    },
-    "extraResources": [
-      {
-        "from": "database/dist/idolychat-api.exe",
-        "to": "idolychat-api.exe"
-      }
-    ],
-    "mac": {
-      "target": "dmg"
-    },
-    "win": {
-      "target": "zip"
-    },
-    "linux": {
-      "target": "deb"
-    }
-  },
+  "description": "Fan-website that contain Idoly Pride's information, include Indonesian language.",
   "scripts": {
     "dev": "vite",
     "build-vite": "tsc -b && vite build",
@@ -45,12 +14,7 @@
     "preview": "vite preview",
     "watch": "npx tailwindcss -i ./src/index.css -o ./dist/main.css --watch",
     "tgen": "npx tailwindcss -i ./src/index.css -o ./dist/main.css",
-    "start": "react-scripts start",
-    "start-all": "concurrently \"npm run dev\" \"cmd /c database\\start-api.bat\"",
-    "electron": "electron .",
-    "electron:package:mac": "npm run build-vite && electron-builder -m -c.extraMetadata.main=main.cjs",
-    "electron:package:win": "npm run build-vite && electron-builder -w -c.extraMetadata.main=main.cjs",
-    "electron:package:linux": "npm run build-vite && electron-builder -l -c.extraMetadata.main=main.cjs"
+    "start": "react-scripts start"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -76,9 +40,6 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.2",
-    "electron": "^33.2.1",
-    "electron-builder": "^25.1.8",
-    "electron-packager": "^17.1.2",
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
