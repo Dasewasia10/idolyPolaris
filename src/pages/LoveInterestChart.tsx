@@ -156,9 +156,9 @@ const LoveInterestChart: React.FC = () => {
   };
 
   const getCharacterIconUrl = (characterName: string) => {
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${encodeURIComponent(
+    return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
       characterName
-    )}.png`;
+    )}`;
   };
 
   return (
