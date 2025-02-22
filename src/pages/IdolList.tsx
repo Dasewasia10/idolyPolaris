@@ -55,6 +55,12 @@ const IdolList: React.FC = () => {
     fetchData();
   }, []); // ✅ Hapus `idolName` karena tidak digunakan di sini
 
+  const getCharacterBannerUrl = (characterName: string) => {
+    return `https://www.diveidolypapi.my.id/api/img/character/banner/${encodeURIComponent(
+      characterName
+    )}`;
+  };
+
   const handleGo = (url: string) => {
     navigate(url);
   };
@@ -174,15 +180,12 @@ const IdolList: React.FC = () => {
               onClick={() => openModal(item)} // Buka modal saat diklik
             >
               <img
-                src={
-                  `https://api.diveidolypapi.my.id/bannerCharacter/banner-${item.name.toLowerCase()}.png` ||
-                  `${import.meta.env.BASE_URL}assets/default_image.png`
-                }
+                src={getCharacterBannerUrl(item.name.toLowerCase())}
                 alt={item.name}
                 onError={(e) => {
                   e.currentTarget.src = `${
                     import.meta.env.BASE_URL
-                  }assets/icon/chara-avatar.webp`; // Ganti dengan URL gambar fallback
+                  }assets/default_image.png`; // Ganti dengan URL gambar fallback
                   e.currentTarget.alt = "Image not available";
                 }}
                 className="h-40 w-[4.5rem] rounded object-cover transition-all duration-500 ease-out"
@@ -268,10 +271,7 @@ const IdolList: React.FC = () => {
               </h2>
               <section className="flex w-[30vh] flex-row lg:w-[50vh]">
                 <img
-                  src={
-                    `https://api.diveidolypapi.my.id/bannerCharacter/banner-${selectedIdol.name.toLowerCase()}.png` ||
-                    `${import.meta.env.BASE_URL}assets/default_image.png`
-                  }
+                  src={getCharacterBannerUrl(selectedIdol.name.toLowerCase())}
                   alt={selectedIdol.name}
                   onError={(e) => {
                     e.currentTarget.src = `${

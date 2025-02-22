@@ -9,6 +9,12 @@ interface SourceWithCharacter extends QnASource {
   character: Character | null;
 }
 
+const getCharacterIconUrl = (characterName: string) => {
+  return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
+    characterName
+  )}`;
+};
+
 const matchWithCharacters = (
   qnaSources: QnASource[],
   characters: Character[]
@@ -22,9 +28,8 @@ const matchWithCharacters = (
       name: source.name,
       data: source.data,
       familyName: matchedCharacter?.familyName || "Unknown", // Tambahkan familyName
-      icon:
-        matchedCharacter?.icon ||
-        `${import.meta.env.BASE_URL}assets/icon/chara-avatar.webp`, // Tambahkan icon
+      icon: getCharacterIconUrl(source.name.toLowerCase()),
+
       character: matchedCharacter || null, // Tambahkan character
     };
   });
@@ -126,8 +131,8 @@ const QnAPage: React.FC = () => {
             <img
               className="flex w-20 h-20 rounded-full"
               src={
-                sources.length > 0
-                  ? `https://api.diveidolypapi.my.id/iconCharacter/chara-${activeSource?.name.toLowerCase()}.png`
+                sources.length > 0 && activeSource
+                  ? getCharacterIconUrl(activeSource.name.toLowerCase())
                   : "" // Fallback jika sources masih kosong
               }
               alt=""

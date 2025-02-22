@@ -61,9 +61,15 @@ const IDCard: React.FC<IDCardProps> = ({
   // Cari grup yang sesuai
   const matchedGroup = groupOfIdol.find((g) => g.name === group);
 
+  const getIdolGroupUrl = (characterName: string) => {
+    return `https://www.diveidolypapi.my.id/api/img/group/circle/${encodeURIComponent(
+      characterName
+    )}`;
+  };
+
   // Gunakan matchedGroup untuk mendapatkan URL gambar
   const groupImageUrl = matchedGroup
-    ? `https://api.diveidolypapi.my.id/idolGroup/group-${matchedGroup.altName}-circle.png`
+    ? getIdolGroupUrl(matchedGroup.altName)
     : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.webp`; // Fallback image
 
   return (
@@ -78,7 +84,9 @@ const IDCard: React.FC<IDCardProps> = ({
           />
         </div>
         {/* Logo Group */}
-        <div className={`absolute left-1/2 -translate-y-12 translate-x-6 w-16 h-16}`}>
+        <div
+          className={`absolute left-1/2 -translate-y-12 translate-x-6 w-16 h-16}`}
+        >
           <img
             src={groupImageUrl}
             alt="idolgroup"

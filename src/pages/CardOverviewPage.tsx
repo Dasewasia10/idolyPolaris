@@ -14,6 +14,10 @@ import {
   getPlaceholderImageUrl,
 } from "../utils/imageUtils";
 
+interface CardWithSourceName extends Card {
+  _sourceName: string;
+}
+
 const API_BASE_URL = "https://www.diveidolypapi.my.id/api";
 
 // Function to generate unique identifier for Card
@@ -91,21 +95,6 @@ const processCardSources = (cardSources: Source[], characters: any[]) => {
               },
             }
           : undefined,
-        imageSource: {
-          costumeIcon: item.imageSource?.costumeIcon,
-          figureImageB: item.imageSource?.figureImageB,
-          iconImage:
-            `https://api.diveidolypapi.my.id/iconCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          iconImageB: item.imageSource?.iconImageB,
-          sourceImage:
-            `https://api.diveidolypapi.my.id/sourceCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          verticalImage:
-            `https://api.diveidolypapi.my.id/verticalCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          verticalImageB: item.imageSource?.verticalImageB,
-        },
         battleCommentary: item.battleCommentary,
         explanation: item.explanation,
       })),
@@ -127,7 +116,7 @@ const CardOverview: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
-  const [slot, setSlot] = useState<Card | null>(null);
+  const [slot, setSlot] = useState<CardWithSourceName | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   type Language = "japanese" | "global" | "indo";
@@ -186,7 +175,7 @@ const CardOverview: React.FC = () => {
   }, [sources]); // ✅ Sekarang hanya muncul jika `sources` berubah
 
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
-  const filteredCards = useMemo(() => {
+  const filteredCards: CardWithSourceName[] = useMemo(() => {
     return cards
       .filter((card) => {
         // Ambil sourceName dari sources berdasarkan initialTitle
@@ -379,6 +368,240 @@ const CardOverview: React.FC = () => {
     };
   }, [isMenuOpen, isOpen]);
 
+  const getCardCosuUrl = (
+    chara: string,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/cosu/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardFigureBUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/figureB/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardIconUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/thumb/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardIconBUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/thumbB/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardIconEUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/thumbE/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardVerticalUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/vertical/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardVerticalBUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/verticalB/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardVerticalEUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/verticalE/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardSourceUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/source/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardSourceEUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/sourceE/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
   const handleBackClick = () => {
     window.history.back();
   };
@@ -391,13 +614,14 @@ const CardOverview: React.FC = () => {
     setIsOpen(false);
   };
 
-  const handleSelectCard = (card: Card) => {
+  const handleSelectCard = (card: CardWithSourceName) => {
     const selectedCard = {
       ...card,
       cardTitle:
         typeof card.title === "string"
           ? card.title
           : card.title?.[primaryLanguage] || "----",
+      _sourceName: card._sourceName || "Unknown Source",
     };
     setSlot(selectedCard);
     setIsOpen(true);
@@ -593,26 +817,22 @@ const CardOverview: React.FC = () => {
                 </div>
               </div>
               {/* Periksa apakah slot memiliki iconImageB yang valid */}
-              {slot?.imageSource?.iconImageB &&
-                slot.imageSource.iconImageB !== "" && (
-                  <>
-                    <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-                      <p className="text-white">Trained Icon</p>
-                      <button
-                        onClick={() => setShowIconB(!showIconB)}
-                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={
-                          !slot.imageSource.iconImageB ||
-                          slot.imageSource.iconImageB === ""
-                        }
-                      >
-                        <span className="font-semibold opacity-100">
-                          {showIconB ? "Non-*5 Icon" : "Trained Icon"}
-                        </span>
-                      </button>
-                    </div>
-                  </>
-                )}
+              {slot.initial !== 5 && (
+                <>
+                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                    <p className="text-white">Trained Icon</p>
+                    <button
+                      onClick={() => setShowIconB(!showIconB)}
+                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={slot.initial === 5}
+                    >
+                      <span className="font-semibold opacity-100">
+                        {showIconB ? "Non-*5 Icon" : "Trained Icon"}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
             </section>
             <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg">
               <div className="flex flex-col gap-4 rounded border bg-[#00246B] p-4 text-white shadow-sm scrollbar-thin">
@@ -644,10 +864,17 @@ const CardOverview: React.FC = () => {
                               "Unknown";
                             return (
                               <img
-                                src={
-                                  slot.imageSource?.costumeIcon ||
-                                  getPlaceholderImageUrl("square")
-                                }
+                                src={getCardCosuUrl(
+                                  slot._sourceName,
+                                  slot.costumeTheme,
+                                  slot.costumeIndex
+                                )}
+                                onError={(e) => {
+                                  e.currentTarget.src = `${
+                                    import.meta.env.BASE_URL
+                                  }assets/default_image.png`;
+                                  e.currentTarget.alt = "Image not available";
+                                }}
                                 alt={`Card ${uniqueId}`}
                                 className="h-auto w-10 rounded bg-white object-cover p-1 lg:w-20"
                               />
@@ -660,11 +887,26 @@ const CardOverview: React.FC = () => {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <img
                         src={
-                          showIconB && slot.imageSource?.iconImageB
-                            ? slot.imageSource.iconImageB
-                            : slot.imageSource?.iconImage ||
-                              getPlaceholderImageUrl("square")
+                          showIconB && slot.initial !== 5
+                            ? getCardIconBUrl(
+                                slot._sourceName,
+                                slot.initial,
+                                slot.costumeTheme,
+                                slot.costumeIndex
+                              )
+                            : getCardIconUrl(
+                                slot._sourceName,
+                                slot.initial,
+                                slot.costumeTheme,
+                                slot.costumeIndex
+                              ) || getPlaceholderImageUrl("square")
                         }
+                        onError={(e) => {
+                          e.currentTarget.src = `${
+                            import.meta.env.BASE_URL
+                          }assets/default_image.png`;
+                          e.currentTarget.alt = "Image not available";
+                        }}
                         alt={`Card ${slot.initialTitle}`}
                         className="h-full w-auto rounded-lg object-cover outline outline-offset-4 lg:relative lg:h-auto lg:object-none"
                       />

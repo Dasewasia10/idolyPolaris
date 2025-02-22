@@ -78,6 +78,30 @@ const IdolDetailPage: React.FC = () => {
     );
   }
 
+  const getCharacterIconUrl = (characterName: string) => {
+    return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
+      characterName
+    )}`;
+  };
+
+  const getCharacterSprite1Url = (characterName: string) => {
+    return `https://www.diveidolypapi.my.id/api/img/character/sprite1/${encodeURIComponent(
+      characterName
+    )}`;
+  };
+
+  const getCharacterSprite2Url = (characterName: string) => {
+    return `https://www.diveidolypapi.my.id/api/img/character/sprite2/${encodeURIComponent(
+      characterName
+    )}`;
+  };
+  
+  const getCharacterBannerUrl = (characterName: string) => {
+    return `https://www.diveidolypapi.my.id/api/img/character/banner/${encodeURIComponent(
+      characterName
+    )}`;
+  };
+
   const listOfIdol = () => {
     return selectedIdol.map((item, index) => {
       return (
@@ -90,13 +114,10 @@ const IdolDetailPage: React.FC = () => {
         >
           <div className="lg:text-md z-10 flex w-16 flex-row items-center gap-2 rounded rounded-r-xl bg-slate-600 px-2 py-1 text-sm font-bold text-white text-opacity-0 transition-all duration-500 ease-out hover:w-full hover:text-opacity-100 lg:w-20 lg:gap-4 lg:px-4 lg:py-2">
             <img
-              src={
-                `https://api.diveidolypapi.my.id/iconCharacter/chara-${item.name.toLowerCase()}.png` ||
-                `${import.meta.env.BASE_URL}assets/default_image.png`
-              }
+              src={getCharacterIconUrl(item.name.toLowerCase())}
               alt={item.name}
               onError={(e) => {
-                e.currentTarget.src = `https://api.diveidolypapi.my.id/iconCharacter/chara-kohei.png`; // Ganti dengan URL gambar fallback
+                e.currentTarget.src = getCharacterIconUrl("kohei"); // Ganti dengan URL gambar fallback
                 e.currentTarget.alt = "Image not available";
               }}
               className="h-6 w-auto rounded-full object-cover lg:h-12"
@@ -224,10 +245,7 @@ const IdolDetailPage: React.FC = () => {
         </h1>
         <section className="flex flex-row gap-4">
           <img
-            src={
-              `https://api.diveidolypapi.my.id/spriteCharacter/sprite-${idol.name.toLowerCase()}-01.png` ||
-              `https://api.diveidolypapi.my.id/spriteCharacter/sprite-default.png`
-            }
+            src={getCharacterSprite1Url(idol.name.toLowerCase())}
             alt={idol.name}
             onError={(e) => {
               e.currentTarget.src = `${
@@ -241,10 +259,7 @@ const IdolDetailPage: React.FC = () => {
             }`}
           />
           <img
-            src={
-              `https://api.diveidolypapi.my.id/spriteCharacter/sprite-${idol.name.toLowerCase()}-02.png` ||
-              `https://api.diveidolypapi.my.id/spriteCharacter/sprite-default.png`
-            }
+            src={getCharacterSprite2Url(idol.name.toLowerCase())}
             alt={idol.name}
             onError={(e) => {
               e.currentTarget.src = `${
@@ -258,10 +273,7 @@ const IdolDetailPage: React.FC = () => {
             }`}
           />
           <img
-            src={
-              `https://api.diveidolypapi.my.id/iconCharacter/chara-${idol.name.toLowerCase()}.png` ||
-              `${import.meta.env.BASE_URL}assets/default_image.png`
-            }
+            src={getCharacterIconUrl(idol.name.toLowerCase())}
             alt={idol.name}
             onError={(e) => {
               e.currentTarget.src = `${
@@ -327,11 +339,7 @@ const IdolDetailPage: React.FC = () => {
       </div>
       <section className="absolute right-8 top-8 z-10 h-[36rem] opacity-0 transition-all duration-500 ease-out md:opacity-100 lg:opacity-100">
         <img
-          // src={getRandomSprite(idol)}
-          src={
-            `https://api.diveidolypapi.my.id/bannerCharacter/banner-${idol.name.toLowerCase()}.png` ||
-            `${import.meta.env.BASE_URL}assets/default_image.png`
-          }
+          src={getCharacterBannerUrl(idol.name.toLowerCase())}
           alt={idol.name}
           onError={(e) => {
             e.currentTarget.src = `${

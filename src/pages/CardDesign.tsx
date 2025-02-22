@@ -14,6 +14,10 @@ import {
   getPlaceholderImageUrl,
 } from "../utils/imageUtils";
 
+interface CardWithSourceName extends Card {
+  _sourceName: string;
+}
+
 const API_BASE_URL = "https://www.diveidolypapi.my.id/api/";
 
 // Function to generate unique identifier for Card
@@ -91,21 +95,6 @@ const processCardSources = (cardSources: Source[], idols: any[]) => {
               },
             }
           : undefined,
-        imageSource: {
-          costumeIcon: item.imageSource?.costumeIcon,
-          figureImageB: item.imageSource?.figureImageB,
-          iconImage:
-            `https://api.diveidolypapi.my.id/iconCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          iconImageB: item.imageSource?.iconImageB,
-          sourceImage:
-            `https://api.diveidolypapi.my.id/sourceCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          verticalImage:
-            `https://api.diveidolypapi.my.id/verticalCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          verticalImageB: item.imageSource?.verticalImageB,
-        },
         battleCommentary: item.battleCommentary,
         explanation: item.explanation,
       })),
@@ -128,7 +117,7 @@ const CardDesign: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
-  const [placing, setPlacing] = useState<Card | null>(null);
+  const [placing, setPlacing] = useState<CardWithSourceName | null>(null);
 
   type Language = "japanese" | "global" | "indo";
   const [primaryLanguage, setPrimaryLanguage] = useState<Language>("global");
@@ -178,7 +167,7 @@ const CardDesign: React.FC = () => {
   }, [sources]); // ✅ Sekarang hanya muncul jika `sources` berubah
 
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
-  const filteredCards = useMemo(() => {
+  const filteredCards: CardWithSourceName[] = useMemo(() => {
     return cards
       .filter((card) => {
         // Ambil sourceName dari sources berdasarkan initialTitle
@@ -361,6 +350,240 @@ const CardDesign: React.FC = () => {
     };
   }, [isOpen]);
 
+  const getCardCosuUrl = (
+    chara: string,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/cosu/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardFigureBUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/figureB/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardIconUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/thumb/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardIconBUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/thumbB/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardIconEUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/thumbE/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardVerticalUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/vertical/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardVerticalBUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/verticalB/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardVerticalEUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/verticalE/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardSourceUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/source/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  const getCardSourceEUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/sourceE/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
   const handleScreenshot = async () => {
     if (!fileName.trim()) {
       alert("Nama file harus terisi sebelum men-download.");
@@ -398,13 +621,14 @@ const CardDesign: React.FC = () => {
     setIsOpen(false);
   };
 
-  const handleSelectCard = (card: Card) => {
+  const handleSelectCard = (card: CardWithSourceName) => {
     const selectedCard = {
       ...card,
       cardTitle:
         typeof card.title === "string"
           ? card.title
           : card.title?.[primaryLanguage] || "----",
+      _sourceName: card._sourceName || "Unknown Source",
     };
     setPlacing(selectedCard);
     setIsOpen(true);
@@ -530,10 +754,18 @@ const CardDesign: React.FC = () => {
                 >
                   {placing && uniqueId && (
                     <img
-                      src={
-                        placing.imageSource?.sourceImage ||
-                        getPlaceholderImageUrl("square")
-                      }
+                      src={getCardSourceUrl(
+                        placing._sourceName,
+                        placing.initial,
+                        placing.costumeTheme,
+                        placing.costumeIndex
+                      )}
+                      onError={(e) => {
+                        e.currentTarget.src = `${
+                          import.meta.env.BASE_URL
+                        }assets/default_image.png`;
+                        e.currentTarget.alt = "Image not available";
+                      }}
                       alt={`Card ${uniqueId}`}
                       className="absolute h-max w-auto items-center overflow-hidden rounded-lg object-cover outline -outline-offset-8"
                     />
@@ -568,7 +800,7 @@ const CardDesign: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      <section className="">
+                      <section className="flex items-center flex-col gap-1 w-40">
                         {[
                           placing.skillOne,
                           placing.skillTwo,
@@ -576,7 +808,7 @@ const CardDesign: React.FC = () => {
                         ].map((skill, index) => (
                           <section
                             key={index}
-                            className="flex rounded border-4 border-y bg-black bg-opacity-60 p-1"
+                            className="flex rounded border-4 border-y bg-black bg-opacity-60 p-1 w-full justify-center"
                           >
                             <ul className="relative flex flex-col gap-1">
                               <li className="flex flex-col items-center justify-center p-2 text-center">

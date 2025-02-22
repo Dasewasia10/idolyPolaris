@@ -117,9 +117,9 @@ const KTPManager: React.FC = () => {
   }, []);
 
   const getCharacterIconUrl = (characterName: string) => {
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${encodeURIComponent(
+    return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
       characterName
-    ).toLowerCase()}.png`;
+    )}`;
   };
 
   const generateIds = (data: any[]) =>
@@ -408,11 +408,20 @@ const KTPManager: React.FC = () => {
         </div>
       </section>
 
-      {toastMessage && <Toast message={toastMessage} isSuccess={isSuccess} />}
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          isSuccess={isSuccess}
+          key={Date.now()}
+          onClose={() => setToastMessage("")}
+        />
+      )}
       {maxSelectionReached && (
         <Toast
           message={"Anda hanya dapat memilih maksimal 3 karakter."}
           isSuccess={false}
+          key={Date.now()}
+          onClose={() => setToastMessage("")}
         />
       )}
       <div className="opacity-0">----</div>

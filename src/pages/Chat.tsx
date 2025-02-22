@@ -83,9 +83,9 @@ const ChatPage: React.FC = () => {
         const idolsWithIds = generateIds(filteredIdols);
 
         const getCharacterIconUrl = (characterName: string) => {
-          return `https://api.diveidolypapi.my.id/iconCharacter/chara-${encodeURIComponent(
-            characterName
-          ).toLowerCase()}.png`;
+          return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
+            characterName.toLowerCase()
+          )}`;
         };
 
         // ✅ Simpan idols dengan ID ke state
@@ -267,12 +267,18 @@ const ChatPage: React.FC = () => {
             >
               Export to JSON
             </button>
-            <input
-              className="w-40"
-              type="file"
-              accept="application/json"
-              onChange={handleImport}
-            />
+            <div className="flex gap-3 items-center bg-amber-300 hover:bg-amber-500 p-2 rounded-md cursor-pointer">
+              <label htmlFor="importButton" className="cursor-pointer">
+                Import From JSON
+              </label>
+              <input
+                id="importButton"
+                className="w-40 cursor-pointer"
+                type="file"
+                accept="application/json"
+                onChange={handleImport}
+              />
+            </div>
           </div>
           <div className="flex flex-col lg:flex-row-reverse gap-10 justify-around">
             <div className="flex flex-1 flex-col">
@@ -316,7 +322,7 @@ const ChatPage: React.FC = () => {
                 {stampGroupVisible ? "Hide Stamps" : "Show Stamps"}
               </button>
               {stampGroupVisible && (
-                <div className="flex w-full flex-wrap justify-around overflow-y-auto h-80 lg:h-full m-2">
+                <div className="flex w-full flex-wrap justify-around overflow-y-auto h-80 lg:h-96 m-2 scrollbar-thin">
                   {stamps.map((stamp) => (
                     <button
                       key={stamp.id}
@@ -459,7 +465,7 @@ const ChatPage: React.FC = () => {
                 src={
                   selectedIcon
                     ? selectedIcon.src
-                    : "https://api.diveidolypapi.my.id/iconCharacter/chara-makino.png"
+                    : "https://diveidolypapi.my.id/api/img/character/icon/kohei/"
                 }
                 alt="icon"
                 className="h-12 w-12 rounded-full"
@@ -511,7 +517,14 @@ const ChatPage: React.FC = () => {
             </button>
           </div>
         </section>
-        {toastMessage && <Toast message={toastMessage} isSuccess={isSuccess} />}
+        {toastMessage && (
+          <Toast
+            message={toastMessage}
+            isSuccess={isSuccess}
+            key={Date.now()}
+            onClose={() => setToastMessage("")}
+          />
+        )}
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ export interface Card {
   releaseDate: string;
   category: string;
   costumeTheme: string;
+  costumeIndex: number;
   type: "Scorer" | "Buffer" | "Supporter";
   attribute: "Dance" | "Vocal" | "Visual";
   hasAwakening?: boolean;
@@ -130,15 +131,6 @@ export interface Card {
       bottomRightImage?: string;
       color: string;
     };
-  };
-  imageSource: {
-    costumeIcon?: string;
-    figureImageB?: string;
-    iconImage: string;
-    iconImageB?: string;
-    sourceImage: string;
-    verticalImage: string;
-    verticalImageB?: string;
   };
   battleCommentary?: {
     japanese?: Array<string>;

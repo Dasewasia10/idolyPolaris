@@ -6,9 +6,13 @@ import {
   getCardTypeImageUrl2,
 } from "../utils/imageUtils";
 
+interface CardWithSourceName extends Card {
+  _sourceName: string;
+}
+
 interface CardListProps {
-  cardAfterFilter: Card[];
-  onSelectCard: (card: Card) => void;
+  cardAfterFilter: CardWithSourceName[];
+  onSelectCard: (card: CardWithSourceName) => void;
   primaryLanguage: "japanese" | "global" | "indo";
 }
 
@@ -18,6 +22,78 @@ const CardList: React.FC<CardListProps> = ({
   primaryLanguage,
 }) => {
   console.log("cardAfterFilter: ", cardAfterFilter);
+
+  const getCardVerticalUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/vertical/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
+  // const getCardVerticalBUrl = (
+  //   chara: string,
+  //   initial: number,
+  //   cosuName: string,
+  //   cosuIndex: number
+  // ) => {
+  //   // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+  //   const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+  //   return `https://www.diveidolypapi.my.id/api/img/card/verticalB/${encodeURIComponent(
+  //     chara.toLowerCase()
+  //   )}/${encodeURIComponent(
+  //     initial.toLocaleString("en-US", {
+  //       minimumIntegerDigits: 2,
+  //       useGrouping: false,
+  //     })
+  //   )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+  //     cosuIndex.toLocaleString("en-US", {
+  //       minimumIntegerDigits: 2,
+  //       useGrouping: false,
+  //     })
+  //   )}`;
+  // };
+
+  // const getCardVerticalEUrl = (
+  //   chara: string,
+  //   initial: number,
+  //   cosuName: string,
+  //   cosuIndex: number
+  // ) => {
+  //   // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+  //   const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+  //   return `https://www.diveidolypapi.my.id/api/img/card/verticalE/${encodeURIComponent(
+  //     chara.toLowerCase()
+  //   )}/${encodeURIComponent(
+  //     initial.toLocaleString("en-US", {
+  //       minimumIntegerDigits: 2,
+  //       useGrouping: false,
+  //     })
+  //   )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+  //     cosuIndex.toLocaleString("en-US", {
+  //       minimumIntegerDigits: 2,
+  //       useGrouping: false,
+  //     })
+  //   )}`;
+  // };
 
   const getColorByCardAttribute = (cardAttribute: string): string => {
     switch (cardAttribute) {
@@ -75,11 +151,18 @@ const CardList: React.FC<CardListProps> = ({
                       />
                     )}
                     <img
-                      src={
-                        card.imageSource?.verticalImage
-                          ? card.imageSource?.verticalImage
-                          : ""
-                      }
+                      src={getCardVerticalUrl(
+                        card._sourceName,
+                        card.initial,
+                        card.costumeTheme,
+                        card.costumeIndex
+                      )}
+                      onError={(e) => {
+                        e.currentTarget.src = `${
+                          import.meta.env.BASE_URL
+                        }assets/default_image.png`;
+                        e.currentTarget.alt = "Image not available";
+                      }}
                       alt={`Card ${uniqueId}`}
                       className="h-full w-auto rounded-r-xl object-cover transition-all duration-500 ease-out"
                     />
@@ -159,7 +242,6 @@ const CardList: React.FC<CardListProps> = ({
       )}
     </div>
   );
-
 };
 
 export default CardList;

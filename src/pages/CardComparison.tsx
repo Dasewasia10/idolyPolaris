@@ -14,6 +14,10 @@ import {
   getPlaceholderImageUrl,
 } from "../utils/imageUtils";
 
+interface CardWithSourceName extends Card {
+  _sourceName: string;
+}
+
 const API_BASE_URL = "https://www.diveidolypapi.my.id/api";
 
 // Function to generate unique identifier for Card
@@ -91,21 +95,6 @@ const processCardSources = (cardSources: Source[], idols: any[]) => {
               },
             }
           : undefined,
-        imageSource: {
-          costumeIcon: item.imageSource?.costumeIcon,
-          figureImageB: item.imageSource?.figureImageB,
-          iconImage:
-            `https://api.diveidolypapi.my.id/iconCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          iconImageB: item.imageSource?.iconImageB,
-          sourceImage:
-            `https://api.diveidolypapi.my.id/sourceCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          verticalImage:
-            `https://api.diveidolypapi.my.id/verticalCard/${source.name.toLowerCase()}.png` ||
-            "https://placehold.co/600x400",
-          verticalImageB: item.imageSource?.verticalImageB,
-        },
         battleCommentary: item.battleCommentary,
         explanation: item.explanation,
       })),
@@ -124,8 +113,8 @@ const CardComparison: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
-  const [slot1, setSlot1] = useState<Card | null>(null);
-  const [slot2, setSlot2] = useState<Card | null>(null);
+  const [slot1, setSlot1] = useState<CardWithSourceName | null>(null);
+  const [slot2, setSlot2] = useState<CardWithSourceName | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -179,7 +168,7 @@ const CardComparison: React.FC = () => {
   }, [sources]); // ✅ Sekarang hanya muncul jika `sources` berubah
 
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
-  const filteredCards = useMemo(() => {
+  const filteredCards: CardWithSourceName[] = useMemo(() => {
     return cards
       .filter((card) => {
         // Ambil sourceName dari sources berdasarkan initialTitle
@@ -239,7 +228,7 @@ const CardComparison: React.FC = () => {
             ...card.title,
             [primaryLanguage]: card.title?.[primaryLanguage] || "Unknown Title",
           },
-          _sourceName: source?.name || "Unknown Source", // Simpan _sourceName
+          _sourceName: source?.name || "mei", // Simpan _sourceName
         };
       });
   }, [cards, searchTerm, primaryLanguage, sources]);
@@ -421,6 +410,30 @@ const CardComparison: React.FC = () => {
     };
   }, [isMenuOpen, isOpen]);
 
+  const getCardIconUrl = (
+    chara: string,
+    initial: number,
+    cosuName: string,
+    cosuIndex: number
+  ) => {
+    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+
+    return `https://www.diveidolypapi.my.id/api/img/card/thumb/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(
+      initial.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
+      cosuIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })
+    )}`;
+  };
+
   const handleBackClick = () => {
     window.history.back();
   };
@@ -433,13 +446,14 @@ const CardComparison: React.FC = () => {
     setIsOpen(false);
   };
 
-  const handleSelectCard = (card: Card) => {
+  const handleSelectCard = (card: CardWithSourceName) => {
     const selectedCard = {
       ...card,
       cardTitle:
         typeof card.title === "string"
           ? card.title
           : card.title?.[primaryLanguage] || "----",
+      _sourceName: card._sourceName || "Unknown Source", // Pastikan _sourceName disertakan
     };
 
     if (selectedSlot === 1) {
@@ -449,6 +463,9 @@ const CardComparison: React.FC = () => {
     }
     setIsOpen(false);
   };
+
+  console.log("Slot1: ", slot1);
+  console.log("Slot2: ", slot2);
 
   return (
     <div className="transition-all duration-300 ease-out flex flex-col h-screen">
@@ -612,10 +629,18 @@ const CardComparison: React.FC = () => {
                         {/* Menampilkan gambar berdasarkan slot1.uniqueId */}
                         {slot1 && uniqueId && (
                           <img
-                            src={
-                              slot1.imageSource?.iconImage ||
-                              "https://via.placeholder.com/150"
-                            }
+                            src={getCardIconUrl(
+                              slot1._sourceName,
+                              slot1.initial,
+                              slot1.costumeTheme,
+                              slot1.costumeIndex
+                            )}
+                            onError={(e) => {
+                              e.currentTarget.src = `${
+                                import.meta.env.BASE_URL
+                              }assets/default_image.png`;
+                              e.currentTarget.alt = "Image not available";
+                            }}
                             alt={`Card ${uniqueId}`}
                             className="h-full w-auto rounded-lg object-cover outline outline-offset-4 lg:relative lg:h-auto lg:object-none"
                           />
@@ -850,10 +875,18 @@ const CardComparison: React.FC = () => {
                         {/* Menampilkan gambar berdasarkan slot1.uniqueId */}
                         {slot2 && uniqueId && (
                           <img
-                            src={
-                              slot2.imageSource?.iconImage ||
-                              "https://via.placeholder.com/150"
-                            }
+                            src={getCardIconUrl(
+                              slot2._sourceName,
+                              slot2.initial,
+                              slot2.costumeTheme,
+                              slot2.costumeIndex
+                            )}
+                            onError={(e) => {
+                              e.currentTarget.src = `${
+                                import.meta.env.BASE_URL
+                              }assets/default_image.png`;
+                              e.currentTarget.alt = "Image not available";
+                            }}
                             alt={`Card ${uniqueId}`}
                             className="h-full w-auto rounded-lg object-cover outline outline-offset-4 lg:relative lg:h-auto lg:object-none"
                           />
