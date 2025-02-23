@@ -53,29 +53,51 @@ const ChatPage: React.FC = () => {
       chara.toLowerCase()
     )}/${encodeURIComponent(expression.toLowerCase())}`;
 
-    const cache = await caches.open("stamps-cache");
-    const cachedResponse = await cache.match(originalUrl);
+    try {
+      const cache = await caches.open("stamps-cache");
+      const cachedResponse = await cache.match(originalUrl);
 
-    if (cachedResponse) {
-      return URL.createObjectURL(await cachedResponse.blob());
+      if (cachedResponse) {
+        return URL.createObjectURL(await cachedResponse.blob());
+      }
+
+      const response = await fetch(originalUrl, { redirect: "follow" });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+
+      await cache.put(originalUrl, response.clone());
+      return URL.createObjectURL(await response.blob());
+    } catch (error) {
+      console.error("Error fetching stamp image:", error);
+      return "https://placehold.co/600x400"; // Fallback image
     }
-
-    const response = await fetch(originalUrl, { redirect: "follow" });
-    await cache.put(originalUrl, response.clone());
-    return URL.createObjectURL(await response.blob());
   };
 
   useEffect(() => {
-    // Fetch stamps data
-    fetch("https://www.diveidolypapi.my.id/api/stamps", { redirect: "follow" })
-      .then((response) => response.json())
-      .then((data) => {
-        const formattedStamps = data.map((stamp: Stamp) => ({
-          ...stamp,
-          src: `${getStampUrl(stamp.character, stamp.expression)}`,
-        }));
+    const fetchStamps = async () => {
+      try {
+        const response = await fetch(
+          "https://www.diveidolypapi.my.id/api/stamps",
+          { redirect: "follow" }
+        );
+        const data = await response.json();
+
+        // Gunakan Promise.all untuk menunggu semua URL gambar di-resolve
+        const formattedStamps = await Promise.all(
+          data.map(async (stamp: Stamp) => ({
+            ...stamp,
+            src: await getStampUrl(stamp.character, stamp.expression), // Tunggu Promise diselesaikan
+          }))
+        );
+
         setStamps(formattedStamps);
-      });
+      } catch (error) {
+        console.error("Error fetching stamps:", error);
+      }
+    };
+
+    fetchStamps();
   }, []);
 
   useEffect(() => {
