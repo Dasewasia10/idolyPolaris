@@ -49,7 +49,7 @@ const ChatPage: React.FC = () => {
   };
 
   const getStampUrl = async (chara: string, expression: string) => {
-    const originalUrl = `https://www.diveidolypapi.my.id/api/img/card/thumb/${encodeURIComponent(
+    const originalUrl = `https://www.diveidolypapi.my.id/api/img/stamp/${encodeURIComponent(
       chara.toLowerCase()
     )}/${encodeURIComponent(expression.toLowerCase())}`;
 
