@@ -50,8 +50,8 @@ const ChatPage: React.FC = () => {
 
   const getStampUrl = async (chara: string, expression: string) => {
     const originalUrl = `https://www.diveidolypapi.my.id/api/img/stamp/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(expression.toLowerCase())}`;
+      chara
+    )}/${encodeURIComponent(expression)}`;
 
     try {
       const cache = await caches.open("stamps-cache");
@@ -87,7 +87,10 @@ const ChatPage: React.FC = () => {
         const formattedStamps = await Promise.all(
           data.map(async (stamp: Stamp) => ({
             ...stamp,
-            src: await getStampUrl(stamp.character, stamp.expression), // Tunggu Promise diselesaikan
+            src: await getStampUrl(
+              stamp.character.toLowerCase(),
+              stamp.expression.toLowerCase()
+            ), // Tunggu Promise diselesaikan
           }))
         );
 
