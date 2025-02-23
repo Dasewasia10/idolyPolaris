@@ -118,7 +118,7 @@ const KTPManager: React.FC = () => {
 
   const getCharacterIconUrl = (characterName: string) => {
     return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
-      characterName
+      characterName.toLowerCase()
     )}`;
   };
 

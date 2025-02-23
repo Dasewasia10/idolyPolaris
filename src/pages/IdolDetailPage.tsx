@@ -95,7 +95,7 @@ const IdolDetailPage: React.FC = () => {
       characterName
     )}`;
   };
-  
+
   const getCharacterBannerUrl = (characterName: string) => {
     return `https://www.diveidolypapi.my.id/api/img/character/banner/${encodeURIComponent(
       characterName
@@ -178,11 +178,16 @@ const IdolDetailPage: React.FC = () => {
         </div>
       )}
       {/* {Background image represented the group of the idol} */}
-      <img
-        src={getGroupImageUrl(idol.groupName)}
-        alt={idol.groupName}
-        className="absolute left-0 right-0 mx-auto h-60 w-auto self-center opacity-60 transition-all duration-500 ease-out lg:h-[30rem]"
-      />
+      {(idol.groupName === "Tsuki no Tempest" ||
+        idol.groupName === "Sunny Peace" ||
+        idol.groupName === "TRINITYAiLE" ||
+        idol.groupName === "Liznoir") && (
+        <img
+          src={getGroupImageUrl(idol.groupName)}
+          alt={idol.groupName}
+          className="absolute left-0 right-0 mx-auto h-60 w-auto self-center opacity-60 transition-all duration-500 ease-out lg:h-[30rem]"
+        />
+      )}
       {idol.groupName === "IIIX" && (
         <img
           src={getGroupImageUrl(idol.groupName)}
