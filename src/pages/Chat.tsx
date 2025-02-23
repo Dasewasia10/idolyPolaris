@@ -50,8 +50,8 @@ const ChatPage: React.FC = () => {
 
   const getStampUrl = async (chara: string, expression: string) => {
     const originalUrl = `https://www.diveidolypapi.my.id/api/img/stamp/${encodeURIComponent(
-      chara
-    )}/${encodeURIComponent(expression)}`;
+      chara.toLowerCase()
+    )}/${encodeURIComponent(expression.toLowerCase())}`;
 
     try {
       const cache = await caches.open("stamps-cache");
@@ -66,6 +66,7 @@ const ChatPage: React.FC = () => {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
       }
 
+      // Simpan ke cache hanya jika respons sukses
       await cache.put(originalUrl, response.clone());
       return URL.createObjectURL(await response.blob());
     } catch (error) {
