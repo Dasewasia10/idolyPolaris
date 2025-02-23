@@ -48,24 +48,39 @@ const ChatPage: React.FC = () => {
     return htmlText;
   };
 
-  const getStampUrl = (chara: string, expression: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(expression.toLowerCase())}
-    )}`;
-  };
-
   useEffect(() => {
-    // Fetch stamps data
-    fetch("https://www.diveidolypapi.my.id/api/stamps", { redirect: "follow" })
-      .then((response) => response.json())
-      .then((data) => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://www.diveidolypapi.my.id/api/stamps"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const data: Stamp[] = await response.json();
+
+        const getStampUrl = (chara: string, expression: string) => {
+          return `https://www.diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
+            chara.toLowerCase()
+          )}/${encodeURIComponent(expression.toLowerCase())})}`;
+        };
+
         const formattedStamps = data.map((stamp: Stamp) => ({
           ...stamp,
-          src: `${getStampUrl(stamp.character, stamp.expression)}`,
+          src: getStampUrl(stamp.character, stamp.expression),
         }));
         setStamps(formattedStamps);
-      });
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
