@@ -25,15 +25,12 @@ const matchWithCharacters = (lyricsData: any[], characters: any[]) =>
         };
       });
 
-      console.log("item.character:", item.character);
-      console.log("matchedCharacters for item:", matchedCharacters);
       return {
         ...item,
         matchedCharacters, // Tambahkan daftar karakter yang cocok ke item
       };
     });
 
-    console.log("Source in matchWithCharacters:", source);
     return {
       ...source,
       data: matchedData, // Perbarui source.data dengan matchedCharacters
@@ -185,7 +182,6 @@ const Lyrics: React.FC = () => {
       (selectedGroup === "" || filteredTitleByGroup.includes(title)) &&
       (selectedCharacter === "" || filteredTitleByCharacter.includes(title))
   );
-  console.log("combinedFilteredTitles:", combinedFilteredTitles);
 
   const [activeSource, setActiveSource] = useState(
     sources.length > 0 ? sources[0].name : ""
@@ -196,8 +192,6 @@ const Lyrics: React.FC = () => {
       ? sources.find((source) => source.name === activeSource)?.data || []
       : [];
 
-  console.log("activeData: ", activeData);
-
   const [activeCharacters, setActiveCharacters] = useState<any[]>([]);
 
   useEffect(() => {
@@ -206,9 +200,7 @@ const Lyrics: React.FC = () => {
         (source) => source.name === activeSource
       );
       if (activeLyric) {
-        console.log("Active Lyric:", activeLyric);
         const matchedCharacters = matchWithCharacters([activeLyric], idols);
-        console.log("Matched Characters Result:", matchedCharacters);
         setActiveCharacters(
           matchedCharacters[0]?.data[0]?.matchedCharacters || []
         );

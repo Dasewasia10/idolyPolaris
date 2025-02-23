@@ -162,10 +162,6 @@ const CardDesign: React.FC = () => {
     }
   }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
 
-  useEffect(() => {
-    console.log("sources", sources);
-  }, [sources]); // ✅ Sekarang hanya muncul jika `sources` berubah
-
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
   const filteredCards: CardWithSourceName[] = useMemo(() => {
     return cards
@@ -283,45 +279,6 @@ const CardDesign: React.FC = () => {
                 ?.title?.[primaryLanguage] || "----",
           }
         : null
-    );
-
-    const filteredSkillsSlot = sources.flatMap((source) =>
-      source.data.filter((card: Card) => card.id === placing?.id)
-    );
-
-    const skillTranslationsByLanguageSlot = filteredSkillsSlot.reduce(
-      (acc, card) => {
-        const skills = [
-          { key: "skillOne", data: card.skillOne },
-          { key: "skillTwo", data: card.skillTwo },
-          { key: "skillThree", data: card.skillThree },
-          { key: "skillFour", data: card.skillFour },
-        ].filter((skill) => skill.data); // Hanya ambil skill yang ada
-
-        skills.forEach((skill) => {
-          const description = Array.isArray(
-            skill.data?.description?.[primaryLanguage]
-          )
-            ? skill.data?.description?.[primaryLanguage].join(" ") // Gabungkan array menjadi string
-            : skill.data?.description?.[primaryLanguage] || "----"; // Jika bukan array, gunakan langsung
-
-          acc[`${card.id}-${skill.key}`] = [
-            {
-              title: skill.data?.name?.[primaryLanguage] || "----",
-              description: description, // Pastikan description adalah string atau null
-            },
-          ];
-        });
-
-        return acc;
-      },
-      {} as Record<string, { title: string; description: string | null }[]>
-    );
-
-    console.log("filteredSkillsSlot", filteredSkillsSlot);
-    console.log(
-      "skillTranslationsByLanguageSlot",
-      skillTranslationsByLanguageSlot
     );
   }, [primaryLanguage, cards]);
 

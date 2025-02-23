@@ -154,11 +154,9 @@ const CardOverview: React.FC = () => {
 
   // Memastikan cards diperbarui saat sources berubah
   useEffect(() => {
-    console.log("Sources:", sources); // Log data sources
     if (cards.length === 0) {
       setCards(
         sources.flatMap((source) => {
-          console.log("Source data:", source.data); // Log source.data
           return Array.isArray(source.data)
             ? source.data.map((card: any) => ({
                 ...card,
@@ -169,10 +167,6 @@ const CardOverview: React.FC = () => {
       );
     }
   }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
-
-  useEffect(() => {
-    console.log("sources", sources);
-  }, [sources]); // ✅ Sekarang hanya muncul jika `sources` berubah
 
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
   const filteredCards: CardWithSourceName[] = useMemo(() => {
@@ -291,45 +285,6 @@ const CardOverview: React.FC = () => {
                 ?.title?.[primaryLanguage] || "----",
           }
         : null
-    );
-
-    const filteredSkillsSlot = sources.flatMap((source) =>
-      source.data.filter((card: Card) => card.id === slot?.id)
-    );
-
-    const skillTranslationsByLanguageSlot = filteredSkillsSlot.reduce(
-      (acc, card) => {
-        const skills = [
-          { key: "skillOne", data: card.skillOne },
-          { key: "skillTwo", data: card.skillTwo },
-          { key: "skillThree", data: card.skillThree },
-          { key: "skillFour", data: card.skillFour },
-        ].filter((skill) => skill.data); // Hanya ambil skill yang ada
-
-        skills.forEach((skill) => {
-          const description = Array.isArray(
-            skill.data?.description?.[primaryLanguage]
-          )
-            ? skill.data?.description?.[primaryLanguage].join(" ") // Gabungkan array menjadi string
-            : skill.data?.description?.[primaryLanguage] || "----"; // Jika bukan array, gunakan langsung
-
-          acc[`${card.id}-${skill.key}`] = [
-            {
-              title: skill.data?.name?.[primaryLanguage] || "----",
-              description: description, // Pastikan description adalah string atau null
-            },
-          ];
-        });
-
-        return acc;
-      },
-      {} as Record<string, { title: string; description: string | null }[]>
-    );
-
-    console.log("filteredSkillsSlot", filteredSkillsSlot);
-    console.log(
-      "skillTranslationsByLanguageSlot",
-      skillTranslationsByLanguageSlot
     );
   }, [primaryLanguage, cards]);
 
@@ -626,11 +581,6 @@ const CardOverview: React.FC = () => {
     setSlot(selectedCard);
     setIsOpen(true);
   };
-
-  useEffect(() => {
-    console.log("selectedCards", selectedCards);
-    console.log("slot", slot);
-  });
 
   return (
     <div className="transition-all duration-300 ease-out flex flex-row h-screen">

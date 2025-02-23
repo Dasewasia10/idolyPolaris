@@ -163,10 +163,6 @@ const CardComparison: React.FC = () => {
     }
   }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
 
-  useEffect(() => {
-    console.log("sources", sources);
-  }, [sources]); // ✅ Sekarang hanya muncul jika `sources` berubah
-
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
   const filteredCards: CardWithSourceName[] = useMemo(() => {
     return cards
@@ -296,83 +292,6 @@ const CardComparison: React.FC = () => {
           }
         : null
     );
-
-    const filteredSkillsSlot1 = sources.flatMap((source) =>
-      source.data.filter((card: Card) => card.id === slot1?.id)
-    );
-
-    const filteredSkillsSlot2 = sources.flatMap((source) =>
-      source.data.filter((card: Card) => card.id === slot2?.id)
-    );
-
-    const skillTranslationsByLanguageSlot1 = filteredSkillsSlot1.reduce(
-      (acc, card) => {
-        const skills = [
-          { key: "skillOne", data: card.skillOne },
-          { key: "skillTwo", data: card.skillTwo },
-          { key: "skillThree", data: card.skillThree },
-          { key: "skillFour", data: card.skillFour },
-        ].filter((skill) => skill.data); // Hanya ambil skill yang ada
-
-        skills.forEach((skill) => {
-          const description = Array.isArray(
-            skill.data?.description?.[primaryLanguage]
-          )
-            ? skill.data?.description?.[primaryLanguage].join(" ") // Gabungkan array menjadi string
-            : skill.data?.description?.[primaryLanguage] || "----"; // Jika bukan array, gunakan langsung
-
-          acc[`${card.id}-${skill.key}`] = [
-            {
-              title: skill.data?.name?.[primaryLanguage] || "----",
-              description: description, // Pastikan description adalah string atau null
-            },
-          ];
-        });
-
-        return acc;
-      },
-      {} as Record<string, { title: string; description: string | null }[]>
-    );
-
-    const skillTranslationsByLanguageSlot2 = filteredSkillsSlot2.reduce(
-      (acc, card) => {
-        const skills = [
-          { key: "skillOne", data: card.skillOne },
-          { key: "skillTwo", data: card.skillTwo },
-          { key: "skillThree", data: card.skillThree },
-          { key: "skillFour", data: card.skillFour },
-        ].filter((skill) => skill.data); // Hanya ambil skill yang ada
-
-        skills.forEach((skill) => {
-          const description = Array.isArray(
-            skill.data?.description?.[primaryLanguage]
-          )
-            ? skill.data?.description?.[primaryLanguage].join(" ") // Gabungkan array menjadi string
-            : skill.data?.description?.[primaryLanguage] || "----"; // Jika bukan array, gunakan langsung
-
-          acc[`${card.id}-${skill.key}`] = [
-            {
-              title: skill.data?.name?.[primaryLanguage] || "----",
-              description: description, // Pastikan description adalah string atau null
-            },
-          ];
-        });
-
-        return acc;
-      },
-      {} as Record<string, { title: string; description: string | null }[]>
-    );
-
-    console.log("filteredSkillsSlot1", filteredSkillsSlot1);
-    console.log("filteredSkillsSlot2", filteredSkillsSlot2);
-    console.log(
-      "skillTranslationsByLanguageSlot1",
-      skillTranslationsByLanguageSlot1
-    );
-    console.log(
-      "skillTranslationsByLanguageSlot2",
-      skillTranslationsByLanguageSlot2
-    );
   }, [primaryLanguage, cards]);
 
   const toggleMenu = (_p0: boolean) => {
@@ -463,9 +382,6 @@ const CardComparison: React.FC = () => {
     }
     setIsOpen(false);
   };
-
-  console.log("Slot1: ", slot1);
-  console.log("Slot2: ", slot2);
 
   return (
     <div className="transition-all duration-300 ease-out flex flex-col h-screen">

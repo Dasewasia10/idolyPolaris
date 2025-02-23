@@ -58,9 +58,7 @@ const ChatPage: React.FC = () => {
           src: `https://api.diveidolypapi.my.id/stampChat/stamp_${stamp.character.toLowerCase()}-${stamp.expression.toLowerCase()}.webp`,
         }));
         setStamps(formattedStamps);
-        console.log("formattedStamps: ", formattedStamps);
       });
-    console.log("stamp: ", stamps);
   }, []);
 
   useEffect(() => {
