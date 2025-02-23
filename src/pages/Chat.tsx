@@ -63,7 +63,7 @@ const ChatPage: React.FC = () => {
         const getStampUrl = (chara: string, expression: string) => {
           return `https://www.diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
             chara.toLowerCase()
-          )}/${encodeURIComponent(expression.toLowerCase())})}`;
+          )}/${encodeURIComponent(expression.toLowerCase())}`;
         };
 
         const formattedStamps = data.map((stamp: Stamp) => ({
