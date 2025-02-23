@@ -35,7 +35,7 @@ export default function VideoModal({ src, thumbnail }: VideoModalProps) {
           <img
             src="assets/Youtube_Logo.png"
             alt="YouTube Logo"
-            className="w-16 opacity-90"
+            className="w-6 md:w-10 lg:w-16 opacity-90"
           />
         </div>
       </div>
@@ -43,9 +43,7 @@ export default function VideoModal({ src, thumbnail }: VideoModalProps) {
       {/* Draggable Modal with Iframe YouTube */}
       {isOpen && (
         <Draggable>
-          <div
-            className="fixed top-0 left-0 bg-white p-4 rounded-lg shadow-lg z-50 w-auto h-auto"
-          >
+          <div className="fixed top-0 left-0 bg-white p-4 rounded-lg shadow-lg z-50 w-auto h-auto">
             <div className="flex justify-between py-1">
               <button
                 className={`text-gray-600 hover:text-gray-900 ${

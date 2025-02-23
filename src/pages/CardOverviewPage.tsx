@@ -22,7 +22,6 @@ const API_BASE_URL = "https://www.diveidolypapi.my.id/api";
 
 // Function to generate unique identifier for Card
 const generateCardId = (card: Card): string => {
-  console.log("Processing card:", card); // Log data card
   const globalTitleWords = (card.title?.global ?? "NewCard").split(" ");
   const firstTwoWords = globalTitleWords.slice(0, 2).join("");
   return `${card.initialTitle}-${firstTwoWords}`;

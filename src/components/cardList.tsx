@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Card } from "../interfaces/Card";
 
 import {
@@ -21,8 +21,6 @@ const CardList: React.FC<CardListProps> = ({
   onSelectCard,
   primaryLanguage,
 }) => {
-  console.log("cardAfterFilter: ", cardAfterFilter);
-
   const getCardVerticalUrl = (
     chara: string,
     initial: number,
@@ -111,10 +109,6 @@ const CardList: React.FC<CardListProps> = ({
   const generateStars = (count: number): string => {
     return "✭".repeat(count);
   };
-
-  useEffect(() => {
-    console.log("cardAfterFilter: ", cardAfterFilter);
-  }, [cardAfterFilter]);
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2">
