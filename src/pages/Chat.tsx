@@ -48,6 +48,23 @@ const ChatPage: React.FC = () => {
     return htmlText;
   };
 
+  const getStampUrl = async (chara: string, expression: string) => {
+    const originalUrl = `https://www.diveidolypapi.my.id/api/img/card/thumb/${encodeURIComponent(
+      chara.toLowerCase()
+    )}/${encodeURIComponent(expression.toLowerCase())}`;
+
+    const cache = await caches.open("stamps-cache");
+    const cachedResponse = await cache.match(originalUrl);
+
+    if (cachedResponse) {
+      return URL.createObjectURL(await cachedResponse.blob());
+    }
+
+    const response = await fetch(originalUrl, { redirect: "follow" });
+    await cache.put(originalUrl, response.clone());
+    return URL.createObjectURL(await response.blob());
+  };
+
   useEffect(() => {
     // Fetch stamps data
     fetch("https://www.diveidolypapi.my.id/api/stamps", { redirect: "follow" })
@@ -55,7 +72,7 @@ const ChatPage: React.FC = () => {
       .then((data) => {
         const formattedStamps = data.map((stamp: Stamp) => ({
           ...stamp,
-          src: `https://api.diveidolypapi.my.id/stampChat/stamp_${stamp.character.toLowerCase()}-${stamp.expression.toLowerCase()}.webp`,
+          src: `${getStampUrl(stamp.character, stamp.expression)}`,
         }));
         setStamps(formattedStamps);
       });
