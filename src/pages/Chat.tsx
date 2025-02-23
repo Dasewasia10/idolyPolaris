@@ -48,60 +48,24 @@ const ChatPage: React.FC = () => {
     return htmlText;
   };
 
-  const getStampUrl = async (chara: string, expression: string) => {
-    const originalUrl = `https://www.diveidolypapi.my.id/api/img/stamp/${encodeURIComponent(
+  const getStampUrl = (chara: string, expression: string) => {
+    return `https://www.diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
       chara.toLowerCase()
-    )}/${encodeURIComponent(expression.toLowerCase())}`;
-
-    try {
-      const cache = await caches.open("stamps-cache");
-      const cachedResponse = await cache.match(originalUrl);
-
-      if (cachedResponse) {
-        return URL.createObjectURL(await cachedResponse.blob());
-      }
-
-      const response = await fetch(originalUrl, { redirect: "follow" });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
-      }
-
-      // Simpan ke cache hanya jika respons sukses
-      await cache.put(originalUrl, response.clone());
-      return URL.createObjectURL(await response.blob());
-    } catch (error) {
-      console.error("Error fetching stamp image:", error);
-      return "https://placehold.co/600x400"; // Fallback image
-    }
+    )}/${encodeURIComponent(expression.toLowerCase())}
+    )}`;
   };
 
   useEffect(() => {
-    const fetchStamps = async () => {
-      try {
-        const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/stamps",
-          { redirect: "follow" }
-        );
-        const data = await response.json();
-
-        // Gunakan Promise.all untuk menunggu semua URL gambar di-resolve
-        const formattedStamps = await Promise.all(
-          data.map(async (stamp: Stamp) => ({
-            ...stamp,
-            src: await getStampUrl(
-              stamp.character.toLowerCase(),
-              stamp.expression.toLowerCase()
-            ), // Tunggu Promise diselesaikan
-          }))
-        );
-
+    // Fetch stamps data
+    fetch("https://www.diveidolypapi.my.id/api/stamps", { redirect: "follow" })
+      .then((response) => response.json())
+      .then((data) => {
+        const formattedStamps = data.map((stamp: Stamp) => ({
+          ...stamp,
+          src: `${getStampUrl(stamp.character, stamp.expression)}`,
+        }));
         setStamps(formattedStamps);
-      } catch (error) {
-        console.error("Error fetching stamps:", error);
-      }
-    };
-
-    fetchStamps();
+      });
   }, []);
 
   useEffect(() => {
