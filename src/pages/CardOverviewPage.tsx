@@ -931,7 +931,7 @@ const CardOverview: React.FC = () => {
 
                 {slot.skillFour && (
                   <>
-                    <h3 className="text-xl font-bold">Skills :</h3>
+                    <h3 className="text-xl font-bold">Kizuna Skills :</h3>
                     <section className="text-md flex flex-col rounded border-2 p-2 lg:mt-2 border-l-pink-500 border-r-purple-500 border-t-teal-300 border-b-yellow-300">
                       <div className="flex flex-col gap-1 border-2 lg:flex-row">
                         <div className="flex flex-col items-center justify-center border-x p-2 text-center">
