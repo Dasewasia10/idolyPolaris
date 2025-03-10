@@ -28,6 +28,7 @@
     "react-dom": "^18.3.1",
     "react-draggable": "^4.4.6",
     "react-router-dom": "^7.0.2",
+    "react-select": "^5.10.1",
     "react-textarea-autosize": "^8.5.7",
     "tailwind-scrollbar": "^3.1.0"
   },

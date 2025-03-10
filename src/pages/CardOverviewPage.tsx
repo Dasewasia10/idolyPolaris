@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Source, Card } from "../interfaces/Card";
 import { Character } from "../interfaces/Character";
 import axios from "axios";
+import Select from "react-select";
 
 import SearchBar from "../components/searchBar";
 import CardList from "../components/cardList"; // Import komponen baru
@@ -125,6 +126,16 @@ const CardOverview: React.FC = () => {
   const [showIconE, setShowIconE] = useState<boolean>(false);
   const [showSourceE, setShowSourceE] = useState<boolean>(false);
 
+  // State untuk filter
+  const [selectedGroup, setSelectedGroup] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [selectedSourceName, setSelectedSourceName] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [selectedType, setSelectedType] = useState<string[]>([]);
+  const [selectedAttribute, setSelectedAttribute] = useState<string[]>([]);
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -169,9 +180,42 @@ const CardOverview: React.FC = () => {
     }
   }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
 
+  // Fungsi untuk mengaplikasikan filter
+  const applyFilters = (cards: CardWithSourceName[]) => {
+    return cards.filter((card) => {
+      // Ambil karakter yang sesuai dengan _sourceName
+      const character = characters.find(
+        (char) => char.name.toLowerCase() === card._sourceName.toLowerCase()
+      );
+
+      // Cek apakah kartu termasuk dalam group yang dipilih
+      const matchesGroup =
+        selectedGroup.length === 0 ||
+        selectedGroup.some((group) => group.value === character?.groupName);
+
+      // Cek apakah kartu sesuai dengan nama karakter yang dipilih
+      const matchesSourceName =
+        selectedSourceName.length === 0 ||
+        selectedSourceName.some((source) => source.value === card._sourceName);
+
+      // Cek apakah kartu sesuai dengan type yang dipilih
+      const matchesType =
+        selectedType.length === 0 || selectedType.includes(card.type);
+
+      // Cek apakah kartu sesuai dengan attribute yang dipilih
+      const matchesAttribute =
+        selectedAttribute.length === 0 ||
+        selectedAttribute.includes(card.attribute);
+
+      return (
+        matchesGroup && matchesSourceName && matchesType && matchesAttribute
+      );
+    });
+  };
+
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
   const filteredCards: CardWithSourceName[] = useMemo(() => {
-    return cards
+    const filteredBySearch = cards
       .filter((card) => {
         // Ambil sourceName dari sources berdasarkan initialTitle
         const source = sources.find((source) =>
@@ -233,7 +277,20 @@ const CardOverview: React.FC = () => {
           _sourceName: source?.name || "Unknown Source", // Simpan _sourceName
         };
       });
-  }, [cards, searchTerm, primaryLanguage, sources]);
+
+    return applyFilters(filteredBySearch);
+  }, [
+    cards,
+    searchTerm,
+    primaryLanguage,
+    sources,
+    selectedGroup,
+    selectedSourceName,
+    selectedType,
+    selectedAttribute,
+    characters, // Tambahkan characters sebagai dependency
+  ]);
+
   // ✅ Sekarang hanya dihitung ulang jika dependensi berubah
 
   useEffect(() => {
@@ -493,6 +550,47 @@ const CardOverview: React.FC = () => {
     setIsOpen(true);
   };
 
+  // Ambil daftar group yang unik dari data karakter
+  const uniqueGroups = useMemo(() => {
+    const groups = new Set<string>();
+    characters.forEach((char) => {
+      if (char.groupName) {
+        groups.add(char.groupName);
+      }
+    });
+    return Array.from(groups);
+  }, [characters]);
+
+  // Format data untuk react-select (group)
+  const groupOptions = uniqueGroups.map((group) => ({
+    value: group,
+    label: group,
+  }));
+
+  // Format data untuk react-select (karakter)
+  const characterOptions = characters.map((char) => ({
+    value: char.name,
+    label: char.name,
+  }));
+
+  // Handler untuk tombol toggle type
+  const handleTypeToggle = (type: string) => {
+    if (selectedType.includes(type)) {
+      setSelectedType((prev) => prev.filter((t) => t !== type));
+    } else {
+      setSelectedType((prev) => [...prev, type]);
+    }
+  };
+
+  // Handler untuk tombol toggle attribute
+  const handleAttributeToggle = (attribute: string) => {
+    if (selectedAttribute.includes(attribute)) {
+      setSelectedAttribute((prev) => prev.filter((a) => a !== attribute));
+    } else {
+      setSelectedAttribute((prev) => [...prev, attribute]);
+    }
+  };
+
   return (
     <div className="transition-all duration-300 ease-out flex flex-row h-screen">
       {/* Tombol Hamburger (Muncul hanya di layar kecil, `lg:hidden`) */}
@@ -519,7 +617,7 @@ const CardOverview: React.FC = () => {
       {/* Sidebar Menu */}
       <section
         ref={menuRef}
-        className={`absolute left-2 top-4 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:w-1/4 
+        className={`absolute left-2 top-4 z-30 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:w-1/4 
     ${isMenuOpen ? "block" : "hidden"} lg:block lg:sticky`}
       >
         <div className="flex flex-row items-center justify-between">
@@ -590,6 +688,81 @@ const CardOverview: React.FC = () => {
             </button>
           </div>
         </div>
+        <div className="mt-2 flex flex-col gap-4 rounded border-2 border-white p-4">
+          {/* Filter Group (Multi-Select Dropdown) */}
+          <div>
+            <p className="text-white">Select Group</p>
+            <Select
+              isMulti
+              options={groupOptions}
+              value={selectedGroup}
+              onChange={(selected) =>
+                setSelectedGroup(selected as { value: string; label: string }[])
+              }
+              className="mt-2"
+              classNamePrefix="select"
+              placeholder="Select groups..."
+            />
+          </div>
+
+          {/* Filter Character (Multi-Select Dropdown) */}
+          <div>
+            <p className="text-white">Select Character</p>
+            <Select
+              isMulti
+              options={characterOptions}
+              value={selectedSourceName}
+              onChange={(selected) =>
+                setSelectedSourceName(
+                  selected as { value: string; label: string }[]
+                )
+              }
+              className="mt-2"
+              classNamePrefix="select"
+              placeholder="Select characters..."
+            />
+          </div>
+
+          {/* Filter Type (Tombol Toggle) */}
+          <div>
+            <p className="text-white">Select Type</p>
+            <div className="mt-2 flex flex-row flex-wrap gap-2">
+              {["Scorer", "Buffer", "Supporter"].map((type) => (
+                <button
+                  key={type}
+                  className={`rounded px-4 py-2 hover:bg-blue-300 ${
+                    selectedType.includes(type)
+                      ? "bg-blue-500 text-white"
+                      : "bg-white"
+                  }`}
+                  onClick={() => handleTypeToggle(type)}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filter Attribute (Tombol Toggle) */}
+          <div>
+            <p className="text-white">Select Attribute</p>
+            <div className="mt-2 flex flex-row flex-wrap gap-2">
+              {["Vocal", "Dance", "Visual"].map((attribute) => (
+                <button
+                  key={attribute}
+                  className={`rounded px-4 py-2 hover:bg-blue-300 ${
+                    selectedAttribute.includes(attribute)
+                      ? "bg-blue-500 text-white"
+                      : "bg-white"
+                  }`}
+                  onClick={() => handleAttributeToggle(attribute)}
+                >
+                  {attribute}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       <div className="fixed right-4 top-4 z-20 w-1/2">
@@ -609,7 +782,7 @@ const CardOverview: React.FC = () => {
       </div>
 
       {isOpen && slot && (
-        <div className="fixed inset-0 z-20 flex h-[100dvh] w-screen bg-[#00246B] bg-opacity-50">
+        <div className="fixed inset-0 z-30 flex h-[100dvh] w-screen bg-[#00246B] bg-opacity-50">
           <div
             ref={openRef}
             className="fixed inset-0 flex h-[100dvh] w-screen p-6 lg:p-12"
