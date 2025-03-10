@@ -1010,7 +1010,7 @@ const CardOverview: React.FC = () => {
           className="fixed inset-0 z-30 flex w-screen bg-[#00246B] bg-opacity-50"
         >
           <div className="fixed inset-0 flex w-screen p-2 lg:p-6">
-            <div className="inset-0 mx-auto w-full overflow-y-hidden rounded bg-white p-2 shadow-lg">
+            <div className="inset-0 mx-auto w-full overflow-y-auto rounded bg-white p-2 shadow-lg">
               <div className="flex rounded bg-[#00246B] p-2 text-white shadow-sm scrollbar-thin">
                 <div className="flex absolute flex-col">
                   <button
