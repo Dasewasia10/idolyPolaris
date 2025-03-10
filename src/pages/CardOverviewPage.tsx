@@ -1073,7 +1073,7 @@ const CardOverview: React.FC = () => {
                       e.currentTarget.alt = "Image not available";
                     }}
                     alt={`Card ${slot._sourceName}`}
-                    className="h-4/5 w-auto rounded bg-white object-cover p-1"
+                    className="h-full w-auto rounded bg-white object-cover p-1"
                   />
                 </div>
               </div>
