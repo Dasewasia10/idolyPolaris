@@ -710,21 +710,15 @@ const CardOverview: React.FC = () => {
                   </div>
                 </>
               )}
-              {slot.initial === 5 && (
-                <>
-                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-                    <p className="text-white">Full Image</p>
-                    <button
-                      onClick={() => toggleSourceImageOpen(true)}
-                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      <span className="font-semibold opacity-100">
-                        Click Here
-                      </span>
-                    </button>
-                  </div>
-                </>
-              )}
+              <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                <p className="text-white">Full Image</p>
+                <button
+                  onClick={() => toggleSourceImageOpen(true)}
+                  className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  <span className="font-semibold opacity-100">Click Here</span>
+                </button>
+              </div>
             </section>
             <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg">
               <div className="flex flex-col gap-4 rounded border bg-[#00246B] p-4 text-white shadow-sm scrollbar-thin">
@@ -1043,7 +1037,7 @@ const CardOverview: React.FC = () => {
                         disabled={slot.category !== "Evolution"}
                       >
                         <span className="font-semibold opacity-100 text-black">
-                          {showSourceE ? "Evolution Icon" : "Initial Icon"}
+                          {showSourceE ? "Evolution Image" : "Initial Image"}
                         </span>
                       </button>
                     </>
