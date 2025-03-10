@@ -105,16 +105,16 @@ const processCardSources = (cardSources: Source[], characters: any[]) => {
 const CardOverview: React.FC = () => {
   const menuRef = useRef(null);
   const openRef = useRef(null);
+  const sourceImageRef = useRef(null);
   const { cardTitle } = useParams<{ cardTitle: string }>();
 
   const [characters, setCharacters] = useState<Character[]>([]);
   const [cardSources, setCardSources] = useState<Source[]>([]);
-
-  const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isSourceImageOpen, setSourceImageIsOpen] = useState(false);
   const [slot, setSlot] = useState<CardWithSourceName | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -122,6 +122,8 @@ const CardOverview: React.FC = () => {
   const [primaryLanguage, setPrimaryLanguage] = useState<Language>("global");
 
   const [showIconB, setShowIconB] = useState<boolean>(false);
+  const [showIconE, setShowIconE] = useState<boolean>(false);
+  const [showSourceE, setShowSourceE] = useState<boolean>(false);
 
   // Fetch data from API
   useEffect(() => {
@@ -246,16 +248,6 @@ const CardOverview: React.FC = () => {
           }))
         );
         setCards(data);
-
-        if (cardTitle) {
-          const selectedCard = data.find(
-            (item) =>
-              item.initialTitle.toLowerCase().replace(/\s+/g, "-") === cardTitle
-          );
-          setSelectedCards(selectedCard ? [selectedCard] : []);
-        } else {
-          setSelectedCards(data);
-        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -295,6 +287,10 @@ const CardOverview: React.FC = () => {
     setIsOpen(!isOpen);
   };
 
+  const toggleSourceImageOpen = (_p0: boolean) => {
+    setSourceImageIsOpen(!isSourceImageOpen);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: { target: any }) => {
       if (
@@ -309,9 +305,17 @@ const CardOverview: React.FC = () => {
       ) {
         setIsOpen(false);
       }
+      if (
+        (sourceImageRef.current as unknown as HTMLElement) &&
+        !(sourceImageRef.current as unknown as HTMLElement).contains(
+          event.target
+        )
+      ) {
+        setSourceImageIsOpen(false);
+      }
     };
 
-    if (isMenuOpen || isOpen) {
+    if (isMenuOpen || isOpen || isSourceImageOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     } else {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -320,7 +324,7 @@ const CardOverview: React.FC = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isMenuOpen, isOpen]);
+  }, [isMenuOpen, isOpen, isSourceImageOpen]);
 
   const getCardCosuUrl = (
     chara: string,
@@ -332,30 +336,6 @@ const CardOverview: React.FC = () => {
 
     return `https://www.diveidolypapi.my.id/api/img/card/cosu/${encodeURIComponent(
       chara.toLowerCase()
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardFigureBUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/figureB/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
     )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
       cosuIndex.toLocaleString("en-US", {
         minimumIntegerDigits: 2,
@@ -436,78 +416,6 @@ const CardOverview: React.FC = () => {
     )}`;
   };
 
-  const getCardVerticalUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/vertical/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardVerticalBUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/verticalB/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardVerticalEUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/verticalE/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
   const getCardSourceUrl = (
     chara: string,
     initial: number,
@@ -568,6 +476,10 @@ const CardOverview: React.FC = () => {
     setIsOpen(false);
   };
 
+  const closeSourceImageModal = () => {
+    setSourceImageIsOpen(false);
+  };
+
   const handleSelectCard = (card: CardWithSourceName) => {
     const selectedCard = {
       ...card,
@@ -607,7 +519,7 @@ const CardOverview: React.FC = () => {
       {/* Sidebar Menu */}
       <section
         ref={menuRef}
-        className={`absolute left-2 top-4 z-30 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:w-1/4 
+        className={`absolute left-2 top-4 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:w-1/4 
     ${isMenuOpen ? "block" : "hidden"} lg:block lg:sticky`}
       >
         <div className="flex flex-row items-center justify-between">
@@ -697,10 +609,10 @@ const CardOverview: React.FC = () => {
       </div>
 
       {isOpen && slot && (
-        <div className="fixed inset-0 z-40 flex h-[100dvh] w-screen bg-[#00246B] bg-opacity-50">
+        <div className="fixed inset-0 z-20 flex h-[100dvh] w-screen bg-[#00246B] bg-opacity-50">
           <div
             ref={openRef}
-            className="fixed inset-0 z-50 flex h-[100dvh] w-screen p-6 lg:p-12"
+            className="fixed inset-0 flex h-[100dvh] w-screen p-6 lg:p-12"
           >
             <section className="flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:px-6 lg:py-4">
               <div className="flex items-center justify-between">
@@ -765,6 +677,22 @@ const CardOverview: React.FC = () => {
                   </button>
                 </div>
               </div>
+              {slot.category == "Evolution" && (
+                <>
+                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                    <p className="text-white">Evolution Icon</p>
+                    <button
+                      onClick={() => setShowIconE(!showIconE)}
+                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={slot.category !== "Evolution"}
+                    >
+                      <span className="font-semibold opacity-100">
+                        {showIconE ? "Evolution Icon" : "Initial Icon"}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
               {/* Periksa apakah slot memiliki iconImageB yang valid */}
               {slot.initial !== 5 && (
                 <>
@@ -777,6 +705,21 @@ const CardOverview: React.FC = () => {
                     >
                       <span className="font-semibold opacity-100">
                         {showIconB ? "Non-*5 Icon" : "Trained Icon"}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+              {slot.initial === 5 && (
+                <>
+                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                    <p className="text-white">Full Image</p>
+                    <button
+                      onClick={() => toggleSourceImageOpen(true)}
+                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <span className="font-semibold opacity-100">
+                        Click Here
                       </span>
                     </button>
                   </div>
@@ -838,6 +781,13 @@ const CardOverview: React.FC = () => {
                         src={
                           showIconB && slot.initial !== 5
                             ? getCardIconBUrl(
+                                slot._sourceName,
+                                slot.initial,
+                                slot.costumeTheme,
+                                slot.costumeIndex
+                              )
+                            : showIconE && slot.category === "Evolution"
+                            ? getCardIconEUrl(
                                 slot._sourceName,
                                 slot.initial,
                                 slot.costumeTheme,
@@ -980,64 +930,67 @@ const CardOverview: React.FC = () => {
                   ))}
 
                 {slot.skillFour && (
-                  <section className="text-md flex flex-col rounded border-2 p-2 lg:mt-2 border-l-pink-500 border-r-purple-500 border-t-teal-300 border-b-yellow-300">
-                    <div className="flex flex-col gap-1 border-2 lg:flex-row">
-                      <div className="flex flex-col items-center justify-center border-x p-2 text-center">
-                        <img
-                          src={
-                            slot.skillFour.source?.initialImage ||
-                            getPlaceholderImageUrl("square")
-                          }
-                          alt="Skill Four Icon"
-                          className="h-20 w-20 rounded object-cover"
-                        />
+                  <>
+                    <h3 className="text-xl font-bold">Skills :</h3>
+                    <section className="text-md flex flex-col rounded border-2 p-2 lg:mt-2 border-l-pink-500 border-r-purple-500 border-t-teal-300 border-b-yellow-300">
+                      <div className="flex flex-col gap-1 border-2 lg:flex-row">
+                        <div className="flex flex-col items-center justify-center border-x p-2 text-center">
+                          <img
+                            src={
+                              slot.skillFour.source?.initialImage ||
+                              getPlaceholderImageUrl("square")
+                            }
+                            alt="Skill Four Icon"
+                            className="h-20 w-20 rounded object-cover"
+                          />
+                        </div>
+                        <ul className="grid grid-rows-2 grid-cols-2 lg:grid-rows-1 lg:grid-cols-4 w-full">
+                          <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
+                            <span className="border border-x-transparent border-b-white font-bold">
+                              Type
+                            </span>
+                            {slot.skillFour.typeSkill}
+                          </li>
+                          <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
+                            <span className="border border-x-transparent border-b-white font-bold">
+                              Stamina Cost
+                            </span>
+                            {slot.skillFour.staminaUsed}
+                          </li>
+                          <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
+                            <span className="border border-x-transparent border-b-white font-bold">
+                              Probability
+                            </span>
+                            {slot.skillFour.probability
+                              ? `${slot.skillFour.probability} %`
+                              : "NaN"}
+                          </li>
+                          <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
+                            <span className="border border-x-transparent border-b-white font-bold">
+                              CT / Cool Time
+                            </span>
+                            {slot.skillFour.ct === 1
+                              ? "Just Once"
+                              : slot.skillFour.ct || "NaN"}
+                          </li>
+                        </ul>
                       </div>
-                      <ul className="grid grid-rows-2 grid-cols-2 lg:grid-rows-1 lg:grid-cols-4">
-                        <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
-                          <span className="border border-x-transparent border-b-white font-bold">
-                            Type
-                          </span>
-                          {slot.skillFour.typeSkill}
-                        </li>
-                        <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
-                          <span className="border border-x-transparent border-b-white font-bold">
-                            Stamina Cost
-                          </span>
-                          {slot.skillFour.staminaUsed}
-                        </li>
-                        <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
-                          <span className="border border-x-transparent border-b-white font-bold">
-                            Probability
-                          </span>
-                          {slot.skillFour.probability
-                            ? `${slot.skillFour.probability} %`
-                            : "NaN"}
-                        </li>
-                        <li className="grid grid-cols-1 border-x p-2 text-center lg:flex-1">
-                          <span className="border border-x-transparent border-b-white font-bold">
-                            CT / Cool Time
-                          </span>
-                          {slot.skillFour.ct === 1
-                            ? "Just Once"
-                            : slot.skillFour.ct || "NaN"}
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="p-2">
-                      <h4 className="font-bold">
-                        {slot.skillFour.name?.[primaryLanguage]}
-                      </h4>
-                      <p>
-                        {slot.skillFour.description?.[primaryLanguage]?.join(
-                          " "
-                        )}
-                      </p>
-                    </div>
-                  </section>
+                      <div className="p-2">
+                        <h4 className="font-bold">
+                          {slot.skillFour.name?.[primaryLanguage]}
+                        </h4>
+                        <p>
+                          {slot.skillFour.description?.[primaryLanguage]?.join(
+                            " "
+                          )}
+                        </p>
+                      </div>
+                    </section>
+                  </>
                 )}
 
                 <section className="text-md flex lg:mt-2 lg:items-center gap-2 lg:flex-row flex-col">
-                  <h3 className="text-xl font-bold">Yell :</h3>
+                  <h3 className="text-xl font-bold">Yell/Cheer :</h3>
                   <div className="p-2 flex flex-col border rounded">
                     <h4 className="font-bold">
                       {slot.yell?.name?.[primaryLanguage]}
@@ -1045,6 +998,84 @@ const CardOverview: React.FC = () => {
                     <p>{slot.yell?.description?.[primaryLanguage]}</p>
                   </div>
                 </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isSourceImageOpen && slot && (
+        <div
+          ref={sourceImageRef}
+          className="fixed inset-0 z-30 flex w-screen bg-[#00246B] bg-opacity-50"
+        >
+          <div className="fixed inset-0 flex w-screen p-2 lg:p-6">
+            <div className="inset-0 mx-auto w-full overflow-y-hidden rounded bg-white p-2 shadow-lg">
+              <div className="flex rounded bg-[#00246B] p-2 text-white shadow-sm scrollbar-thin">
+                <div className="flex absolute flex-col">
+                  <button
+                    onClick={() => {
+                      toggleSourceImageOpen(false);
+                      closeSourceImageModal();
+                    }}
+                    className="scale-[60%] rounded bg-red-500 hover:bg-red-700 p-2 text-white lg:scale-100"
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 15 15"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M12.8536 2.85355C13.0488 2.65829 13.0488 2.34171 12.8536 2.14645C12.6583 1.95118 12.3417 1.95118 12.1464 2.14645L7.5 6.79289L2.85355 2.14645C2.65829 1.95118 2.34171 1.95118 2.14645 2.14645C1.95118 2.34171 1.95118 2.65829 2.14645 2.85355L6.79289 7.5L2.14645 12.1464C1.95118 12.3417 1.95118 12.6583 2.14645 12.8536C2.34171 13.0488 2.65829 13.0488 2.85355 12.8536L7.5 8.20711L12.1464 12.8536C12.3417 13.0488 12.6583 13.0488 12.8536 12.8536C13.0488 12.6583 13.0488 12.3417 12.8536 12.1464L8.20711 7.5L12.8536 2.85355Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+                  {slot.category == "Evolution" && (
+                    <>
+                      <button
+                        onClick={() => setShowSourceE(!showSourceE)}
+                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        disabled={slot.category !== "Evolution"}
+                      >
+                        <span className="font-semibold opacity-100 text-black">
+                          {showSourceE ? "Evolution Icon" : "Initial Icon"}
+                        </span>
+                      </button>
+                    </>
+                  )}
+                </div>
+                <div className="flex flex-col items-center justify-center text-center">
+                  <img
+                    src={
+                      showSourceE && slot.category === "Evolution"
+                        ? getCardSourceEUrl(
+                            slot._sourceName,
+                            slot.initial,
+                            slot.costumeTheme,
+                            slot.costumeIndex
+                          )
+                        : getCardSourceUrl(
+                            slot._sourceName,
+                            slot.initial,
+                            slot.costumeTheme,
+                            slot.costumeIndex
+                          ) || getPlaceholderImageUrl("square")
+                    }
+                    onError={(e) => {
+                      e.currentTarget.src = `${
+                        import.meta.env.BASE_URL
+                      }assets/default_image.png`;
+                      e.currentTarget.alt = "Image not available";
+                    }}
+                    alt={`Card ${slot._sourceName}`}
+                    className="h-4/5 w-auto rounded bg-white object-cover p-1"
+                  />
+                </div>
               </div>
             </div>
           </div>
