@@ -31,10 +31,10 @@ const OtherMenu: React.FC = () => {
       {Object.keys(listOfFeature).map((key) => (
         <section
           key={key}
-          className="relative h-16 w-full cursor-pointer overflow-hidden rounded-md border-4 border-slate-900 bg-slate-700 lg:h-32 lg:w-[45%]"
+          className="relative h-16 w-2/3 cursor-pointer overflow-hidden rounded-md border-4 border-slate-900 bg-slate-700 lg:h-32 lg:w-[45%]"
           onClick={() => handleGo(`/${key}`)}
         >
-          <label className="transition-color absolute z-10 flex h-full w-full cursor-pointer items-center justify-center bg-slate-900 text-center text-2xl font-semibold text-white duration-300 ease-out hover:bg-opacity-50 hover:opacity-100 bg-opacity-30 lg:opacity-0">
+          <label className="transition-color absolute z-10 flex h-full w-full cursor-pointer items-center justify-center bg-slate-900 text-center text-base lg:text-2xl font-semibold text-white duration-300 ease-out hover:bg-opacity-50 hover:opacity-100 bg-opacity-30 lg:opacity-0">
             {key}
           </label>
           <img
