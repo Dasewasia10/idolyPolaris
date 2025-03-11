@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import domtoimage from "dom-to-image";
+import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import TextareaAutosize from "react-textarea-autosize";
 
@@ -183,25 +183,22 @@ const ChatPage: React.FC = () => {
       return;
     }
 
-    // Simpan overflow asli
     const originalOverflow = element.style.overflow;
+    element.style.overflow = "visible";
 
     try {
-      // Ubah overflow menjadi visible untuk merender seluruh konten
-      element.style.overflow = "visible";
-
-      // Gunakan dom-to-image untuk membuat gambar dari elemen
-      const blob = await domtoimage.toBlob(element);
+      const canvas = await html2canvas(element);
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve)
+      );
       if (!blob) {
         console.error("Blob not found");
         return;
       }
 
-      // Simpan gambar secara lokal
       saveAs(blob, `conversation_of_${title}.png`);
 
       setUnsavedChanges(false);
-
       setToastMessage("Gambar telah tersimpan!");
       setIsSuccess(true);
     } catch (error) {
@@ -209,7 +206,6 @@ const ChatPage: React.FC = () => {
       setToastMessage("Failed to save image!");
       setIsSuccess(false);
     } finally {
-      // Kembalikan overflow ke nilai asli
       element.style.overflow = originalOverflow;
     }
   };
