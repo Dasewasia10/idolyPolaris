@@ -721,6 +721,7 @@ const CardDesign: React.FC = () => {
                         placing.costumeTheme,
                         placing.costumeIndex
                       )}
+                      crossOrigin="anonymous"
                       onError={(e) => {
                         e.currentTarget.src = `${
                           import.meta.env.BASE_URL
@@ -756,6 +757,7 @@ const CardDesign: React.FC = () => {
                             <img
                               src={getCardTypeImageUrl2(placing?.type ?? "")}
                               alt={placing.attribute}
+                              crossOrigin="anonymous"
                               className="py-2 pl-4"
                             />
                           </div>
@@ -778,6 +780,7 @@ const CardDesign: React.FC = () => {
                                     skill?.source?.initialImage ||
                                     getPlaceholderImageUrl("square")
                                   }
+                                  crossOrigin="anonymous"
                                   alt={`IconSkill ${index + 1}`}
                                   className="h-16 w-16 rounded object-cover"
                                 />
@@ -827,6 +830,7 @@ const CardDesign: React.FC = () => {
                                 <img
                                   src={getAttributeImageUrl(attribute.name)}
                                   alt={`${attribute.name.toLowerCase()}Stat`}
+                                  crossOrigin="anonymous"
                                   className="h-auto w-6"
                                 />
                                 <span className="flex flex-col items-center font-bold">
