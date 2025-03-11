@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import domtoimage from "dom-to-image";
+import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import { Icon } from "../interfaces/Icon";
 import { Character } from "../interfaces/Character";
@@ -164,15 +164,16 @@ const KTPManager: React.FC = () => {
       return;
     }
 
-    // Simpan overflow asli
     const originalOverflow = element.style.overflow;
+    element.style.overflow = "visible";
 
     try {
-      // Ubah overflow menjadi visible untuk merender seluruh konten
-      element.style.overflow = "visible";
-
-      // Gunakan dom-to-image untuk membuat gambar dari elemen
-      const blob = await domtoimage.toBlob(element);
+      const canvas = await html2canvas(element, {
+        useCORS: true, // Aktifkan opsi ini
+      });
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve)
+      );
       if (!blob) {
         console.error("Blob not found");
         return;

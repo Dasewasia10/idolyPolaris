@@ -90,6 +90,7 @@ const IDCard: React.FC<IDCardProps> = ({
           <img
             src={groupImageUrl}
             alt="idolgroup"
+            crossOrigin="anonymous"
             className="w-full h-full object-contain"
           />
         </div>
@@ -140,6 +141,7 @@ const IDCard: React.FC<IDCardProps> = ({
               key={index}
               src={icon.src || `${getPlaceholderImageUrl("square")}`}
               alt={`oshi${index + 1}`}
+              crossOrigin="anonymous"
               className="h-12 w-12 rounded-full"
             />
           ))}
@@ -149,6 +151,7 @@ const IDCard: React.FC<IDCardProps> = ({
                 key={selectedIcon.length + index}
                 src={`${import.meta.env.BASE_URL}assets/icon/chara-avatar.webp`}
                 alt={`oshi${selectedIcon.length + index + 1}`}
+                crossOrigin="anonymous"
                 className="flex h-12 w-12 rounded-full"
               />
             ))}

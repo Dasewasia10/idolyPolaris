@@ -552,15 +552,20 @@ const CardDesign: React.FC = () => {
       const node = cardRef.current;
       if (node) {
         html2canvas(node, {
-          allowTaint: true,
-          useCORS: true,
-          scale: window.devicePixelRatio,
-        }).then((canvas) => {
-          const link = document.createElement("a");
-          link.href = canvas.toDataURL("image/png");
-          link.download = `${fileName}.png`;
-          link.click();
-        });
+          allowTaint: true, // Izinkan gambar yang terkontaminasi CORS
+          useCORS: true, // Coba gunakan CORS
+          scale: window.devicePixelRatio, // Sesuaikan dengan DPI perangkat
+        })
+          .then((canvas) => {
+            const link = document.createElement("a");
+            link.href = canvas.toDataURL("image/png");
+            link.download = `${fileName}.png`;
+            link.click();
+          })
+          .catch((error) => {
+            console.error("Error capturing screenshot:", error);
+            alert("Gagal mengambil screenshot. Pastikan gambar dapat diakses.");
+          });
       }
     }, 500); // Tunggu 500ms agar layout stabil
   };

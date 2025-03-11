@@ -98,18 +98,25 @@ const LoveInterestChart: React.FC = () => {
       alert("Nama file harus terisi sebelum men-download.");
       return;
     }
+
     const node = chartRef.current;
     if (node && isRendered) {
       html2canvas(node, {
-        allowTaint: true,
-        useCORS: true,
-        logging: true,
-      }).then((canvas) => {
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png");
-        link.download = `${fileName}.png`;
-        link.click();
-      });
+        allowTaint: true, // Izinkan gambar yang terkontaminasi CORS
+        useCORS: true, // Coba gunakan CORS
+        logging: true, // Aktifkan logging untuk debugging
+        scale: window.devicePixelRatio, // Sesuaikan dengan DPI perangkat
+      })
+        .then((canvas) => {
+          const link = document.createElement("a");
+          link.href = canvas.toDataURL("image/png");
+          link.download = `${fileName}.png`;
+          link.click();
+        })
+        .catch((error) => {
+          console.error("Error capturing screenshot:", error);
+          alert("Gagal mengambil screenshot. Pastikan gambar dapat diakses.");
+        });
     }
   };
 
@@ -332,6 +339,7 @@ const LoveInterestChart: React.FC = () => {
                 <img
                   src={getCharacterIconUrl(item.name?.toLowerCase() || "mei")}
                   alt={`icon-${index}`}
+                  crossOrigin="anonymous"
                   className="h-8 w-auto lg:h-16"
                 />
               </div>
@@ -360,6 +368,7 @@ const LoveInterestChart: React.FC = () => {
       <img
         src="https://raw.githubusercontent.com/765Pro-Hoshimi/IDOLY-PRIDE-Logo/5e7f4e7a6b7889a12e266f1be1306cd6b2178a65/Logo/idoly-pride-logo-full-white.svg"
         alt="Idoly-Pride-Logo-White"
+        crossOrigin="anonymous"
         className="absolute -right-4 -top-4 h-32 w-auto transition-all duration-500 ease-out lg:-left-2 lg:top-1/2 lg:h-60"
       />
     </div>
