@@ -187,7 +187,9 @@ const ChatPage: React.FC = () => {
     element.style.overflow = "visible";
 
     try {
-      const canvas = await html2canvas(element);
+      const canvas = await html2canvas(element, {
+        useCORS: true, // Aktifkan opsi ini
+      });
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve)
       );
@@ -414,6 +416,7 @@ const ChatPage: React.FC = () => {
                       <img
                         src={msg.icon}
                         alt={msg.name}
+                        crossOrigin="anonymous"
                         className={`w-12 h-12 rounded-full ${
                           isFirstMessageByUser ? "" : "opacity-0"
                         }`}
@@ -450,6 +453,7 @@ const ChatPage: React.FC = () => {
                           <img
                             src={msg.stamp}
                             alt="stamp"
+                            crossOrigin="anonymous"
                             className="w-16 h-16"
                           />
                         ) : (
