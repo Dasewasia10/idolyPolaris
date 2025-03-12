@@ -325,6 +325,7 @@ const ChatPage: React.FC = () => {
                         src={icon.src}
                         alt={icon.name}
                         title={icon.name}
+                        crossOrigin="anonymous"
                         className="flex w-12 h-12 rounded-full"
                       />
                     </button>
@@ -359,6 +360,7 @@ const ChatPage: React.FC = () => {
                         src={stamp.src || "https://placehold.co/600x400"}
                         alt={stamp.character + stamp.expression}
                         title={stamp.character + " " + stamp.expression}
+                        crossOrigin="anonymous"
                         className="flex w-12 h-12 rounded-md"
                       />
                     </button>
@@ -488,6 +490,7 @@ const ChatPage: React.FC = () => {
                     : "https://diveidolypapi.my.id/api/img/character/icon/kohei/"
                 }
                 alt="icon"
+                crossOrigin="anonymous"
                 className="h-12 w-12 rounded-full"
               />
               <textarea
