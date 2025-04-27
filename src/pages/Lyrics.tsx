@@ -43,6 +43,7 @@ const Lyrics: React.FC = () => {
   const [lyric, setLyric] = useState<Lyric[]>([]);
   const [idols, setIdols] = useState<Character[]>([]);
   const [sources, setSources] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchLyrics = async () => {
       try {
@@ -129,6 +130,11 @@ const Lyrics: React.FC = () => {
     if (lyric.length > 0) {
       const processedLyrics = processLyrics(lyric);
       setSources(processedLyrics); // Simpan hasil pemrosesan ke state
+
+      // Atur activeSource dan activeData jika ada data
+      if (processedLyrics.length > 0) {
+        setActiveSource(processedLyrics[0].name); // Set activeSource dengan nama source pertama
+      }
     }
   }, [lyric]);
 
@@ -338,10 +344,12 @@ const Lyrics: React.FC = () => {
           <section className="flex flex-row-reverse flex-wrap md:flex-nowrap gap-4 h-1/2">
             {/* Video di atas */}
             <div className="bg-white rounded-md p-4 flex flex-col items-center gap-4 w-3/4 text-wrap">
-              <VideoModal
-                src={activeData[0].video}
-                thumbnail={activeData[0].videoThumbnail}
-              />
+              {activeData.length > 0 && (
+                <VideoModal
+                  src={activeData[0].video}
+                  thumbnail={activeData[0].videoThumbnail}
+                />
+              )}
 
               <div className="flex flex-row gap-2 w-full h-1/2 overflow-auto scrollbar-none">
                 <p>
