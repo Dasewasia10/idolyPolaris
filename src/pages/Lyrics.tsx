@@ -261,200 +261,171 @@ const Lyrics: React.FC = () => {
   return (
     <>
       <div className="h-screen bg-slate-400 flex p-4 gap-2">
-        <section id="leftConsole" className="flex flex-col gap-4 w-1/4">
-          <div className="flex items-center gap-4">
+        <section id="leftConsole" className="flex flex-col gap-4 w-1/2">
+          <div className="flex items-center gap-4 h-12 w-full">
             <button
               className="px-4 py-2 bg-gray-300 hover:bg-gray-800 rounded-md hover:text-white font-semibold"
               onClick={handleBackClick}
             >
               {"<"}
             </button>
-            <h1 className="flex justify-center font-bold text-3xl">Lyrics</h1>
-          </div>
-          <section className="bg-slate-900 p-2 flex flex-col gap-2 w-full overflow-y-auto no-scrollbar">
-            <div className="w-full bg-slate-900 sticky top-0 z-10">
+            <h1 className="flex font-bold text-3xl">Lyrics</h1>
+            <div className="flex-1 min-w-[200px]">
               <SearchBar
                 searchTerm={searchTerm}
                 onSearchChange={handleSearchChange}
                 placeholderText="Search by title or detail"
               />
-              <h2 className="sticky flex text-right font-bold text-white">
-                <span>Filter</span>
-              </h2>
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-around items-center gap-2">
-                  <label className="text-white">Group</label>
-                  <select
-                    className="p-2 rounded-md bg-gray-300"
-                    value={selectedGroup || ""}
-                    onChange={(e) => handleGroupFilter(e.target.value)}
-                  >
-                    <option value="">All Groups</option>
-                    {uniqueGroups.map((group, index) => (
-                      <option key={index} value={group}>
-                        {group}
-                      </option>
-                    ))}
-                  </select>
+            </div>
+          </div>
+          <section className="bg-slate-900 p-2 flex flex-col gap-2 w-full overflow-y-auto no-scrollbar">
+            <div className="w-full bg-slate-900 sticky top-0 z-10">
+              <div className="flex justify-between p-4 gap-4">
+                {/* Filter di kiri */}
+                <div className="flex flex-col gap-2 min-w-[200px]">
+                  <h2 className="text-left font-bold text-white">Filter</h2>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center gap-2">
+                      <select
+                        className="p-2 rounded-md bg-gray-300 flex-1"
+                        value={selectedGroup || ""}
+                        onChange={(e) => handleGroupFilter(e.target.value)}
+                      >
+                        <option value="">All Groups</option>
+                        {uniqueGroups.map((group, index) => (
+                          <option key={index} value={group}>
+                            {group}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <select
+                        className="p-2 rounded-md bg-gray-300 flex-1"
+                        value={selectedCharacter || ""}
+                        onChange={(e) => handleCharacterFilter(e.target.value)}
+                      >
+                        <option value="">All Characters</option>
+                        {uniqueCharacters.map((character, index) => (
+                          <option key={index} value={character}>
+                            {character}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-around items-center gap-2">
-                  <label className="text-white">Character</label>
+
+                {/* Titles di kanan */}
+                <div className="flex flex-col gap-2 min-w-[200px]">
+                  <h2 className="text-left font-bold text-white">Titles</h2>
                   <select
-                    className="p-2 rounded-md bg-gray-300"
-                    value={selectedCharacter || ""}
-                    onChange={(e) => handleCharacterFilter(e.target.value)}
+                    value={activeSource}
+                    onChange={(e) => handleSourceChange(e.target.value)}
+                    className="p-2 rounded-md bg-gray-300 text-black"
                   >
-                    <option value="">All Characters</option>
-                    {uniqueCharacters.map((character, index) => (
-                      <option key={index} value={character}>
-                        {character}
+                    {combinedFilteredTitles.map((source) => (
+                      <option key={source.name} value={source.name}>
+                        {source.data[0].title}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
-              <h2 className="sticky flex text-right font-bold text-white p-2">
-                <span>Titles</span>
-              </h2>
             </div>
-            <div className="bg-slate-900">
-              <div className="flex flex-col gap-2 overflow-auto w-full flex-wrap justify-around p-4">
-                {combinedFilteredTitles.map((source) => (
-                  <button
-                    key={source.name}
-                    onClick={() => handleSourceChange(source.name)}
-                    className={`px-4 py-2 rounded-md ${
-                      activeSource === source.name
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    {source.data[0].title}
-                  </button>
-                ))}
+          </section>
+
+          <section className="flex flex-row-reverse flex-wrap md:flex-nowrap gap-4 h-1/2">
+            {/* Video di atas */}
+            <div className="bg-white rounded-md p-4 flex flex-col items-center gap-4 w-3/4 text-wrap">
+              <VideoModal
+                src={activeData[0].video}
+                thumbnail={activeData[0].videoThumbnail}
+              />
+
+              <div className="flex flex-row gap-2 w-full h-1/2 overflow-auto scrollbar-none">
+                <p>
+                  <strong>Sumber Lirik:</strong>{" "}
+                  {activeData[0].source && (
+                    <a
+                      className="hover:text-slate-500"
+                      href={activeData[0].source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Klik Di Sini
+                    </a>
+                  )}
+                </p>
+              </div>
+            </div>
+            {/* Detail lagu */}
+            <div className="flex flex-col bg-white rounded-md p-4 gap-4 w-1/2 overflow-auto scrollbar-none">
+              {/* Title */}
+              <div className="flex flex-col bg-gray-200 p-4 rounded-md">
+                <h3 className="text-center font-bold mb-2">Title</h3>
+                <div className="flex flex-col text-center divide-y divide-gray-700">
+                  <span>{activeData[0].title}</span>
+                  {activeData[0].alternateTitle && (
+                    <span>{activeData[0].alternateTitle}</span>
+                  )}
+                  {activeData[0].jpTitle && (
+                    <span>{activeData[0].jpTitle}</span>
+                  )}
+                </div>
+              </div>
+              {/* Details */}
+              <div className="flex flex-col bg-gray-200 p-4 rounded-md">
+                <h3 className="text-center font-bold mb-2">Details</h3>
+                <div className="flex flex-col divide-y divide-gray-700">
+                  <span>
+                    <b>Release Date:</b> {activeData[0].releaseDate}
+                  </span>
+                  <span>
+                    <b>Lyricist:</b> {activeData[0].lyricist}
+                  </span>
+                  <span>
+                    <b>Composer:</b> {activeData[0].composer}
+                  </span>
+                  <span>
+                    <b>Arranger:</b> {activeData[0].arranger}
+                  </span>
+                </div>
+              </div>
+              {/* Performance Grouping */}
+              <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
+                <h3 className="text-center font-bold mb-2">
+                  Performance Grouping
+                </h3>
+                {activeData[0].group && (
+                  <img
+                    src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0].altGroup}-circle.png`}
+                    alt={activeData[0].group}
+                    className="w-12 h-auto"
+                  />
+                )}
+              </div>
+              {/* Characters */}
+              <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
+                <h3 className="text-center font-bold mb-2">Characters</h3>
+                <div className="flex justify-center gap-1 flex-wrap">
+                  {activeCharacters.map((char, index) => (
+                    <img
+                      key={char.name}
+                      src={getCharacterIconUrl(
+                        char.name?.toLowerCase() || "mei"
+                      )}
+                      alt={`Character ${index}`}
+                      className="rounded-full border-2 border-gray-700 w-8 h-8"
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </section>
         </section>
 
-        <section className="flex flex-col w-full overflow-auto gap-4 scrollbar-none">
-          {/* Detail lagu */}
-          <section className="flex gap-4">
-            <table className="table-fixed w-full bg-white rounded-md">
-              <thead className="sticky top-0 bg-gray-200">
-                <tr>
-                  <th className="px-4 py-2 min-w-24">Title</th>
-                  <th className="px-4 py-2 min-w-40">Details</th>
-                  <th className="px-4 py-2 min-w-24">Performance Grouping</th>
-                  <th className="px-4 py-2 min-w-40">Character</th>
-                  <th className="px-4 py-2 min-w-24">Video</th>
-                </tr>
-              </thead>
-              <tbody className="bg-slate-400">
-                {activeData.length > 0 && (
-                  <tr className="text-sm">
-                    <td
-                      className="border px-4 py-2 min-w-32"
-                      rowSpan={activeData.length}
-                    >
-                      <div className="flex flex-col text-center divide-y divide-gray-700 text-base">
-                        <span>{activeData[0].title}</span>
-                        {activeData[0].alternateTitle && (
-                          <span>{activeData[0].alternateTitle}</span>
-                        )}
-                        {activeData[0].jpTitle && (
-                          <span>{activeData[0].jpTitle}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td
-                      className="border px-4 py-2 min-w-32"
-                      rowSpan={activeData.length}
-                    >
-                      <p className="flex flex-col divide-y divide-gray-700">
-                        <span>
-                          <b>Release Date:</b> {activeData[0].releaseDate}
-                        </span>
-                        <span>
-                          <b>Lyricist:</b> {activeData[0].lyricist}
-                        </span>
-                        <span>
-                          <b>Composer:</b> {activeData[0].composer}
-                        </span>
-                        <span>
-                          <b>Arranger:</b> {activeData[0].arranger}
-                        </span>
-                      </p>
-                    </td>
-                    <td
-                      className="border px-4 py-2 min-w-32"
-                      rowSpan={activeData.length}
-                    >
-                      <div className="flex flex-col items-center">
-                        <div
-                          key={activeData[0].name}
-                          className="flex flex-col items-center"
-                        >
-                          {activeData[0].group && (
-                            <img
-                              src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0].altGroup}-circle.png`}
-                              alt={activeData[0].group}
-                              className="w-24 h-auto"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td
-                      className="border px-4 py-2 min-w-32"
-                      rowSpan={activeData.length}
-                    >
-                      <div className="flex justify-center gap-1 flex-wrap">
-                        {activeCharacters.map((char, index) => (
-                          <img
-                            key={char.name}
-                            src={getCharacterIconUrl(
-                              char.name?.toLowerCase() || "mei"
-                            )}
-                            alt={`Number is ${index}`}
-                            className={`rounded-full border-2 border-gray-700 ${
-                              activeCharacters.length >= 5
-                                ? "w-12 h-12"
-                                : "w-20 h-20"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </td>
-                    <td
-                      className="border px-4 py-2 min-w-32"
-                      rowSpan={activeData.length}
-                    >
-                      <div className="flex flex-col justify-center gap-4 divide-y divide-gray-700">
-                        <VideoModal
-                          src={activeData[0].video}
-                          thumbnail={activeData[0].videoThumbnail}
-                        />
-                        <p>
-                          <strong>Sumber Lirik:</strong>{" "}
-                          {activeData[0].source && (
-                            <a
-                              className="hover:text-slate-500"
-                              href={activeData[0].source}
-                              target="_blank"
-                            >
-                              Klik Di Sini
-                            </a>
-                          )}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </section>
-
+        <section className="flex flex-col w-full overflow-auto gap-4 scrollbar-none w-1/2">
           {/* Tampilkan lirik lagu */}
           {activeData.length > 0 && (
             <table className="table-auto w-full bg-white rounded-md">

@@ -15,7 +15,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [placeholder, setPlaceholder] = useState(placeholderText);
 
   return (
-    <div className="relative mb-4">
+    <div className="relative">
       <input
         type="text"
         value={searchTerm}
