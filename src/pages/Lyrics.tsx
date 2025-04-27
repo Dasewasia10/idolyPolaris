@@ -43,7 +43,10 @@ const Lyrics: React.FC = () => {
   const [lyric, setLyric] = useState<Lyric[]>([]);
   const [idols, setIdols] = useState<Character[]>([]);
   const [sources, setSources] = useState<any[]>([]);
-  
+  // Gunakan string kosong sebagai initial state
+  const [activeSource, setActiveSource] = useState<string>("");
+  const [activeData, setActiveData] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchLyrics = async () => {
       try {
@@ -127,22 +130,30 @@ const Lyrics: React.FC = () => {
 
   // Gunakan fungsi ini setelah data lirik di-fetch
   useEffect(() => {
-  if (lyric.length > 0) {
-    const processedLyrics = processLyrics(lyric);
-    setSources(processedLyrics); // Simpan hasil pemrosesan ke state
+    if (lyric?.length > 0) {
+      const processedLyrics = processLyrics(lyric);
+      const matchedLyrics = matchWithCharacters(processedLyrics, idols);
+      setSources(matchedLyrics);
 
-    // Atur activeSource dan activeData jika ada data
-    if (processedLyrics.length > 0) {
-      setActiveSource(processedLyrics[0].name); // Set activeSource dengan nama source pertama
+      if (matchedLyrics.length > 0 && matchedLyrics[0].data?.length > 0) {
+        setActiveSource(matchedLyrics[0].name);
+        setActiveData(matchedLyrics[0].data);
+        setActiveCharacters(matchedLyrics[0].data[0]?.matchedCharacters || []);
+      }
     }
-  }
-}, [lyric]);
+  }, [lyric, idols]);
 
-
-  // const sourcesWithCharacters = matchWithCharacters(
-  //   sources.flatMap((source) => source.data),
-  //   idols
-  // );
+  useEffect(() => {
+    if (activeSource && sources.length > 0) {
+      const selectedSource = sources.find(
+        (source) => source.name === activeSource
+      );
+      if (selectedSource) {
+        setActiveData(selectedSource.data || []);
+        setActiveCharacters(selectedSource.data[0]?.matchedCharacters || []);
+      }
+    }
+  }, [activeSource, sources]);
 
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
@@ -190,14 +201,14 @@ const Lyrics: React.FC = () => {
       (selectedCharacter === "" || filteredTitleByCharacter.includes(title))
   );
 
-  const [activeSource, setActiveSource] = useState(
-    sources.length > 0 ? sources[0].name : ""
-  );
+  // const [activeSource, setActiveSource] = useState<string>(
+  //   sources.length > 0 ? sources[0].name : ""
+  // );
 
-  const activeData =
-    sources.length > 0
-      ? sources.find((source) => source.name === activeSource)?.data || []
-      : [];
+  // const activeData =
+  //   sources.length > 0 && activeSource
+  //     ? sources.find((source) => source.name === activeSource)?.data || []
+  //     : [];
 
   const [activeCharacters, setActiveCharacters] = useState<any[]>([]);
 
@@ -353,10 +364,10 @@ const Lyrics: React.FC = () => {
               <div className="flex flex-row gap-2 w-full h-1/2 overflow-auto scrollbar-none">
                 <p>
                   <strong>Sumber Lirik:</strong>{" "}
-                  {activeData[0].source && (
+                  {activeData[0]?.source && (
                     <a
                       className="hover:text-slate-500"
-                      href={activeData[0].source}
+                      href={activeData[0]?.source}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -372,12 +383,12 @@ const Lyrics: React.FC = () => {
               <div className="flex flex-col bg-gray-200 p-4 rounded-md">
                 <h3 className="text-center font-bold mb-2">Title</h3>
                 <div className="flex flex-col text-center divide-y divide-gray-700">
-                  <span>{activeData[0].title}</span>
-                  {activeData[0].alternateTitle && (
-                    <span>{activeData[0].alternateTitle}</span>
+                  <span>{activeData[0]?.title}</span>
+                  {activeData[0]?.alternateTitle && (
+                    <span>{activeData[0]?.alternateTitle}</span>
                   )}
-                  {activeData[0].jpTitle && (
-                    <span>{activeData[0].jpTitle}</span>
+                  {activeData[0]?.jpTitle && (
+                    <span>{activeData[0]?.jpTitle}</span>
                   )}
                 </div>
               </div>
@@ -386,16 +397,16 @@ const Lyrics: React.FC = () => {
                 <h3 className="text-center font-bold mb-2">Details</h3>
                 <div className="flex flex-col divide-y divide-gray-700">
                   <span>
-                    <b>Release Date:</b> {activeData[0].releaseDate}
+                    <b>Release Date:</b> {activeData[0]?.releaseDate}
                   </span>
                   <span>
-                    <b>Lyricist:</b> {activeData[0].lyricist}
+                    <b>Lyricist:</b> {activeData[0]?.lyricist}
                   </span>
                   <span>
-                    <b>Composer:</b> {activeData[0].composer}
+                    <b>Composer:</b> {activeData[0]?.composer}
                   </span>
                   <span>
-                    <b>Arranger:</b> {activeData[0].arranger}
+                    <b>Arranger:</b> {activeData[0]?.arranger}
                   </span>
                 </div>
               </div>
@@ -404,10 +415,10 @@ const Lyrics: React.FC = () => {
                 <h3 className="text-center font-bold mb-2">
                   Performance Grouping
                 </h3>
-                {activeData[0].group && (
+                {activeData[0]?.group && (
                   <img
-                    src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0].altGroup}-circle.png`}
-                    alt={activeData[0].group}
+                    src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0]?.altGroup}-circle.png`}
+                    alt={activeData[0]?.group}
                     className="w-12 h-auto"
                   />
                 )}
