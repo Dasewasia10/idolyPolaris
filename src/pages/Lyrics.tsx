@@ -380,29 +380,25 @@ const Lyrics: React.FC = () => {
             </div>
 
             {/* Tab Content */}
+            {/* Video Modal Selalu Tersedia */}
+            <VideoModal
+              // src={activeData[0]?.video}
+              // thumbnail={activeData[0]?.videoThumbnail}
+              isOpen={videoModalIsOpen}
+              setIsOpen={setVideoModalIsOpen}
+              isSmall={videoModalIsSmall}
+              setIsSmall={setVideoModalIsSmall}
+            />
             <div>
-              {(activeTab === "detail" || activeTab === "source") && (
-                  <div className="hidden md:block lg:hidden xl:hidden 2xl:hidden">
-                    <VideoModal
-                      src={activeData[0]?.video}
-                      thumbnail={activeData[0]?.videoThumbnail}
-                      isOpen={videoModalIsOpen}
-                      setIsOpen={setVideoModalIsOpen}
-                      isSmall={videoModalIsSmall}
-                      setIsSmall={setVideoModalIsSmall}
-                    />
-                  </div>
-              )}
               {activeTab === "video" && (
                 <div className="flex flex-col items-center gap-4">
-                  <VideoModal
-                    src={activeData[0]?.video}
-                    thumbnail={activeData[0]?.videoThumbnail}
-                    isOpen={videoModalIsOpen}
-                    setIsOpen={setVideoModalIsOpen}
-                    isSmall={videoModalIsSmall}
-                    setIsSmall={setVideoModalIsSmall}
-                  />
+                  <button onClick={() => setVideoModalIsOpen(true)}>
+                    <img
+                      src={activeData[0]?.videoThumbnail}
+                      alt="Thumbnail Video"
+                      className="cursor-pointer rounded-md hover:opacity-80 transition"
+                    />
+                  </button>
                 </div>
               )}
 
