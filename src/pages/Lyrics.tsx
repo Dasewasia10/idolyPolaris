@@ -46,7 +46,8 @@ const Lyrics: React.FC = () => {
   // Gunakan string kosong sebagai initial state
   const [activeSource, setActiveSource] = useState<string>("");
   const [activeData, setActiveData] = useState<any[]>([]);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [videoModalIsOpen, setVideoModalIsOpen] = useState(false);
+  const [videoModalIsSmall, setVideoModalIsSmall] = useState(false);
 
   useEffect(() => {
     const fetchLyrics = async () => {
@@ -379,20 +380,17 @@ const Lyrics: React.FC = () => {
             </div>
 
             {/* Tab Content */}
-            {/* Tetap render VideoModal secara global */}
-            <VideoModal
-              src={activeData[0]?.videoUrl}
-              thumbnail={activeData[0]?.videoThumbnail}
-              isOpen={videoModalOpen}
-              setIsOpen={setVideoModalOpen}
-            />
             <div>
               {activeTab === "video" && (
                 <div className="flex flex-col items-center gap-4">
-                  {/* Thumbnail klik tetap aktifkan modal */}
-                  <button onClick={() => setVideoModalOpen(true)}>
-                    Open Video
-                  </button>
+                  <VideoModal
+                    src={activeData[0]?.video}
+                    thumbnail={activeData[0]?.videoThumbnail}
+                    isOpen={videoModalIsOpen}
+                    setIsOpen={setVideoModalIsOpen}
+                    isSmall={videoModalIsSmall}
+                    setIsSmall={setVideoModalIsSmall}
+                  />
                 </div>
               )}
 
