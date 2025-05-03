@@ -389,8 +389,8 @@ const Lyrics: React.FC = () => {
               )}
 
               {activeTab === "detail" && (
-                <div className="flex flex-col gap-4 overflow-auto max-h-[60vh]">
-                  <div className="flex flex-col bg-white rounded-md p-4 gap-4 w-1/2 overflow-auto scrollbar-none">
+                <div className="overflow-auto max-h-[40vh]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Title */}
                     <div className="flex flex-col bg-gray-200 p-4 rounded-md">
                       <h3 className="text-center font-bold mb-2">Title</h3>
@@ -404,6 +404,7 @@ const Lyrics: React.FC = () => {
                         )}
                       </div>
                     </div>
+
                     {/* Details */}
                     <div className="flex flex-col bg-gray-200 p-4 rounded-md">
                       <h3 className="text-center font-bold mb-2">Details</h3>
@@ -422,6 +423,7 @@ const Lyrics: React.FC = () => {
                         </span>
                       </div>
                     </div>
+
                     {/* Performance Grouping */}
                     <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
                       <h3 className="text-center font-bold mb-2">
@@ -435,6 +437,7 @@ const Lyrics: React.FC = () => {
                         />
                       )}
                     </div>
+
                     {/* Characters */}
                     <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
                       <h3 className="text-center font-bold mb-2">Characters</h3>
