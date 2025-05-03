@@ -276,6 +276,10 @@ const Lyrics: React.FC = () => {
     window.history.back();
   };
 
+  const [activeTab, setActiveTab] = useState<"video" | "detail" | "source">(
+    "video"
+  );
+
   return (
     <>
       <div className="h-screen bg-slate-400 flex p-4 gap-2">
@@ -353,8 +357,128 @@ const Lyrics: React.FC = () => {
             </div>
           </section>
 
-          <section className="flex flex-row-reverse flex-wrap md:flex-nowrap gap-4 h-1/2">
-            {/* Video di atas */}
+          <section className="bg-white rounded-md p-4">
+            {/* Tab Header */}
+            <div className="flex gap-4 border-b border-gray-300 mb-4">
+              {["video", "detail", "source"].map((tab) => (
+                <button
+                  key={tab}
+                  className={`px-4 py-2 font-semibold capitalize ${
+                    activeTab === tab
+                      ? "border-b-4 border-blue-500 text-blue-600"
+                      : "text-gray-600"
+                  }`}
+                  onClick={() =>
+                    setActiveTab(tab as "video" | "detail" | "source")
+                  }
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div>
+              {activeTab === "video" && (
+                <div className="flex flex-col items-center gap-4">
+                  <VideoModal
+                    src={activeData[0]?.video}
+                    thumbnail={activeData[0]?.videoThumbnail}
+                  />
+                </div>
+              )}
+
+              {activeTab === "detail" && (
+                <div className="flex flex-col gap-4 overflow-auto max-h-[60vh]">
+                  <div className="flex flex-col bg-white rounded-md p-4 gap-4 w-1/2 overflow-auto scrollbar-none">
+                    {/* Title */}
+                    <div className="flex flex-col bg-gray-200 p-4 rounded-md">
+                      <h3 className="text-center font-bold mb-2">Title</h3>
+                      <div className="flex flex-col text-center divide-y divide-gray-700">
+                        <span>{activeData[0]?.title}</span>
+                        {activeData[0]?.alternateTitle && (
+                          <span>{activeData[0]?.alternateTitle}</span>
+                        )}
+                        {activeData[0]?.jpTitle && (
+                          <span>{activeData[0]?.jpTitle}</span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Details */}
+                    <div className="flex flex-col bg-gray-200 p-4 rounded-md">
+                      <h3 className="text-center font-bold mb-2">Details</h3>
+                      <div className="flex flex-col divide-y divide-gray-700">
+                        <span>
+                          <b>Release Date:</b> {activeData[0]?.releaseDate}
+                        </span>
+                        <span>
+                          <b>Lyricist:</b> {activeData[0]?.lyricist}
+                        </span>
+                        <span>
+                          <b>Composer:</b> {activeData[0]?.composer}
+                        </span>
+                        <span>
+                          <b>Arranger:</b> {activeData[0]?.arranger}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Performance Grouping */}
+                    <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
+                      <h3 className="text-center font-bold mb-2">
+                        Performance Grouping
+                      </h3>
+                      {activeData[0]?.group && (
+                        <img
+                          src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0]?.altGroup}-circle.png`}
+                          alt={activeData[0]?.group}
+                          className="w-12 h-auto"
+                        />
+                      )}
+                    </div>
+                    {/* Characters */}
+                    <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
+                      <h3 className="text-center font-bold mb-2">Characters</h3>
+                      <div className="flex justify-center gap-1 flex-wrap">
+                        {activeCharacters.map((char, index) => (
+                          <img
+                            key={char.name}
+                            src={getCharacterIconUrl(
+                              char.name?.toLowerCase() || "mei"
+                            )}
+                            alt={`Character ${index}`}
+                            className="rounded-full border-2 border-gray-700 w-8 h-8"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "source" && (
+                <div className="text-center p-4">
+                  <p>
+                    <strong>Sumber Lirik:</strong>{" "}
+                    {activeData[0]?.source ? (
+                      <a
+                        className="text-blue-600 hover:underline"
+                        href={activeData[0]?.source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Klik Di Sini
+                      </a>
+                    ) : (
+                      <span className="text-gray-500">Tidak tersedia</span>
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* <section className="flex flex-row-reverse flex-wrap md:flex-nowrap gap-4 h-1/2">
+            {/* Video di atas 
             <div className="bg-white rounded-md p-4 flex flex-col items-center gap-4 w-3/4 text-wrap">
               <VideoModal
                 src={activeData[0]?.video}
@@ -377,9 +501,9 @@ const Lyrics: React.FC = () => {
                 </p>
               </div>
             </div>
-            {/* Detail lagu */}
+            {/* Detail lagu 
             <div className="flex flex-col bg-white rounded-md p-4 gap-4 w-1/2 overflow-auto scrollbar-none">
-              {/* Title */}
+              {/* Title 
               <div className="flex flex-col bg-gray-200 p-4 rounded-md">
                 <h3 className="text-center font-bold mb-2">Title</h3>
                 <div className="flex flex-col text-center divide-y divide-gray-700">
@@ -392,7 +516,7 @@ const Lyrics: React.FC = () => {
                   )}
                 </div>
               </div>
-              {/* Details */}
+              {/* Details 
               <div className="flex flex-col bg-gray-200 p-4 rounded-md">
                 <h3 className="text-center font-bold mb-2">Details</h3>
                 <div className="flex flex-col divide-y divide-gray-700">
@@ -410,7 +534,7 @@ const Lyrics: React.FC = () => {
                   </span>
                 </div>
               </div>
-              {/* Performance Grouping */}
+              {/* Performance Grouping 
               <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
                 <h3 className="text-center font-bold mb-2">
                   Performance Grouping
@@ -423,7 +547,7 @@ const Lyrics: React.FC = () => {
                   />
                 )}
               </div>
-              {/* Characters */}
+              {/* Characters 
               <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
                 <h3 className="text-center font-bold mb-2">Characters</h3>
                 <div className="flex justify-center gap-1 flex-wrap">
@@ -440,7 +564,7 @@ const Lyrics: React.FC = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </section> */}
         </section>
 
         <section className="flex flex-col w-full overflow-auto gap-4 scrollbar-none w-1/2">
