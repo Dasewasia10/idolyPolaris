@@ -382,7 +382,7 @@ const Lyrics: React.FC = () => {
             {/* Tab Content */}
             {/* Video Modal Selalu Tersedia */}
             <VideoModal
-              // src={activeData[0]?.video}
+              src={activeData[0]?.video}
               // thumbnail={activeData[0]?.videoThumbnail}
               isOpen={videoModalIsOpen}
               setIsOpen={setVideoModalIsOpen}
