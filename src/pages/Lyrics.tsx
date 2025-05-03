@@ -46,6 +46,7 @@ const Lyrics: React.FC = () => {
   // Gunakan string kosong sebagai initial state
   const [activeSource, setActiveSource] = useState<string>("");
   const [activeData, setActiveData] = useState<any[]>([]);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchLyrics = async () => {
@@ -378,13 +379,20 @@ const Lyrics: React.FC = () => {
             </div>
 
             {/* Tab Content */}
+            {/* Tetap render VideoModal secara global */}
+            <VideoModal
+              src={activeData[0]?.videoUrl}
+              thumbnail={activeData[0]?.videoThumbnail}
+              isOpen={videoModalOpen}
+              setIsOpen={setVideoModalOpen}
+            />
             <div>
               {activeTab === "video" && (
                 <div className="flex flex-col items-center gap-4">
-                  <VideoModal
-                    src={activeData[0]?.video}
-                    thumbnail={activeData[0]?.videoThumbnail}
-                  />
+                  {/* Thumbnail klik tetap aktifkan modal */}
+                  <button onClick={() => setVideoModalOpen(true)}>
+                    Open Video
+                  </button>
                 </div>
               )}
 
@@ -479,95 +487,6 @@ const Lyrics: React.FC = () => {
               )}
             </div>
           </section>
-
-          {/* <section className="flex flex-row-reverse flex-wrap md:flex-nowrap gap-4 h-1/2">
-            {/* Video di atas 
-            <div className="bg-white rounded-md p-4 flex flex-col items-center gap-4 w-3/4 text-wrap">
-              <VideoModal
-                src={activeData[0]?.video}
-                thumbnail={activeData[0]?.videoThumbnail}
-              />
-
-              <div className="flex flex-row gap-2 w-full h-1/2 overflow-auto scrollbar-none">
-                <p>
-                  <strong>Sumber Lirik:</strong>{" "}
-                  {activeData[0]?.source && (
-                    <a
-                      className="hover:text-slate-500"
-                      href={activeData[0]?.source}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Klik Di Sini
-                    </a>
-                  )}
-                </p>
-              </div>
-            </div>
-            {/* Detail lagu 
-            <div className="flex flex-col bg-white rounded-md p-4 gap-4 w-1/2 overflow-auto scrollbar-none">
-              {/* Title 
-              <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                <h3 className="text-center font-bold mb-2">Title</h3>
-                <div className="flex flex-col text-center divide-y divide-gray-700">
-                  <span>{activeData[0]?.title}</span>
-                  {activeData[0]?.alternateTitle && (
-                    <span>{activeData[0]?.alternateTitle}</span>
-                  )}
-                  {activeData[0]?.jpTitle && (
-                    <span>{activeData[0]?.jpTitle}</span>
-                  )}
-                </div>
-              </div>
-              {/* Details 
-              <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                <h3 className="text-center font-bold mb-2">Details</h3>
-                <div className="flex flex-col divide-y divide-gray-700">
-                  <span>
-                    <b>Release Date:</b> {activeData[0]?.releaseDate}
-                  </span>
-                  <span>
-                    <b>Lyricist:</b> {activeData[0]?.lyricist}
-                  </span>
-                  <span>
-                    <b>Composer:</b> {activeData[0]?.composer}
-                  </span>
-                  <span>
-                    <b>Arranger:</b> {activeData[0]?.arranger}
-                  </span>
-                </div>
-              </div>
-              {/* Performance Grouping 
-              <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
-                <h3 className="text-center font-bold mb-2">
-                  Performance Grouping
-                </h3>
-                {activeData[0]?.group && (
-                  <img
-                    src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0]?.altGroup}-circle.png`}
-                    alt={activeData[0]?.group}
-                    className="w-12 h-auto"
-                  />
-                )}
-              </div>
-              {/* Characters 
-              <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
-                <h3 className="text-center font-bold mb-2">Characters</h3>
-                <div className="flex justify-center gap-1 flex-wrap">
-                  {activeCharacters.map((char, index) => (
-                    <img
-                      key={char.name}
-                      src={getCharacterIconUrl(
-                        char.name?.toLowerCase() || "mei"
-                      )}
-                      alt={`Character ${index}`}
-                      className="rounded-full border-2 border-gray-700 w-8 h-8"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section> */}
         </section>
 
         <section className="flex flex-col w-full overflow-auto gap-4 scrollbar-none w-1/2">

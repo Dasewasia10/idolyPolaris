@@ -4,10 +4,16 @@ import Draggable from "react-draggable";
 interface VideoModalProps {
   src?: string;
   thumbnail?: string;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
 }
 
-export default function VideoModal({ src, thumbnail }: VideoModalProps) {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+export default function VideoModal({
+  src,
+  thumbnail,
+  isOpen,
+  setIsOpen,
+}: VideoModalProps) {
   const [isSmall, setIsSmall] = useState<boolean>(false);
 
   const handleThumbnailClick = () => {
@@ -18,18 +24,15 @@ export default function VideoModal({ src, thumbnail }: VideoModalProps) {
     setIsOpen(true);
   };
 
-  const toggleSize = () => {
-    setIsSmall(!isSmall);
-  };
+  const toggleSize = () => setIsSmall(!isSmall);
 
   return (
     <div className="flex flex-col items-center">
-      {/* Thumbnail + Logo YouTube */}
       <div className="relative cursor-pointer" onClick={handleThumbnailClick}>
         <img
           src={thumbnail || "assets/default_image.png"}
           alt="YouTube Thumbnail"
-          className="w-64 rounded-md shadow-lg"
+          className="w-80 rounded-md shadow-lg"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-md">
           <img
@@ -40,7 +43,6 @@ export default function VideoModal({ src, thumbnail }: VideoModalProps) {
         </div>
       </div>
 
-      {/* Draggable Modal with Iframe YouTube */}
       {isOpen && (
         <Draggable>
           <div className="fixed top-0 left-0 bg-white p-4 rounded-lg shadow-lg z-50 w-auto h-auto">
