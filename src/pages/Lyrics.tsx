@@ -381,6 +381,18 @@ const Lyrics: React.FC = () => {
 
             {/* Tab Content */}
             <div>
+              {(activeTab === "detail" || activeTab === "source") && (
+                  <div className="hidden md:block lg:hidden xl:hidden 2xl:hidden">
+                    <VideoModal
+                      src={activeData[0]?.video}
+                      thumbnail={activeData[0]?.videoThumbnail}
+                      isOpen={videoModalIsOpen}
+                      setIsOpen={setVideoModalIsOpen}
+                      isSmall={videoModalIsSmall}
+                      setIsSmall={setVideoModalIsSmall}
+                    />
+                  </div>
+              )}
               {activeTab === "video" && (
                 <div className="flex flex-col items-center gap-4">
                   <VideoModal
@@ -461,16 +473,6 @@ const Lyrics: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="hidden md:block lg:hidden xl:hidden 2xl:hidden">
-                    <VideoModal
-                      src={activeData[0]?.video}
-                      thumbnail={activeData[0]?.videoThumbnail}
-                      isOpen={videoModalIsOpen}
-                      setIsOpen={setVideoModalIsOpen}
-                      isSmall={videoModalIsSmall}
-                      setIsSmall={setVideoModalIsSmall}
-                    />
-                  </div>
                 </div>
               )}
 
@@ -491,16 +493,6 @@ const Lyrics: React.FC = () => {
                       <span className="text-gray-500">Tidak tersedia</span>
                     )}
                   </p>
-                  <div className="hidden md:block lg:hidden xl:hidden 2xl:hidden">
-                    <VideoModal
-                      src={activeData[0]?.video}
-                      thumbnail={activeData[0]?.videoThumbnail}
-                      isOpen={videoModalIsOpen}
-                      setIsOpen={setVideoModalIsOpen}
-                      isSmall={videoModalIsSmall}
-                      setIsSmall={setVideoModalIsSmall}
-                    />
-                  </div>
                 </div>
               )}
             </div>
