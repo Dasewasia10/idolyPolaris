@@ -6,6 +6,7 @@ import { Character } from "../interfaces/Character";
 
 import Toast from "../components/Toast";
 import IDCard from "../components/IDCard";
+import { loadImageWithCorsBypass } from "../utils/imageUtils";
 
 const KTPManager: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
@@ -20,6 +21,10 @@ const KTPManager: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string>("");
   const [isSuccess, setIsSuccess] = useState<boolean>(true);
   const [maxSelectionReached, setMaxSelectionReached] = useState(false);
+
+  const [processedProfilePic, setProcessedProfilePic] = useState<
+    string | undefined
+  >(undefined);
 
   const agencies = [
     {
@@ -136,10 +141,27 @@ const KTPManager: React.FC = () => {
     };
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.files);
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   console.log(e.target.files);
+  //   if (e.target.files && e.target.files.length > 0) {
+  //     setFile(URL.createObjectURL(e.target.files[0]));
+  //   }
+  // };
+
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(URL.createObjectURL(e.target.files[0]));
+      try {
+        const file = e.target.files[0];
+        const imageUrl = await loadImageWithCorsBypass(
+          URL.createObjectURL(file)
+        );
+        setProcessedProfilePic(imageUrl);
+      } catch (error) {
+        console.error("Error processing profile picture:", error);
+        setProcessedProfilePic(
+          `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`
+        );
+      }
     }
   };
 
@@ -397,7 +419,7 @@ const KTPManager: React.FC = () => {
             <IDCard
               title={title}
               group={selectedIdolGroup}
-              profilePic={file}
+              profilePic={processedProfilePic}
               inputText={inputText}
               setInputText={setInputText}
               setUnsavedChanges={setUnsavedChanges}
