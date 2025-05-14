@@ -62,15 +62,15 @@ const IDCard: React.FC<IDCardProps> = ({
   const matchedGroup = groupOfIdol.find((g) => g.name === group);
 
   const getIdolGroupUrl = (characterName: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/group/circle/${encodeURIComponent(
+    return `https://diveidolypapi.my.id/api/img/group/circle/${encodeURIComponent(
       characterName
-    )}`;
+    )}?timestamp=${Date.now()}`;
   };
 
   // Gunakan matchedGroup untuk mendapatkan URL gambar
   const groupImageUrl = matchedGroup
     ? getIdolGroupUrl(matchedGroup.altName)
-    : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.webp`; // Fallback image
+    : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`; // Fallback image
 
   return (
     <div className="h-2/3 max-h-screen bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-xl flex flex-col items-center p-4 relative gap-3">
@@ -92,6 +92,12 @@ const IDCard: React.FC<IDCardProps> = ({
             alt="idolgroup"
             crossOrigin="anonymous"
             className="w-full h-full object-contain"
+            onError={(e) => {
+              // Fallback jika gambar error
+              (e.target as HTMLImageElement).src = `${
+                import.meta.env.BASE_URL
+              }assets/default_image.png`;
+            }}
           />
         </div>
       </div>
@@ -149,7 +155,7 @@ const IDCard: React.FC<IDCardProps> = ({
             Array.from({ length: 3 - selectedIcon.length }).map((_, index) => (
               <img
                 key={selectedIcon.length + index}
-                src={`${import.meta.env.BASE_URL}assets/icon/chara-avatar.webp`}
+                src={`${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`}
                 alt={`oshi${selectedIcon.length + index + 1}`}
                 crossOrigin="anonymous"
                 className="flex h-12 w-12 rounded-full"
