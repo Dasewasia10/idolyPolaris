@@ -26,7 +26,7 @@ const IdolDetailPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/characters"
+          "https://diveidolypapi.my.id/api/characters"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch data");
@@ -79,25 +79,25 @@ const IdolDetailPage: React.FC = () => {
   }
 
   const getCharacterIconUrl = (characterName: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
+    return `https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
       characterName
     )}`;
   };
 
   const getCharacterSprite1Url = (characterName: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/character/sprite1/${encodeURIComponent(
+    return `https://diveidolypapi.my.id/api/img/character/sprite1/${encodeURIComponent(
       characterName
     )}`;
   };
 
   const getCharacterSprite2Url = (characterName: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/character/sprite2/${encodeURIComponent(
+    return `https://diveidolypapi.my.id/api/img/character/sprite2/${encodeURIComponent(
       characterName
     )}`;
   };
 
   const getCharacterBannerUrl = (characterName: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/character/banner/${encodeURIComponent(
+    return `https://diveidolypapi.my.id/api/img/character/banner/${encodeURIComponent(
       characterName
     )}`;
   };

@@ -10,7 +10,7 @@ interface SourceWithCharacter extends QnASource {
 }
 
 const getCharacterIconUrl = (characterName: string) => {
-  return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
+  return `https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
     characterName
   )}`;
 };

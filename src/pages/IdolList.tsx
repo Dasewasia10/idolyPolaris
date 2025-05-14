@@ -23,7 +23,7 @@ const IdolList: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/characters"
+          "https://diveidolypapi.my.id/api/characters"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch data");
@@ -56,7 +56,7 @@ const IdolList: React.FC = () => {
   }, []); // ✅ Hapus `idolName` karena tidak digunakan di sini
 
   const getCharacterBannerUrl = (characterName: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/character/banner/${encodeURIComponent(
+    return `https://diveidolypapi.my.id/api/img/character/banner/${encodeURIComponent(
       characterName
     )}`;
   };

@@ -18,7 +18,7 @@ interface CardWithSourceName extends Card {
   _sourceName: string;
 }
 
-const API_BASE_URL = "https://www.diveidolypapi.my.id/api";
+const API_BASE_URL = "https://diveidolypapi.my.id/api";
 
 // Function to generate unique identifier for Card
 const generateCardId = (card: Card): string => {

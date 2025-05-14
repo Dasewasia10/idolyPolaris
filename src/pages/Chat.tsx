@@ -52,7 +52,7 @@ const ChatPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/stamps"
+          "https://diveidolypapi.my.id/api/stamps"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch data");
@@ -61,7 +61,7 @@ const ChatPage: React.FC = () => {
         const data: Stamp[] = await response.json();
 
         const getStampUrl = (chara: string, expression: string) => {
-          return `https://www.diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
+          return `https://diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
             chara.toLowerCase()
           )}/${encodeURIComponent(expression.toLowerCase())}`;
         };
@@ -87,7 +87,7 @@ const ChatPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/characters"
+          "https://diveidolypapi.my.id/api/characters"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch data");
@@ -103,7 +103,7 @@ const ChatPage: React.FC = () => {
         const idolsWithIds = generateIds(filteredIdols);
 
         const getCharacterIconUrl = (characterName: string) => {
-          return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
+          return `https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
             characterName.toLowerCase()
           )}`;
         };
