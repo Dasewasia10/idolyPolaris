@@ -62,9 +62,10 @@ const IDCard: React.FC<IDCardProps> = ({
   const matchedGroup = groupOfIdol.find((g) => g.name === group);
 
   const getIdolGroupUrl = (characterName: string) => {
-    return `https://diveidolypapi.my.id/api/img/group/circle/${encodeURIComponent(
-      characterName
-    )}?timestamp=${Date.now()}`;
+    const originalUrl = `https://api.diveidolypapi.my.id/idolGroup/group-${characterName}-circle.png`;
+    return `https://diveidolypapi.my.id/api/proxy/image?url=${encodeURIComponent(
+      originalUrl
+    )}`;
   };
 
   // Gunakan matchedGroup untuk mendapatkan URL gambar
