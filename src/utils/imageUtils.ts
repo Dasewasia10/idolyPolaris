@@ -82,3 +82,25 @@ export const getPlaceholderImageUrl = (typeName: string): string => {
 
   return placeholderImages[typeName];
 };
+
+export const loadImageWithCorsBypass = async (url: string): Promise<string> => {
+  try {
+    // Fetch gambar dengan mode 'no-cors'
+    const response = await fetch(url, {
+      mode: "no-cors",
+      cache: "no-cache", // Hindari cache masalah
+    });
+
+    if (!response.ok && response.type !== "opaque") {
+      // Response type 'opaque' adalah expected untuk no-cors
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error("Error loading image:", error);
+    // Return fallback image
+    return `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`;
+  }
+};

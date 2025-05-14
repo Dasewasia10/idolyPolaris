@@ -1,5 +1,8 @@
-import React from "react";
-import { getPlaceholderImageUrl } from "../utils/imageUtils";
+import React, { useState, useEffect } from "react";
+import {
+  getPlaceholderImageUrl,
+  loadImageWithCorsBypass,
+} from "../utils/imageUtils";
 
 interface IDCardProps {
   title: string;
@@ -58,20 +61,55 @@ const IDCard: React.FC<IDCardProps> = ({
     // Tambahkan sumber lain di sini
   ];
 
-  // Cari grup yang sesuai
-  const matchedGroup = groupOfIdol.find((g) => g.name === group);
+  const [groupImageUrl, setGroupImageUrl] = useState<string>("");
+  const [oshiImages, setOshiImages] = useState<string[]>([]);
 
-  const getIdolGroupUrl = (groupName: string) => {
-    const originalUrl = `https://api.diveidolypapi.my.id/idolGroup/group-${groupName}-circle.png`;
-    return `https://diveidolypapi.my.id/api/proxy/image?url=${encodeURIComponent(
-      originalUrl
-    )}`;
-  };
+  // Cari grup yang sesuai
+  // const matchedGroup = groupOfIdol.find((g) => g.name === group);
+
+  // const getIdolGroupUrl = (groupName: string) => {
+  //   const originalUrl = `https://api.diveidolypapi.my.id/idolGroup/group-${groupName}-circle.png`;
+  //   return `https://diveidolypapi.my.id/api/proxy/image?url=${encodeURIComponent(
+  //     originalUrl
+  //   )}`;
+  // };
 
   // Gunakan matchedGroup untuk mendapatkan URL gambar
-  const groupImageUrl = matchedGroup
-    ? getIdolGroupUrl(matchedGroup.altName)
-    : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`; // Fallback image
+  // const groupImageUrl = matchedGroup
+  //   ? getIdolGroupUrl(matchedGroup.altName)
+  //   : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`; // Fallback image
+
+  // Load group image
+  useEffect(() => {
+    const loadGroupImage = async () => {
+      const matchedGroup = groupOfIdol.find((g) => g.name === group);
+      if (matchedGroup) {
+        const originalUrl = `https://api.diveidolypapi.my.id/idolGroup/group-${matchedGroup.altName}-circle.png`;
+        const imageUrl = await loadImageWithCorsBypass(originalUrl);
+        setGroupImageUrl(imageUrl);
+      }
+    };
+
+    loadGroupImage();
+  }, [group]);
+
+  // Load oshi images
+  useEffect(() => {
+    const loadOshiImages = async () => {
+      const images = await Promise.all(
+        selectedIcon.map(async (icon) => {
+          try {
+            return await loadImageWithCorsBypass(icon.src);
+          } catch {
+            return `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`;
+          }
+        })
+      );
+      setOshiImages(images);
+    };
+
+    loadOshiImages();
+  }, [selectedIcon]);
 
   return (
     <div className="h-2/3 max-h-screen bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-xl flex flex-col items-center p-4 relative gap-3">
@@ -155,9 +193,9 @@ const IDCard: React.FC<IDCardProps> = ({
           {selectedIcon.length < 3 &&
             Array.from({ length: 3 - selectedIcon.length }).map((_, index) => (
               <img
-                key={selectedIcon.length + index}
+                key={oshiImages.length + index}
                 src={`${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`}
-                alt={`oshi${selectedIcon.length + index + 1}`}
+                alt={`oshi${oshiImages.length + index + 1}`}
                 crossOrigin="anonymous"
                 className="flex h-12 w-12 rounded-full"
               />
