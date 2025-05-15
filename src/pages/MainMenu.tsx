@@ -1,64 +1,73 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-
-import OtherMenu from "../components/otherMenu";
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const MainMenu: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isHovered, setIsHovered] = useState<string | null>(null);
 
-  const handleGo = (url: string) => {
-    navigate(url);
+  // Combined menu items
+  const availableFeatures = [
+    { name: "Card Comparison", path: "/cardComparison" },
+    { name: "Card Overview", path: "/cardOverview" },
+    { name: "Lyrics", path: "/lyric" },
+    { name: "Idol Detail", path: "/idolList" },
+  ];
+
+  const upcomingFeatures = [
+    { name: "Love Interest Chart", path: "/loveInterestChart" },
+    { name: "Idol List", path: "/idolList" },
+    { name: "Card Design", path: "/cardDesign" },
+    { name: "IdolyChat", path: "/chat" },
+    { name: "KTP Manager", path: "/ktp" },
+  ];
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
   };
 
   return (
-    <>
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-600 gap-8 overflow-y-auto">
-        <h2 className="w-full bg-red-400 px-2 py-4 text-lg font-bold transition-all duration-500 ease-out lg:text-2xl flex justify-center">
-          <span className="text-center">
-            Welcome to Idoly Pride fan-Website!
-          </span>
-        </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-4">
+    <div className="flex flex-col bg-slate-600">
+      {/* Sidebar Navigation */}
+      <div className="h-20 bg-slate-800 p-4 flex gap-2 overflow-y-auto justify-center z-10 fixed top-0 w-full z-20">
+        <button onClick={() => navigate("/")} className="flex p-4 rounded-full bg-white hover:bg-slate-300 text-black items-center justify-center">
+          OOO
+        </button>
+        {availableFeatures.map((feature) => (
           <button
-            onClick={() => handleGo("/cardDesign")}
-            className="flex justify-center text-base lg:text-2xl rounded-lg bg-black hover:bg-white text-white hover:text-black p-1 lg:p-4"
+            key={feature.path}
+            onClick={() => handleNavigation(feature.path)}
+            onMouseEnter={() => setIsHovered(feature.path)}
+            onMouseLeave={() => setIsHovered(null)}
+            className={`text-left px-2 py-3 rounded-lg transition-all duration-200 ${
+              location.pathname === feature.path
+                ? "bg-white text-black scale-105"
+                : isHovered === feature.path
+                ? "bg-slate-700 text-white scale-105"
+                : "bg-slate-900 text-white"
+            }`}
           >
-            Card Design
+            {feature.name}
           </button>
-          <button
-            onClick={() => handleGo("/chat")}
-            className="flex justify-center text-base lg:text-2xl rounded-lg bg-black hover:bg-white text-white hover:text-black p-1 lg:p-4"
+        ))}
+
+        <div className="border-l border-slate-500 mx-4"></div>
+        {upcomingFeatures.map((feature) => (
+          <div
+            key={feature.path}
+            className="relative text-left px-2 py-3 rounded-lg bg-slate-900 text-gray-400 cursor-not-allowed overflow-hidden"
           >
-            IdolyChat
-          </button>
-          {/* <button
-    onClick={() => handleGo("/bookreader")}
-    className="flex justify-center text-base lg:text-2xl rounded-lg bg-black hover:bg-white text-white hover:text-black p-1 lg:p-4"
-  >
-    Reading
-  </button> */}
-          <button
-            onClick={() => handleGo("/qna")}
-            className="flex justify-center text-base lg:text-2xl rounded-lg bg-black hover:bg-white text-white hover:text-black p-1 lg:p-4"
-          >
-            QnA
-          </button>
-          <button
-            onClick={() => handleGo("/lyric")}
-            className="flex justify-center text-base lg:text-2xl rounded-lg bg-black hover:bg-white text-white hover:text-black p-1 lg:p-4"
-          >
-            Lyric
-          </button>
-          <button
-            onClick={() => handleGo("/ktp")}
-            className="flex justify-center text-base lg:text-2xl rounded-lg bg-black hover:bg-white text-white hover:text-black p-1 lg:p-4"
-          >
-            KTP Manager
-          </button>
-        </div>
-        <OtherMenu />
+            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+              <img
+                src={`${import.meta.env.BASE_URL}assets/lock-16.png`}
+                alt=""
+              />
+            </div>
+            {feature.name}
+          </div>
+        ))}
       </div>
-    </>
+    </div>
   );
 };
 

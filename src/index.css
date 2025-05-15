@@ -27,3 +27,13 @@
 .button-click-effect:active {
   transform: scale(0.95);
 }
+
+.half-right-border::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 75%; /* Atur panjang border */
+  width: 4px; /* Ketebalan border */
+  background: #1e293b; /* Warna slate-900 */
+}

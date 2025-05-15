@@ -3,7 +3,9 @@ import { HashRouter as Router, Routes, Route } from "react-router-dom";
 // import { DarkModeProvider, DarkModeContext } from "./context/DarkMode";
 // import { HistoryProvider, useHistory } from "./context/History";
 
-import MainMenu from "./pages/MainMenu";
+import { Outlet } from "react-router-dom";
+
+// import MainMenu from "./pages/tetttt";
 import ChatPage from "./pages/Chat";
 // import BookReader from "./pages/BookReader";
 import QnAPage from "./pages/ListOfQnA";
@@ -14,10 +16,24 @@ import LoveInterestChart from "./pages/LoveInterestChart";
 import CardComparison from "./pages/CardComparison";
 import CardOverviewPage from "./pages/CardOverviewPage";
 //import CardDesign from "./pages/CardDesign (desperated)";
-import IdolList from "./pages/IdolList";
+import IdolListPage from "./pages/IdolListPage";
 
 import CardDesign from "./pages/CardDesign";
 import Lyrics from "./pages/Lyrics";
+
+import MainMenu from "./pages/MainMenu";
+import VideoBackground from "./components/videoBackground";
+import HomeContent from "./pages/HomeContent";
+
+const MainLayout = () => {
+  return (
+    <div className="flex flex-col bg-slate-600">
+      <VideoBackground />
+      <MainMenu />
+      <Outlet /> {/* Ini akan menampilkan konten yang sesuai dengan route */}
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   //const { darkMode } = useContext(DarkModeContext);
@@ -26,30 +42,29 @@ const App: React.FC = () => {
   return (
     // <DarkModeProvider>
     //<HistoryProvider>
-    <div className="flex flex-col">
-      {/* <AppBar /> */}
-      <div
-      //className={`flex-auto ${darkMode ? "bg-gray-800" : "bg-gray-200"}`}
-      >
-        <Router>
-          <Routes>
-            <Route path="/" element={<MainMenu />} />
-            <Route path="/chat" element={<ChatPage />} />
-            {/* <Route path="/bookreader" element={<BookReader />} /> */}
-            <Route path="/qna" element={<QnAPage />} />
-            <Route path="/ktp" element={<KTPManager />} />
-            {/* Pass the historyData to the History component */}
+    <div className="mt-20">
+      <Router>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<HomeContent />} />
+            <Route path="idolList" element={<IdolListPage />} />{" "}
+          </Route>
+          {/* <Route path="/chat" element={<ChatPage />} /> */}
+          {/* <Route path="/bookreader" element={<BookReader />} /> */}
+          {/* <Route path="/qna" element={<QnAPage />} /> */}
+          {/* <Route path="/ktp" element={<KTPManager />} /> */}
+          {/* Pass the historyData to the History component */}
 
-            <Route path="/idol/:idolName" element={<IdolDetailPage />} />
-            <Route path="/loveInterestChart" element={<LoveInterestChart />} />
-            <Route path="/cardComparison" element={<CardComparison />} />
-            <Route path="/cardOverview" element={<CardOverviewPage />} />
-            <Route path="/cardDesign" element={<CardDesign />} />
-            <Route path="/idolList" element={<IdolList />} />
-            <Route path="/lyric" element={<Lyrics />} />
-          </Routes>
-        </Router>
-      </div>
+          {/* <Route path="/idol/:idolName" element={<IdolDetailPage />} /> */}
+          {/* <Route path="/loveInterestChart" element={<LoveInterestChart />} /> */}
+          {/* <Route path="/cardComparison" element={<CardComparison />} /> */}
+          {/* <Route path="/cardOverview" element={<CardOverviewPage />} /> */}
+          {/* <Route path="/cardDesign" element={<CardDesign />} /> */}
+          {/* <Route path="/lyric" element={<Lyrics />} /> */}
+
+          {/* <Route path="/test" element={<MainMenuTest />} /> */}
+        </Routes>
+      </Router>
     </div>
     //   </HistoryProvider>
     // </DarkModeProvider>

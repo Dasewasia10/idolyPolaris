@@ -75,6 +75,23 @@ export const getAttributeImageUrl = (typeName: string): string => {
   return attributeImages[typeName] || "";
 };
 
+export const getMusicJacketGroupImageUrl = (groupName: string): string => {
+  const groupImages: { [key: string]: string } = {
+    "Tsuki no Tempest":
+      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_moon-001.png",
+    "Sunny Peace":
+      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_sun-001.png",
+    TRINITYAiLE:
+      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_tri-001.png",
+    LizNoir:
+      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_liz-001.png",
+    IIIX: "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_thrx-001.png",
+    "Mana Nagase":
+      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_mna-003.png",
+  };
+  return groupImages[groupName] || "";
+};
+
 export const getPlaceholderImageUrl = (typeName: string): string => {
   const placeholderImages: { [key: string]: string } = {
     square: "https://fakeimg.pl/500x500?text=None+To+View+Here&font=bebas",

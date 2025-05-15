@@ -170,7 +170,7 @@ const IdolDetailPage: React.FC = () => {
         backgroundColor: `#${idol.color}`,
         color: idol.color && isColorDark(idol.color) ? "#FFFFFF" : "#000000",
       }}
-      className="relative mx-auto flex h-screen flex-row gap-4 p-4 transition-all duration-500 ease-out"
+      className="relative mx-auto flex flex-row gap-4 p-4 transition-all duration-500 ease-out"
     >
       {(loading || !idol) && (
         <div className="absolute left-0 right-0 z-20 mx-auto w-max self-center">

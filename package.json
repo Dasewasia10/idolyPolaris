@@ -22,6 +22,7 @@
     "dom-to-image": "^2.6.0",
     "dom-to-image-more": "^3.5.0",
     "file-saver": "^2.0.5",
+    "framer-motion": "^12.11.3",
     "html2canvas": "^1.4.1",
     "ldrs": "^1.0.2",
     "react": "^18.3.1",
