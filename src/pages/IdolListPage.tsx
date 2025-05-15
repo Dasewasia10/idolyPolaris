@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import QnAModal from "../components/QnaModal";
+import QnAModal from "../components/QnAModal";
 import { Character } from "../interfaces/Character";
 import {
   getGroupImageUrl,
