@@ -6,22 +6,22 @@ import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 
 // import MainMenu from "./pages/tetttt";
-import ChatPage from "./pages/Chat";
-// import BookReader from "./pages/BookReader";
-import QnAPage from "./pages/ListOfQnA";
-import KTPManager from "./pages/KTPManager";
+// import ChatPage from "./pages/Chat";
+// // import BookReader from "./pages/BookReader";
+// import QnAPage from "./pages/ListOfQnA";
+// import KTPManager from "./pages/KTPManager";
 
-import IdolDetailPage from "./pages/IdolDetailPage";
-import LoveInterestChart from "./pages/LoveInterestChart";
-import CardComparison from "./pages/CardComparison";
-import CardOverviewPage from "./pages/CardOverviewPage";
-//import CardDesign from "./pages/CardDesign (desperated)";
-import IdolListPage from "./pages/IdolListPage";
+// import IdolDetailPage from "./pages/IdolDetailPage";
+// import LoveInterestChart from "./pages/LoveInterestChart";
+// import CardComparison from "./pages/CardComparison";
+// import CardOverviewPage from "./pages/CardOverviewPage";
+// //import CardDesign from "./pages/CardDesign (desperated)";
 
-import CardDesign from "./pages/CardDesign";
-import Lyrics from "./pages/Lyrics";
+// import CardDesign from "./pages/CardDesign";
+// import Lyrics from "./pages/Lyrics";
 
 import MainMenu from "./pages/MainMenu";
+import IdolListPage from "./pages/IdolListPage";
 import VideoBackground from "./components/videoBackground";
 import HomeContent from "./pages/HomeContent";
 
