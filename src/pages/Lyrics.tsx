@@ -39,6 +39,8 @@ const matchWithCharacters = (lyricsData: any[], characters: any[]) =>
 
 const Lyrics: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>(""); // State untuk menyimpan nilai input pencarian
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<any[]>([]);
 
   const [lyric, setLyric] = useState<Lyric[]>([]);
   const [idols, setIdols] = useState<Character[]>([]);
@@ -48,6 +50,9 @@ const Lyrics: React.FC = () => {
   const [activeData, setActiveData] = useState<any[]>([]);
   const [videoModalIsOpen, setVideoModalIsOpen] = useState(false);
   const [videoModalIsSmall, setVideoModalIsSmall] = useState(false);
+
+  const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
+  const [isRightMenuOpen, setIsRightMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchLyrics = async () => {
@@ -203,15 +208,6 @@ const Lyrics: React.FC = () => {
       (selectedCharacter === "" || filteredTitleByCharacter.includes(title))
   );
 
-  // const [activeSource, setActiveSource] = useState<string>(
-  //   sources.length > 0 ? sources[0].name : ""
-  // );
-
-  // const activeData =
-  //   sources.length > 0 && activeSource
-  //     ? sources.find((source) => source.name === activeSource)?.data || []
-  //     : [];
-
   const [activeCharacters, setActiveCharacters] = useState<any[]>([]);
 
   useEffect(() => {
@@ -271,42 +267,122 @@ const Lyrics: React.FC = () => {
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.length > 0) {
+      const filtered = combinedFilteredTitles.flatMap((source) =>
+        source.data
+          .map((item: any) => ({
+            sourceName: source.name,
+            ...item,
+          }))
+          .filter(
+            (item: {
+              title: string;
+              alternateTitle: string;
+              jpTitle: string;
+            }) =>
+              item.title.toLowerCase().includes(value.toLowerCase()) ||
+              (item.alternateTitle &&
+                item.alternateTitle
+                  .toLowerCase()
+                  .includes(value.toLowerCase())) ||
+              (item.jpTitle &&
+                item.jpTitle.toLowerCase().includes(value.toLowerCase()))
+          )
+          .slice(0, 5)
+      ); // Batasi hasil maksimal 5
+
+      setFilteredSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
   };
 
-  const handleBackClick = () => {
-    window.history.back();
+  // Handle ketika memilih suggestion
+  const handleSelectSuggestion = (selectedItem: any) => {
+    // Cari sumber yang sesuai
+    const selectedSource = sources.find(
+      (source) => source.name === selectedItem.sourceName
+    );
+
+    if (selectedSource) {
+      setActiveSource(selectedSource.name);
+      setActiveData(selectedSource.data);
+      setActiveCharacters(selectedSource.data[0]?.matchedCharacters || []);
+    }
+
+    setSearchTerm(selectedItem.title);
+    setShowSuggestions(false);
   };
 
   const [activeTab, setActiveTab] = useState<"video" | "detail" | "source">(
     "video"
   );
 
+  const [activeColumns, setActiveColumns] = useState({
+    kanji: true,
+    romaji: true,
+    english: true,
+    indonesian: true,
+  });
+
+  // Fungsi toggle kolom
+  const toggleColumn = (column: keyof typeof activeColumns) => {
+    setActiveColumns((prev) => ({
+      ...prev,
+      [column]: !prev[column],
+    }));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Cek jika klik terjadi di luar kedua menu
+      const leftMenu = document.getElementById("leftConsole");
+      const rightMenu = document.getElementById("rightConsole");
+
+      const isClickOutsideLeft =
+        leftMenu && !leftMenu.contains(event.target as Node);
+      const isClickOutsideRight =
+        rightMenu && !rightMenu.contains(event.target as Node);
+
+      // Jika salah satu menu terbuka dan klik di luar
+      if (
+        (isLeftMenuOpen || isRightMenuOpen) &&
+        isClickOutsideLeft &&
+        isClickOutsideRight
+      ) {
+        setIsLeftMenuOpen(false);
+        setIsRightMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isLeftMenuOpen, isRightMenuOpen]); // Tambahkan dependencies
+
   return (
     <>
-      <div className="h-screen bg-slate-400 flex p-4 gap-2">
-        <section id="leftConsole" className="flex flex-col gap-4 w-1/2">
-          <div className="flex items-center gap-4 h-12 w-full">
-            <button
-              className="px-4 py-2 bg-gray-300 hover:bg-gray-800 rounded-md hover:text-white font-semibold"
-              onClick={handleBackClick}
-            >
-              {"<"}
-            </button>
-            <h1 className="flex font-bold text-3xl">Lyrics</h1>
-            <div className="flex-1 min-w-[200px]">
-              <SearchBar
-                searchTerm={searchTerm}
-                onSearchChange={handleSearchChange}
-                placeholderText="Search by title or detail"
-              />
-            </div>
-          </div>
-          <section className="bg-slate-900 p-2 flex flex-col gap-2 w-full overflow-y-auto no-scrollbar">
-            <div className="w-full bg-slate-900 sticky top-0 z-10">
-              <div className="flex justify-between p-4 gap-4">
-                {/* Filter di kiri */}
-                <div className="flex flex-col gap-2 min-w-[200px]">
+      <div className="h-max z-10 flex flex-col p-4 gap-2">
+        <section id="leftConsole" className="absolute">
+          {/* Menu Sidebar */}
+          <div
+            className={`fixed left-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
+              isLeftMenuOpen ? "translate-x-0 w-72" : "-translate-x-full"
+            }`}
+          >
+            {/* Konten Menu */}
+            <div className="w-full bg-slate-900 p-4 overflow-y-auto">
+              <h2 className="flex font-bold text-3xl text-white py-2">
+                Filter Lyrics
+              </h2>
+              <div className="flex flex-col gap-4">
+                {/* Filter Section */}
+                <div className="flex flex-col gap-2">
                   <h2 className="text-left font-bold text-white">Filter</h2>
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-center gap-2">
@@ -340,8 +416,8 @@ const Lyrics: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Titles di kanan */}
-                <div className="flex flex-col gap-2 min-w-[200px]">
+                {/* Titles Section */}
+                <div className="flex flex-col gap-2">
                   <h2 className="text-left font-bold text-white">Titles</h2>
                   <select
                     value={activeSource}
@@ -357,29 +433,187 @@ const Lyrics: React.FC = () => {
                 </div>
               </div>
             </div>
-          </section>
+            {/* Tombol Toggle yang menempel di sisi kanan sidebar */}
+            <button
+              onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
+              title="Klik untuk membuka/tutup menu kiri"
+              className={`absolute -right-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-r-md hover:bg-slate-700 transition-all flex items-center justify-center`}
+            >
+              {isLeftMenuOpen ? "<" : ">"}
+            </button>
+          </div>
+        </section>
+        <section id="rightConsole" className="absolute">
+          {/* Menu Sidebar */}
+          <div
+            className={`fixed right-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
+              isRightMenuOpen ? "translate-x-0 w-72" : "translate-x-full"
+            }`}
+          >
+            {/* Tombol Toggle yang menempel di sisi kiri sidebar */}
+            <button
+              onClick={() => setIsRightMenuOpen(!isRightMenuOpen)}
+              className={`absolute -left-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-l-md hover:bg-slate-700 transition-all flex items-center justify-center`}
+            >
+              {isRightMenuOpen ? ">" : "<"}
+            </button>
 
-          <section className="bg-white rounded-md p-4">
-            {/* Tab Header */}
-            <div className="flex gap-4 border-b border-gray-300 mb-4">
-              {["video", "detail", "source"].map((tab) => (
-                <button
-                  key={tab}
-                  className={`px-4 py-2 font-semibold capitalize ${
-                    activeTab === tab
-                      ? "border-b-4 border-blue-500 text-blue-600"
-                      : "text-gray-600"
-                  }`}
-                  onClick={() =>
-                    setActiveTab(tab as "video" | "detail" | "source")
-                  }
-                >
-                  {tab}
-                </button>
-              ))}
+            {/* Konten Menu */}
+            <div className="w-full bg-slate-900 p-4 overflow-y-auto max-w-72">
+              <h2 className="flex font-bold text-3xl text-white py-2">
+                Content
+              </h2>
+              <div className="flex flex-col gap-4 bg-white p-4 rounded-md">
+                {/* Tab Header */}
+                <div className="flex gap-2 border-b border-gray-300 mb-4 text-sm">
+                  {["video", "detail", "source"].map((tab) => (
+                    <button
+                      key={tab}
+                      className={`px-4 py-2 font-semibold capitalize ${
+                        activeTab === tab
+                          ? "border-b-4 border-blue-500 text-blue-600"
+                          : "text-gray-600"
+                      }`}
+                      onClick={() =>
+                        setActiveTab(tab as "video" | "detail" | "source")
+                      }
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab Content */}
+                <div>
+                  {activeTab === "video" && (
+                    <div className="flex flex-col items-center gap-4">
+                      <button onClick={() => setVideoModalIsOpen(true)}>
+                        <img
+                          src={activeData[0]?.videoThumbnail}
+                          alt="Thumbnail Video"
+                          className="cursor-pointer rounded-md hover:opacity-80 transition"
+                        />
+                      </button>
+                    </div>
+                  )}
+
+                  {activeTab === "detail" && (
+                    <div className="overflow-auto max-h-[40vh]">
+                      <div className="flex flex-col gap-4">
+                        {/* Title */}
+                        <div className="flex flex-col bg-gray-200 p-4 rounded-md">
+                          <h3 className="text-center font-bold mb-2">Title</h3>
+                          <div className="flex flex-col text-center divide-y divide-gray-700">
+                            <span>{activeData[0]?.title}</span>
+                            {activeData[0]?.alternateTitle && (
+                              <span>{activeData[0]?.alternateTitle}</span>
+                            )}
+                            {activeData[0]?.jpTitle && (
+                              <span>{activeData[0]?.jpTitle}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex flex-col bg-gray-200 p-4 rounded-md">
+                          <h3 className="text-center font-bold mb-2">
+                            Details
+                          </h3>
+                          <div className="flex flex-col divide-y divide-gray-700">
+                            <span>
+                              <b>Release Date:</b> {activeData[0]?.releaseDate}
+                            </span>
+                            <span>
+                              <b>Lyricist:</b> {activeData[0]?.lyricist}
+                            </span>
+                            <span>
+                              <b>Composer:</b> {activeData[0]?.composer}
+                            </span>
+                            <span>
+                              <b>Arranger:</b> {activeData[0]?.arranger}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Performance Grouping */}
+                        <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
+                          <h3 className="text-center font-bold mb-2">
+                            Performance Grouping
+                          </h3>
+                          {activeData[0]?.group && (
+                            <img
+                              src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0]?.altGroup}-circle.png`}
+                              alt={activeData[0]?.group}
+                              className="w-12 h-auto"
+                            />
+                          )}
+                        </div>
+
+                        {/* Characters */}
+                        <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
+                          <h3 className="text-center font-bold mb-2">
+                            Characters
+                          </h3>
+                          <div className="flex justify-center gap-1 flex-wrap">
+                            {activeCharacters.map((char, index) => (
+                              <img
+                                key={char.name}
+                                src={getCharacterIconUrl(
+                                  char.name?.toLowerCase() || "mei"
+                                )}
+                                alt={`Character ${index}`}
+                                className="rounded-full border-2 border-gray-700 w-8 h-8"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === "source" && (
+                    <div className="text-center p-4">
+                      <p>
+                        <strong>Sumber Lirik:</strong>{" "}
+                        {activeData[0]?.source ? (
+                          <a
+                            className="text-blue-600 hover:underline"
+                            href={activeData[0]?.source}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Klik Di Sini
+                          </a>
+                        ) : (
+                          <span className="text-gray-500">Tidak tersedia</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
+          </div>
+        </section>
+        <section className="flex gap-4 w-full max-h-40 items-center justify-between bg-slate-900 p-2 rounded-md">
+          <h1 className="flex w-full font-bold text-2xl text-white px-2 justify-center">
+            {activeData[0]?.title}
+          </h1>
+        </section>
 
-            {/* Tab Content */}
+        <div
+          id="videoModal"
+          className={`absolute ${
+            videoModalIsOpen
+              ? "fixed flex items-center justify-center z-[9999] bg-black bg-opacity-0 transition-all duration-300"
+              : ""
+          }`}
+        >
+          <div
+            className={`transform ${
+              videoModalIsOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
+            } transition-all duration-300`}
+          >
             {/* Video Modal Selalu Tersedia */}
             <VideoModal
               src={activeData[0]?.video}
@@ -389,125 +623,35 @@ const Lyrics: React.FC = () => {
               isSmall={videoModalIsSmall}
               setIsSmall={setVideoModalIsSmall}
             />
-            <div>
-              {activeTab === "video" && (
-                <div className="flex flex-col items-center gap-4">
-                  <button onClick={() => setVideoModalIsOpen(true)}>
-                    <img
-                      src={activeData[0]?.videoThumbnail}
-                      alt="Thumbnail Video"
-                      className="cursor-pointer rounded-md hover:opacity-80 transition"
-                    />
-                  </button>
-                </div>
-              )}
+          </div>
+        </div>
 
-              {activeTab === "detail" && (
-                <div className="overflow-auto max-h-[40vh]">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Title */}
-                    <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                      <h3 className="text-center font-bold mb-2">Title</h3>
-                      <div className="flex flex-col text-center divide-y divide-gray-700">
-                        <span>{activeData[0]?.title}</span>
-                        {activeData[0]?.alternateTitle && (
-                          <span>{activeData[0]?.alternateTitle}</span>
-                        )}
-                        {activeData[0]?.jpTitle && (
-                          <span>{activeData[0]?.jpTitle}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                      <h3 className="text-center font-bold mb-2">Details</h3>
-                      <div className="flex flex-col divide-y divide-gray-700">
-                        <span>
-                          <b>Release Date:</b> {activeData[0]?.releaseDate}
-                        </span>
-                        <span>
-                          <b>Lyricist:</b> {activeData[0]?.lyricist}
-                        </span>
-                        <span>
-                          <b>Composer:</b> {activeData[0]?.composer}
-                        </span>
-                        <span>
-                          <b>Arranger:</b> {activeData[0]?.arranger}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Performance Grouping */}
-                    <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
-                      <h3 className="text-center font-bold mb-2">
-                        Performance Grouping
-                      </h3>
-                      {activeData[0]?.group && (
-                        <img
-                          src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0]?.altGroup}-circle.png`}
-                          alt={activeData[0]?.group}
-                          className="w-12 h-auto"
-                        />
-                      )}
-                    </div>
-
-                    {/* Characters */}
-                    <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
-                      <h3 className="text-center font-bold mb-2">Characters</h3>
-                      <div className="flex justify-center gap-1 flex-wrap">
-                        {activeCharacters.map((char, index) => (
-                          <img
-                            key={char.name}
-                            src={getCharacterIconUrl(
-                              char.name?.toLowerCase() || "mei"
-                            )}
-                            alt={`Character ${index}`}
-                            className="rounded-full border-2 border-gray-700 w-8 h-8"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "source" && (
-                <div className="text-center p-4">
-                  <p>
-                    <strong>Sumber Lirik:</strong>{" "}
-                    {activeData[0]?.source ? (
-                      <a
-                        className="text-blue-600 hover:underline"
-                        href={activeData[0]?.source}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Klik Di Sini
-                      </a>
-                    ) : (
-                      <span className="text-gray-500">Tidak tersedia</span>
-                    )}
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-        </section>
-
-        <section className="flex flex-col w-full overflow-auto gap-4 scrollbar-none w-1/2">
+        <section className="flex flex-col w-[80rem] mx-auto overflow-auto gap-4 scrollbar-none h-[30rem]">
           {/* Tampilkan lirik lagu */}
           {activeData.length > 0 && (
             <table className="table-auto w-full bg-white rounded-md">
               <thead className="sticky top-0 bg-gray-200">
                 <tr>
-                  <th className="px-4 py-2">Kanji</th>
-                  <th className="px-4 py-2">Romaji</th>
-                  <th className="px-4 py-2">English</th>
-                  <th className="px-4 py-2">Indonesian</th>
+                  {activeColumns.kanji && <th className="px-4 py-2">Kanji</th>}
+                  {activeColumns.romaji && (
+                    <th className="px-4 py-2">Romaji</th>
+                  )}
+                  {activeColumns.english && (
+                    <th className="px-4 py-2">English</th>
+                  )}
+                  {activeColumns.indonesian && (
+                    <th className="px-4 py-2">Indonesian</th>
+                  )}
                 </tr>
               </thead>
-              <tbody>
+              <tbody
+                className={`${
+                  // Jika hanya satu kolom yang aktif, center-kan teks
+                  Object.values(activeColumns).filter(Boolean).length === 1
+                    ? "text-center"
+                    : ""
+                }`}
+              >
                 {activeData.map((item: any) => (
                   <React.Fragment key={item.id}>
                     {item.kanji.map((kanji: string, index: number) => (
@@ -515,16 +659,26 @@ const Lyrics: React.FC = () => {
                         key={`${item.id}-kanji-${index}`}
                         className="hover:text-white hover:bg-slate-700"
                       >
-                        <td className="border px-4 py-2">{parseText(kanji)}</td>
-                        <td className="border px-4 py-2">
-                          {parseText(item.romaji[index] || "")}
-                        </td>
-                        <td className="border px-4 py-2">
-                          {parseText(item.english[index] || "")}
-                        </td>
-                        <td className="border px-4 py-2">
-                          {parseText(item.indonesian[index] || "")}
-                        </td>
+                        {activeColumns.kanji && (
+                          <td className="border px-4 py-2">
+                            {parseText(kanji)}
+                          </td>
+                        )}
+                        {activeColumns.romaji && (
+                          <td className="border px-4 py-2">
+                            {parseText(item.romaji[index] || "")}
+                          </td>
+                        )}
+                        {activeColumns.english && (
+                          <td className="border px-4 py-2">
+                            {parseText(item.english[index] || "")}
+                          </td>
+                        )}
+                        {activeColumns.indonesian && (
+                          <td className="border px-4 py-2">
+                            {parseText(item.indonesian[index] || "")}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </React.Fragment>
@@ -533,6 +687,125 @@ const Lyrics: React.FC = () => {
             </table>
           )}
         </section>
+
+        <div
+          id="belowConsole"
+          className="w-[80rem] flex justify-around mx-auto py-2 items-center gap-4"
+        >
+          <div className="w-1/2 z-10">
+            <SearchBar
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+              onSelectSuggestion={handleSelectSuggestion}
+              placeholderText="Search by any title"
+              suggestions={filteredSuggestions}
+              showSuggestions={showSuggestions}
+              setShowSuggestions={setShowSuggestions}
+            />
+          </div>
+
+          {/* Toggle Controls */}
+          <div className="flex gap-4 p-2 bg-gray-100 rounded-lg sticky top-0 z-10 shadow-sm h-12">
+            {/* Preset Buttons as Switch */}
+            <div className="flex flex-row gap-2 border-l border-gray-200 pl-4">
+              <button
+                onClick={() =>
+                  setActiveColumns({
+                    kanji: true,
+                    romaji: true,
+                    english: true,
+                    indonesian: true,
+                  })
+                }
+                className={`px-3 py-1.5 rounded-lg transition-colors text-xs font-medium shadow-xs flex items-center gap-1 ${
+                  activeColumns.kanji &&
+                  activeColumns.romaji &&
+                  activeColumns.english &&
+                  activeColumns.indonesian
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Show All
+              </button>
+              <button
+                onClick={() =>
+                  setActiveColumns({
+                    kanji: true,
+                    romaji: false,
+                    english: false,
+                    indonesian: false,
+                  })
+                }
+                className={`px-3 py-1.5 rounded-lg transition-colors text-xs font-medium shadow-xs flex items-center gap-1 ${
+                  activeColumns.kanji &&
+                  !activeColumns.romaji &&
+                  !activeColumns.english &&
+                  !activeColumns.indonesian
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Kanji Only
+              </button>
+            </div>
+            {/* Column Toggles */}
+            <div className="flex flex-row gap-2 items-center text-sm">
+              {Object.keys(activeColumns).map((column) => (
+                <label
+                  key={column}
+                  className="inline-flex items-center cursor-pointer"
+                >
+                  {/* Input hidden untuk aksesibilitas */}
+                  <input
+                    type="checkbox"
+                    checked={
+                      activeColumns[column as keyof typeof activeColumns]
+                    }
+                    onChange={() =>
+                      toggleColumn(column as keyof typeof activeColumns)
+                    }
+                    className="sr-only" // Sembunyikan input asli
+                  />
+                  {/* Custom checkbox dengan efek tenggelam */}
+                  <div
+                    className={`px-3 py-1.5 rounded-md border transition-all duration-150 select-none ${
+                      activeColumns[column as keyof typeof activeColumns]
+                        ? "bg-blue-600 text-white border-blue-700 shadow-inner transform scale-[0.98] inset-shadow-sm inset-shadow-blue-900"
+                        : "bg-white text-gray-700 border-gray-300 shadow-sm hover:bg-gray-50"
+                    }`}
+                  >
+                    <span className="capitalize font-medium">{column}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

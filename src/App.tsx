@@ -18,7 +18,7 @@ import { Outlet } from "react-router-dom";
 // //import CardDesign from "./pages/CardDesign (desperated)";
 
 // import CardDesign from "./pages/CardDesign";
-// import Lyrics from "./pages/Lyrics";
+import Lyrics from "./pages/Lyrics";
 
 import MainMenu from "./pages/MainMenu";
 import IdolListPage from "./pages/IdolListPage";
@@ -58,7 +58,8 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomeContent />} />
-            <Route path="idolList" element={<IdolListPage />} />{" "}
+            <Route path="idolList" element={<IdolListPage />} />
+            <Route path="/lyric" element={<Lyrics />} />
           </Route>
           {/* <Route path="/chat" element={<ChatPage />} /> */}
           {/* <Route path="/bookreader" element={<BookReader />} /> */}
@@ -71,7 +72,6 @@ const App: React.FC = () => {
           {/* <Route path="/cardComparison" element={<CardComparison />} /> */}
           {/* <Route path="/cardOverview" element={<CardOverviewPage />} /> */}
           {/* <Route path="/cardDesign" element={<CardDesign />} /> */}
-          {/* <Route path="/lyric" element={<Lyrics />} /> */}
 
           {/* <Route path="/test" element={<MainMenuTest />} /> */}
         </Routes>

@@ -17,7 +17,7 @@ const MainMenu: React.FC = () => {
   const upcomingFeatures = [
     { name: "Love Interest Chart", path: "/loveInterestChart" },
     { name: "Book Reader", path: "/bookreader" },
-    { name: "Idol List", path: "/idolList" },
+    { name: "Bday Calendar", path: "/bday" },
     { name: "Card Design", path: "/cardDesign" },
     { name: "IdolyChat", path: "/chat" },
     { name: "KTP Manager", path: "/ktp" },
