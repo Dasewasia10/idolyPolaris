@@ -29,11 +29,27 @@
 }
 
 .half-right-border::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   right: 0;
   height: 75%; /* Atur panjang border */
   width: 4px; /* Ketebalan border */
   background: #1e293b; /* Warna slate-900 */
+}
+
+.clip-trapezoid-with-gap {
+  background-color: white;
+  clip-path: polygon(
+    /* Shape luar */ 30% 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    /* Potongan untuk gap (harus berlawanan arah jarum jam) */ 0 0,
+    0 100%,
+    10% 100%,
+    40% 0,
+    32% 0,
+    5% 100%
+  );
 }

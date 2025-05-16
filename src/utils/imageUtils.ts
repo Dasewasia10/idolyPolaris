@@ -92,6 +92,42 @@ export const getMusicJacketGroupImageUrl = (groupName: string): string => {
   return groupImages[groupName] || "";
 };
 
+export const getCharacter3ImageUrl = (characterName: string): string => {
+  const characterImages: { [key: string]: string } = {
+    Kotono:
+      "https://api.diveidolypapi.my.id/image3Character/source-kotono-05-fes-01-full.webp",
+    Nagisa:
+      "https://api.diveidolypapi.my.id/image3Character/source-nagisa-05-fes-02-full.webp",
+    Mei: "https://api.diveidolypapi.my.id/image3Character/source-mei-05-rock-00-full.webp",
+    Suzu: "https://api.diveidolypapi.my.id/image3Character/source-suzu-05-premium-01-full.webp",
+    Saki: "https://api.diveidolypapi.my.id/image3Character/source-saki-05-birthday-01-full.webp",
+    Sakura:
+      "https://api.diveidolypapi.my.id/image3Character/source-sakura-05-cheerleader-00-full.webp",
+    Shizuku:
+      "https://api.diveidolypapi.my.id/image3Character/source-shizuku-05-yuru-00-full.webp",
+    Chisa:
+      "https://api.diveidolypapi.my.id/image3Character/source-chisa-05-pair-00-full.webp",
+    Haruko:
+      "https://api.diveidolypapi.my.id/image3Character/source-haruko-05-fes-00-full.webp",
+    Rei: "https://api.diveidolypapi.my.id/image3Character/source-rei-05-rock-00-full.webp",
+    Rui: "https://api.diveidolypapi.my.id/image3Character/source-rui-05-fes-01-full.webp",
+    Sumire:
+      "https://api.diveidolypapi.my.id/image3Character/source-sumire-05-fes-00-full.webp",
+    Yu: "https://api.diveidolypapi.my.id/image3Character/source-yu-05-fes-00-full.webp",
+    Rio: "https://api.diveidolypapi.my.id/image3Character/source-rio-05-fes-03-full.webp",
+    Aoi: "https://api.diveidolypapi.my.id/image3Character/source-aoi-05-fes-00-full.webp",
+    Ai: "https://api.diveidolypapi.my.id/image3Character/source-ai-05-rock-00-full.webp",
+    Kokoro:
+      "https://api.diveidolypapi.my.id/image3Character/source-kokoro-05-fes-00-full.webp",
+    fran: "https://api.diveidolypapi.my.id/image3Character/source-fran-05-idoloutfit-03-full.webp",
+    kana: "https://api.diveidolypapi.my.id/image3Character/source-kana-05-china-00-full.webp",
+    miho: "https://api.diveidolypapi.my.id/image3Character/source-miho-05-idoloutfit-00-full.webp",
+    Mana: "https://api.diveidolypapi.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
+  };
+
+  return characterImages[characterName] || "";
+};
+
 export const getPlaceholderImageUrl = (typeName: string): string => {
   const placeholderImages: { [key: string]: string } = {
     square: "https://fakeimg.pl/500x500?text=None+To+View+Here&font=bebas",

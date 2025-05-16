@@ -43,7 +43,7 @@ const QnAModal: React.FC<QnAModalProps> = ({
     sources.find((s) => s.name === character.name) || sources[0];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 translate-y-8">
+    <div className="flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg w-5/6 h-4/5 flex flex-col p-4 relative">
         <button
           onClick={onClose}

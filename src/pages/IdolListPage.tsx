@@ -2,10 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import QnAModal from "../components/QnAModal";
 import { Character } from "../interfaces/Character";
-import {
-  getGroupImageUrl,
-  getMusicJacketGroupImageUrl,
-} from "../utils/imageUtils";
+import { getCharacter3ImageUrl, getGroupImageUrl } from "../utils/imageUtils";
 import { QnASource } from "../interfaces/QnA";
 
 const getCharacterImageUrl = (
@@ -38,7 +35,6 @@ const IdolListPage: React.FC = () => {
   const [showQnA, setShowQnA] = useState(false);
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
   const [qnaSources, setQnaSources] = useState<any[]>([]);
-
 
   function formatDateToDM(dateString: string): string {
     const [_year, month, day] = dateString.split("-");
@@ -280,7 +276,7 @@ const IdolListPage: React.FC = () => {
                 <img
                   src={getCharacterImageUrl(idol.name, "banner")}
                   alt={idol.name}
-                  className="w-20 h-max object-cover"
+                  className="w-20 h-max object-cover select-none"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder-idol.png";
@@ -313,43 +309,111 @@ const IdolListPage: React.FC = () => {
               >
                 {/* Gambar akan mengikuti lebar parent dan height auto */}
                 <img
-                  src={getMusicJacketGroupImageUrl(selectedIdol.groupName)}
-                  alt={selectedIdol.groupName}
-                  className="absolute w-full h-max -translate-y-40 object-cover object-top opacity-50"
+                  src={getCharacter3ImageUrl(selectedIdol.name)}
+                  alt={selectedIdol.name}
+                  className="absolute w-full h-max -translate-y-40 object-cover object-top opacity-50 select-none"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder-idol.png";
                   }}
                 />
-                <img
-                  className={`w-auto h-[24rem] object-cover justify-center mx-auto rounded-lg absolute left-0 right-0 ${
-                    selectedIdol.groupName === "Tsuki no Tempest"
-                      ? "top-16"
-                      : "top-12"
-                  }`}
-                  src={getGroupImageUrl(selectedIdol.groupName)}
-                  alt="groupLogo"
-                />
+                <div className="absolute top-4 left-4 text-slate-900 justify-self-center z-[50] flex flex-col gap-4">
+                  {hasQnAData(selectedIdol.name, qnaSources) && (
+                    <button
+                      onClick={() => openQnA(selectedIdol)}
+                      className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
+                    >
+                      <span className="font-semibold px-2">QnA</span>
+                    </button>
+                  )}
+                  <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
+                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                      <img
+                        src={`${import.meta.env.BASE_URL}assets/lock-16.png`}
+                        alt=""
+                      />
+                    </div>
+                    <span className="font-semibold px-2">Gallery</span>
+                  </button>
+                </div>
+                <div className="absolute top-40 left-40 z-[50] max-w-xs transition-all duration-500 ease-out ring-2 rounded-lg">
+                  {/* Container utama bubble dengan ekor */}
+                  <div className="relative">
+                    {/* Bubble utama */}
+                    <div className="px-4 py-2 bg-slate-700 text-white rounded-lg">
+                      <div className="whitespace-pre-line">
+                        {(selectedIdol.introduction ?? []).join("\n")}
+                      </div>
+                    </div>
+
+                    {/* Ekor bubble (arah kanan atas) */}
+                    <div className="absolute top-4 -right-1 w-4 h-4 bg-slate-700 transform rotate-45 origin-bottom-left" />
+                  </div>
+                </div>
+                <div className="absolute w-2/3 h-full clip-trapezoid-with-gap right-0">
+                  <div
+                    className="absolute w-full h-full clip-trapezoid-outer 
+              bg-[radial-gradient(circle_at_center,_var(--dot-color)_var(--dot-size),_transparent_var(--dot-size))] 
+              [background-size:var(--spacing)_var(--spacing)] 
+              [--dot-color:#E0E1EC] 
+              [--dot-size:3px] [--spacing:12px]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white translate-x-40" />
+                  <img
+                    className={`w-auto h-max object-cover justify-center rounded-lg absolute opacity-20 transition-all duration-300 ease-out select-none ${
+                      selectedIdol.groupName === "Tsuki no Tempest"
+                        ? "top-8 -right-52"
+                        : selectedIdol.groupName === "TRINITYAiLE"
+                        ? "top-0 -right-52"
+                        : selectedIdol.groupName === "LizNoir"
+                        ? "top-2 -right-52"
+                        : "top-12 -right-52"
+                    }`}
+                    src={getGroupImageUrl(selectedIdol.groupName)}
+                    alt="groupLogo"
+                  />
+                </div>
                 <div className="flex flex-col md:flex-row gap-6 p-6">
                   {/* Idol Info */}
-                  <div className="flex-grow h-[28rem] z-30">
-                    <h1 className="text-3xl font-bold capitalize">
+                  <div className="relative flex-grow h-[28rem] z-30 items-end flex flex-col">
+                    <h1 className="text-3xl font-bold capitalize text-slate-900">
                       {selectedIdol.name} {selectedIdol.familyName}{" "}
                       {selectedIdol.japaneseName
                         ? `(${selectedIdol.japaneseName})`
                         : ""}
                     </h1>
-                    <div className="flex gap-2 my-3">
-                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white">
+                    <div className="text-center flex gap-2 my-3">
+                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white flex items-center">
+                        <img
+                          className="inline w-4 h-4 mr-2 -ml-1"
+                          src={`${
+                            import.meta.env.BASE_URL
+                          }assets/icons8-podcast-24.png`}
+                          alt=""
+                        />
                         VA :{" "}
                         {selectedIdol.japaneseSeiyuuName
                           ? selectedIdol.japaneseSeiyuuName
                           : selectedIdol.seiyuuName}
                       </span>
-                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white">
+                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white flex items-center">
+                        <img
+                          className="inline w-4 h-4 mr-2 -ml-1"
+                          src={`${
+                            import.meta.env.BASE_URL
+                          }assets/icons8-location-24.png`}
+                          alt=""
+                        />
                         {selectedIdol.school ? selectedIdol.school : "Unknown"}
                       </span>
-                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white">
+                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white flex items-center">
+                        <img
+                          className="inline w-4 h-4 mr-2"
+                          src={`${
+                            import.meta.env.BASE_URL
+                          }assets/icons8-badge-24.png`}
+                          alt=""
+                        />
                         {selectedIdol.badge
                           ? selectedIdol.badge +
                             " (" +
@@ -358,23 +422,26 @@ const IdolListPage: React.FC = () => {
                           : "Unknown"}
                       </span>
                     </div>
-                    <div className="bg-white w-2/3 px-4 py-2 text-black rounded-lg">
-                      {selectedIdol.desc}
+                    <div className="grid grid-cols-1 md:grid-cols-10 w-full my-4">
+                      <span className="col-start-7 col-span-4 px-4 py-2 text-black rounded-lg font-semibold text-justify border-slate-900 border-b-2 shadow-xl bg-white bg-opacity-10">
+                        {selectedIdol.desc}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-6">
-                      <div className="col-start-1 text-slate-900 justify-self-center">
-                        {hasQnAData(selectedIdol.name, qnaSources) && (
-                          <button
-                            onClick={() => openQnA(selectedIdol)}
-                            className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-800 border-white border-2"
-                          >
-                            View QnA
-                          </button>
-                        )}
+                    <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
+                      <div className="col-start-6 rounded-lg font-semibold p-4 font-bold flex items-end transition-all duration-300 ease-out w-24">
+                        <div
+                          style={{
+                            backgroundColor: `#${selectedIdol.color}`,
+                            color: `#${selectedIdol.color}`,
+                          }}
+                          className="select-none"
+                        >
+                          {selectedIdol.name}
+                        </div>
                       </div>
-                      <div className="col-start-3 text-slate-900 bg-white rounded-lg p-4">
+                      <div className="col-start-7 col-span-2 text-black rounded-lg font-semibold p-4 font-bold">
                         <h3 className="text-lg font-bold mb-2">Profile</h3>
-                        <div className="space-y-1">
+                        <div className="space-y-1 font-normal">
                           <p>
                             <span className="font-medium">Birthday:</span>{" "}
                             {formatDateToDM(selectedIdol.birthdayDate)}
@@ -395,9 +462,9 @@ const IdolListPage: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="col-start-4 text-slate-900 bg-white rounded-lg p-4">
+                      <div className="col-start-9 col-span-2 text-black rounded-lg font-semibold p-4">
                         <h3 className="text-lg font-bold mb-2 ">Details</h3>
-                        <div className="space-y-1">
+                        <div className="space-y-1 font-normal">
                           <p>
                             <span className="font-medium">Like:</span>{" "}
                             {selectedIdol.like}
@@ -412,8 +479,8 @@ const IdolListPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="absolute w-full h-[39.5rem] overflow-hidden -top-32 border-b-4 border-slate-900 rounded-lg half-right-border">
-                <div className="absolute w-max transition-all duration-500 ease-out overflow-hidden translate-x-80 right-0">
+              <div className="absolute w-full h-[39.5rem] overflow-hidden -top-32 border-b-4 border-slate-900 rounded-lg">
+                <div className="absolute transition-all duration-500 ease-out overflow-hidden">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={selectedIdol.name}
@@ -442,7 +509,7 @@ const IdolListPage: React.FC = () => {
                           willChange: "transform",
                         }}
                         alt={selectedIdol.name}
-                        className="w-max h-[66rem] z-10"
+                        className="w-max h-[66rem] z-10 select-none"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/placeholder-idol.png";
@@ -457,12 +524,14 @@ const IdolListPage: React.FC = () => {
         </div>
       </div>
       {showQnA && selectedIdol && (
-        <QnAModal
-          character={selectedIdol}
-          onClose={() => setShowQnA(false)}
-          allCharacters={allCharacters}
-          qnaSources={qnaSources}
-        />
+        <div className="fixed inset-0 flex z-50 translate-y-8 transition-all duration-500 ease-linear">
+          <QnAModal
+            character={selectedIdol}
+            onClose={() => setShowQnA(false)}
+            allCharacters={allCharacters}
+            qnaSources={qnaSources}
+          />
+        </div>
       )}
     </div>
   );

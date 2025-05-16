@@ -4,6 +4,8 @@ export interface Character {
   japaneseName: string;
   familyName: string;
   desc: string;
+  introduction?: string[];
+  japaneseIntroduction?: string[];
   birthdayDate: string;
   isCenter?: boolean;
   color?: string;

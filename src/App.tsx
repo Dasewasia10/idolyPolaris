@@ -31,6 +31,17 @@ const MainLayout = () => {
       <VideoBackground />
       <MainMenu />
       <Outlet /> {/* Ini akan menampilkan konten yang sesuai dengan route */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-neutral-100 dark:bg-neutral-900 py-1 mt-auto z-0">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+            © 2019 IDOLY PRIDE • All official content belongs to respective
+            rights holders
+          </p>
+          <p className="text-neutral-500 dark:text-neutral-500 text-xs mt-1">
+            Fan-made website • Not affiliated with the official project
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };

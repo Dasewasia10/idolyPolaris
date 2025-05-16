@@ -8,14 +8,15 @@ const MainMenu: React.FC = () => {
 
   // Combined menu items
   const availableFeatures = [
-    { name: "Card Comparison", path: "/cardComparison" },
-    { name: "Card Overview", path: "/cardOverview" },
-    { name: "Lyrics", path: "/lyric" },
     { name: "Idol Detail", path: "/idolList" },
+    { name: "Card Overview", path: "/cardOverview" },
+    { name: "Card Comparison", path: "/cardComparison" },
+    { name: "Lyrics", path: "/lyric" },
   ];
 
   const upcomingFeatures = [
     { name: "Love Interest Chart", path: "/loveInterestChart" },
+    { name: "Book Reader", path: "/bookreader" },
     { name: "Idol List", path: "/idolList" },
     { name: "Card Design", path: "/cardDesign" },
     { name: "IdolyChat", path: "/chat" },
@@ -27,11 +28,18 @@ const MainMenu: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col bg-slate-600">
+    <div className="flex flex-col bg-slate-600 items-center">
       {/* Sidebar Navigation */}
       <div className="h-20 bg-slate-800 p-4 flex gap-2 overflow-y-auto justify-center z-10 fixed top-0 w-full z-20">
-        <button onClick={() => navigate("/")} className="flex p-4 rounded-full bg-white hover:bg-slate-300 text-black items-center justify-center">
-          OOO
+        <button
+          onClick={() => navigate("/")}
+          className="flex rounded-full bg-white hover:bg-slate-300 text-black items-center justify-center mr-10"
+        >
+          <img
+            className="w-12 h-12"
+            src={`${import.meta.env.BASE_URL}assets/white_logo.png`}
+            alt=""
+          />
         </button>
         {availableFeatures.map((feature) => (
           <button
