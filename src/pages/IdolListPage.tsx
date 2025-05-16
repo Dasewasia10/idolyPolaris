@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import QnAModal from "../components/QnAModal";
 import { Character } from "../interfaces/Character";
-import { getCharacter3ImageUrl, getGroupImageUrl } from "../utils/imageUtils";
+import {
+  getCharacter3ImageUrl,
+  getGiftItemImageUrl,
+  getGroupImageUrl,
+} from "../utils/imageUtils";
 import { QnASource } from "../interfaces/QnA";
 
 const getCharacterImageUrl = (
@@ -296,6 +300,32 @@ const IdolListPage: React.FC = () => {
         <div className="z-10 w-full h-[30rem]">
           {selectedIdol && (
             <section className="relative flex flex-col items-center">
+              <div className="absolute w-20 h-20 p-2 z-50 flex flex-row gap-2 top-12 left-40 transition-all duration-500 ease-out">
+                <img
+                  src={getGiftItemImageUrl(selectedIdol.name)}
+                  alt="Give 40pt"
+                  title="Give 40pt"
+                  className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
+                  onError={(e) => {
+                    e.currentTarget.src = `${
+                      import.meta.env.BASE_URL
+                    }assets/default_image.png`;
+                    e.currentTarget.alt = "Image not available";
+                  }}
+                />
+                <img
+                  src={getGiftItemImageUrl(selectedIdol.name, 1)}
+                  alt="Give 100pt"
+                  title="Give 100pt"
+                  className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
+                  onError={(e) => {
+                    e.currentTarget.src = `${
+                      import.meta.env.BASE_URL
+                    }assets/default_image.png`;
+                    e.currentTarget.alt = "Image not available";
+                  }}
+                />
+              </div>
               <div
                 style={{
                   backgroundColor: `#${selectedIdol.color}`,

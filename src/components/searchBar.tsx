@@ -4,11 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 interface SearchBarProps {
   searchTerm: string;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSelectSuggestion: (item: any) => void;
+  onSelectSuggestion?: (item: any) => void;
   placeholderText: string;
-  suggestions: any[];
-  showSuggestions: boolean;
-  setShowSuggestions: (show: boolean) => void;
+  suggestions?: any[];
+  showSuggestions?: boolean;
+  setShowSuggestions?: (show: boolean) => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -30,7 +30,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         searchRef.current &&
         !searchRef.current.contains(event.target as Node)
       ) {
-        setShowSuggestions(false);
+        setShowSuggestions && setShowSuggestions(false);
       }
     };
 
@@ -65,7 +65,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onFocus={() => {
           setPlaceholder("");
           if (searchTerm.length > 0) {
-            setShowSuggestions(true);
+            setShowSuggestions && setShowSuggestions(true);
           }
         }}
         onBlur={() => setPlaceholder(placeholderText)}
@@ -76,15 +76,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
       </label>
 
       {/* Suggestions dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
+      {showSuggestions && (suggestions ?? []).length > 0 && (
         <ul className="absolute z-10 bottom-full mb-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
-          {suggestions.map((item, index) => (
+          {(suggestions ?? []).map((item, index) => (
             <li
               key={`${item.sourceName}-${index}`}
               className="cursor-pointer border-b border-gray-100 p-2 last:border-b-0 hover:bg-rose-200"
               onClick={() => {
-                onSelectSuggestion(item);
-                setShowSuggestions(false);
+                onSelectSuggestion && onSelectSuggestion(item);
+                setShowSuggestions && setShowSuggestions(false);
               }}
             >
               <div className="font-medium text-gray-900">

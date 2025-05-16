@@ -17,6 +17,39 @@
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+
+  /* Scrollbar overlay (tidak mengambil space) */
+  .scrollbar-overlay {
+    scrollbar-gutter: stable;
+  }
+
+  /* Scrollbar minimalis hanya thumb */
+  .scrollbar-minimal::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background-color: transparent;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb {
+    background-color: rgba(155, 155, 155, 0.5);
+    border-radius: 3px;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(155, 155, 155, 0.7);
+  }
+
+  /* Untuk Firefox */
+  .scrollbar-minimal {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+  }
+
+  /* Kombinasi no-scrollbar dan scrollbar minimal */
+  .scrollbar-overlay-minimal {
+    @apply no-scrollbar scrollbar-minimal;
+    overflow: overlay; /* Untuk browser yang mendukung */
+  }
 }
 
 /* styles.css */
@@ -52,4 +85,19 @@
     32% 0,
     5% 100%
   );
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.2s ease-out forwards;
 }

@@ -136,6 +136,8 @@ const CardOverview: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string[]>([]);
   const [selectedAttribute, setSelectedAttribute] = useState<string[]>([]);
 
+  const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -336,16 +338,8 @@ const CardOverview: React.FC = () => {
     );
   }, [primaryLanguage, cards]);
 
-  const toggleMenu = (_p0: boolean) => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   const toggleOpen = (_p0: boolean) => {
     setIsOpen(!isOpen);
-  };
-
-  const toggleSourceImageOpen = (_p0: boolean) => {
-    setSourceImageIsOpen(!isSourceImageOpen);
   };
 
   useEffect(() => {
@@ -521,20 +515,12 @@ const CardOverview: React.FC = () => {
     )}`;
   };
 
-  const handleBackClick = () => {
-    window.history.back();
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
   const closeModal = () => {
     setIsOpen(false);
-  };
-
-  const closeSourceImageModal = () => {
-    setSourceImageIsOpen(false);
   };
 
   const handleSelectCard = (card: CardWithSourceName) => {
@@ -591,189 +577,175 @@ const CardOverview: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Cek jika klik terjadi di luar kedua menu
+      const leftMenu = document.getElementById("leftConsole");
+
+      const isClickOutsideLeft =
+        leftMenu && !leftMenu.contains(event.target as Node);
+
+      // Jika salah satu menu terbuka dan klik di luar
+      if (isLeftMenuOpen && isClickOutsideLeft) {
+        setIsLeftMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isLeftMenuOpen]); // Tambahkan dependencies
+
   return (
-    <div className="transition-all duration-300 ease-out flex flex-row h-screen">
-      {/* Tombol Hamburger (Muncul hanya di layar kecil, `lg:hidden`) */}
-      <button
-        onClick={() => toggleMenu(false)}
-        className="absolute left-4 top-4 z-30 rounded bg-gray-800 p-2 text-white transition-all duration-300 ease-in-out lg:hidden"
-      >
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
+    <div className="transition-all duration-300 ease-out flex flex-col z-10 mt-4 gap-8 items-center w-full">
+      <section id="leftConsole" className="absolute">
+        {/* Menu Sidebar */}
+        <div
+          className={`fixed left-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
+            isLeftMenuOpen ? "translate-x-0 w-72" : "-translate-x-full"
+          }`}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M4 6h16M4 12h16m-7 6h7"
-          ></path>
-        </svg>
-      </button>
+          {/* Konten Menu */}
+          <div className="w-full bg-slate-900 p-4 overflow-y-auto">
+            <h2 className="flex font-bold text-3xl text-white py-2">
+              Filtering
+            </h2>
+            <div className="flex flex-col gap-4">
+              <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                <p className="text-white">Select language</p>
+                <div className="flex flex-row gap-4">
+                  <button
+                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                      primaryLanguage === "global"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white"
+                    }`}
+                    onClick={() => setPrimaryLanguage("global")}
+                  >
+                    en
+                  </button>
+                  <button
+                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                      primaryLanguage === "japanese"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white"
+                    }`}
+                    onClick={() => setPrimaryLanguage("japanese")}
+                  >
+                    jp
+                  </button>
+                  <button
+                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                      primaryLanguage === "indo"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white"
+                    }`}
+                    onClick={() => setPrimaryLanguage("indo")}
+                  >
+                    id
+                  </button>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-col gap-4 rounded border-2 border-white p-4">
+                {/* Filter Group (Multi-Select Dropdown) */}
+                <div>
+                  <p className="text-white">Select Group</p>
+                  <Select
+                    isMulti
+                    options={groupOptions}
+                    value={selectedGroup}
+                    onChange={(selected) =>
+                      setSelectedGroup(
+                        selected as { value: string; label: string }[]
+                      )
+                    }
+                    className="mt-2"
+                    classNamePrefix="select"
+                    placeholder="Select groups..."
+                  />
+                </div>
 
-      {/* Sidebar Menu */}
-      <section
-        ref={menuRef}
-        className={`absolute left-2 top-4 z-30 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:w-1/4 
-    ${isMenuOpen ? "block" : "hidden"} lg:block lg:sticky`}
-      >
-        <div className="flex flex-row items-center justify-between">
-          {/* Tombol Tutup (Hanya tampil di layar kecil, `lg:hidden`) */}
+                {/* Filter Character (Multi-Select Dropdown) */}
+                <div>
+                  <p className="text-white">Select Character</p>
+                  <Select
+                    isMulti
+                    options={characterOptions}
+                    value={selectedSourceName}
+                    onChange={(selected) =>
+                      setSelectedSourceName(
+                        selected as { value: string; label: string }[]
+                      )
+                    }
+                    className="mt-2"
+                    classNamePrefix="select"
+                    placeholder="Select characters..."
+                  />
+                </div>
+
+                {/* Filter Type (Tombol Toggle) */}
+                <div>
+                  <p className="text-white">Select Type</p>
+                  <div className="mt-2 flex flex-row flex-wrap gap-2">
+                    {["Scorer", "Buffer", "Supporter"].map((type) => (
+                      <button
+                        key={type}
+                        className={`rounded px-4 py-2 hover:bg-blue-300 ${
+                          selectedType.includes(type)
+                            ? "bg-blue-500 text-white"
+                            : "bg-white"
+                        }`}
+                        onClick={() => handleTypeToggle(type)}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Filter Attribute (Tombol Toggle) */}
+                <div>
+                  <p className="text-white">Select Attribute</p>
+                  <div className="mt-2 flex flex-row flex-wrap gap-2">
+                    {["Vocal", "Dance", "Visual"].map((attribute) => (
+                      <button
+                        key={attribute}
+                        className={`rounded px-4 py-2 hover:bg-blue-300 ${
+                          selectedAttribute.includes(attribute)
+                            ? "bg-blue-500 text-white"
+                            : "bg-white"
+                        }`}
+                        onClick={() => handleAttributeToggle(attribute)}
+                      >
+                        {attribute}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Tombol Toggle yang menempel di sisi kanan sidebar */}
           <button
-            onClick={() => toggleMenu(false)}
-            className="z-10 rounded bg-gray-800 p-2 text-white lg:hidden"
+            onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
+            title="Klik untuk membuka/tutup menu kiri"
+            className={`absolute -right-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-r-md hover:bg-slate-700 transition-all flex items-center justify-center`}
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16m-7 6h7"
-              ></path>
-            </svg>
+            {isLeftMenuOpen ? "<" : ">"}
           </button>
-          <div className="flex items-center gap-4">
-            <button
-              className="px-4 py-2 bg-gray-300 hover:bg-gray-800 rounded-md hover:text-white font-semibold"
-              onClick={handleBackClick}
-            >
-              {"<"}
-            </button>
-            <h1 className="flex justify-center font-bold text-3xl text-white">
-              Card Overview
-            </h1>
-          </div>
-        </div>
-        <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-          <p className="text-white">Select language</p>
-          <div className="flex flex-row gap-4">
-            <button
-              className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                primaryLanguage === "global"
-                  ? "bg-blue-500 text-white"
-                  : "bg-white"
-              }`}
-              onClick={() => setPrimaryLanguage("global")}
-            >
-              en
-            </button>
-            <button
-              className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                primaryLanguage === "japanese"
-                  ? "bg-blue-500 text-white"
-                  : "bg-white"
-              }`}
-              onClick={() => setPrimaryLanguage("japanese")}
-            >
-              jp
-            </button>
-            <button
-              className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                primaryLanguage === "indo"
-                  ? "bg-blue-500 text-white"
-                  : "bg-white"
-              }`}
-              onClick={() => setPrimaryLanguage("indo")}
-            >
-              id
-            </button>
-          </div>
-        </div>
-        <div className="mt-2 flex flex-col gap-4 rounded border-2 border-white p-4">
-          {/* Filter Group (Multi-Select Dropdown) */}
-          <div>
-            <p className="text-white">Select Group</p>
-            <Select
-              isMulti
-              options={groupOptions}
-              value={selectedGroup}
-              onChange={(selected) =>
-                setSelectedGroup(selected as { value: string; label: string }[])
-              }
-              className="mt-2"
-              classNamePrefix="select"
-              placeholder="Select groups..."
-            />
-          </div>
-
-          {/* Filter Character (Multi-Select Dropdown) */}
-          <div>
-            <p className="text-white">Select Character</p>
-            <Select
-              isMulti
-              options={characterOptions}
-              value={selectedSourceName}
-              onChange={(selected) =>
-                setSelectedSourceName(
-                  selected as { value: string; label: string }[]
-                )
-              }
-              className="mt-2"
-              classNamePrefix="select"
-              placeholder="Select characters..."
-            />
-          </div>
-
-          {/* Filter Type (Tombol Toggle) */}
-          <div>
-            <p className="text-white">Select Type</p>
-            <div className="mt-2 flex flex-row flex-wrap gap-2">
-              {["Scorer", "Buffer", "Supporter"].map((type) => (
-                <button
-                  key={type}
-                  className={`rounded px-4 py-2 hover:bg-blue-300 ${
-                    selectedType.includes(type)
-                      ? "bg-blue-500 text-white"
-                      : "bg-white"
-                  }`}
-                  onClick={() => handleTypeToggle(type)}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Filter Attribute (Tombol Toggle) */}
-          <div>
-            <p className="text-white">Select Attribute</p>
-            <div className="mt-2 flex flex-row flex-wrap gap-2">
-              {["Vocal", "Dance", "Visual"].map((attribute) => (
-                <button
-                  key={attribute}
-                  className={`rounded px-4 py-2 hover:bg-blue-300 ${
-                    selectedAttribute.includes(attribute)
-                      ? "bg-blue-500 text-white"
-                      : "bg-white"
-                  }`}
-                  onClick={() => handleAttributeToggle(attribute)}
-                >
-                  {attribute}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
-      <div className="fixed right-4 top-4 z-20 w-1/2">
+      <div className="z-20 w-2/3">
         <SearchBar
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
-          placeholderText="Search by name or group"
+          placeholderText="Search by name or title or group"
         />
       </div>
 
-      <div className="mt-24 mb-4 lg:mb-8 flex w-full flex-col gap-8 px-8 lg:mt-20 overflow-y-scroll shadow-inner">
+      <div className="flex w-full flex-col gap-4 overflow-y-scroll shadow-inner h-[33rem] p-2 scrollbar-minimal">
         <CardList
           cardAfterFilter={filteredCards}
           onSelectCard={handleSelectCard}
@@ -782,12 +754,12 @@ const CardOverview: React.FC = () => {
       </div>
 
       {isOpen && slot && (
-        <div className="fixed inset-0 z-30 flex h-[100dvh] w-screen bg-[#00246B] bg-opacity-50">
+        <div className="fixed inset-0 items-center justify-center z-30 flex bg-[#00246B] bg-opacity-50">
           <div
             ref={openRef}
-            className="fixed inset-0 flex h-[100dvh] w-screen p-6 lg:p-12"
+            className="isolate relative flex h-[42rem] w-full p-6 lg:p-12"
           >
-            <section className="flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:px-6 lg:py-4">
+            <section className="z-10 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:px-6 lg:py-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-white lg:text-3xl">
                   Handler
@@ -883,18 +855,80 @@ const CardOverview: React.FC = () => {
                   </div>
                 </>
               )}
-              <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-                <p className="text-white">Full Image</p>
-                <button
-                  onClick={() => toggleSourceImageOpen(true)}
-                  className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  <span className="font-semibold opacity-100">Click Here</span>
-                </button>
-              </div>
+              {slot.category == "Evolution" && (
+                <>
+                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                    <p className="text-white">Evolution Image</p>
+                    <button
+                      onClick={() => setShowSourceE(!showSourceE)}
+                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={slot.category !== "Evolution"}
+                    >
+                      <span className="font-semibold opacity-100 text-black">
+                        {showSourceE ? "Evolution Image" : "Initial Image"}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
             </section>
-            <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg">
-              <div className="flex flex-col gap-4 rounded border bg-[#00246B] p-4 text-white shadow-sm scrollbar-thin">
+            <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative">
+              {/* Gambar fixed (diam) */}
+              <div className="sticky top-0 z-0">
+                <img
+                  src={
+                    showSourceE && slot.category === "Evolution"
+                      ? getCardSourceEUrl(
+                          slot._sourceName,
+                          slot.initial,
+                          slot.costumeTheme,
+                          slot.costumeIndex
+                        )
+                      : getCardSourceUrl(
+                          slot._sourceName,
+                          slot.initial,
+                          slot.costumeTheme,
+                          slot.costumeIndex
+                        ) || getPlaceholderImageUrl("square")
+                  }
+                  onError={(e) => {
+                    e.currentTarget.src = `${
+                      import.meta.env.BASE_URL
+                    }assets/default_image.png`;
+                    e.currentTarget.alt = "Image not available";
+                  }}
+                  alt={`Card ${slot._sourceName}`}
+                  className="h-full w-auto rounded bg-white object-cover p-1"
+                />
+              </div>
+              {/* Pita Scroll */}
+              <div
+                className="sticky top-0 z-10 flex justify-center py-2 -translate-y-16"
+                onClick={() => {
+                  const mainContent = document.getElementById("main-content");
+                  mainContent?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                <div className="cursor-pointer rounded-b-lg bg-blue-500 px-6 py-1 text-white shadow-md hover:bg-blue-600 flex flex-col items-center">
+                  <span>Scroll ke Konten</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 animate-bounce"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                id="main-content"
+                className="relative z-20 gap-4 flex flex-col rounded border bg-[#00246B] p-4 text-white shadow-sm"
+              >
                 <section className="flex flex-col items-center justify-around gap-4 lg:mt-4 lg:flex-row">
                   <section className="flex w-full flex-col justify-center gap-2 lg:gap-4">
                     <h3 className="w-full rounded bg-white text-center text-xl font-bold text-black lg:py-2 lg:text-2xl">
@@ -1165,84 +1199,6 @@ const CardOverview: React.FC = () => {
                     <p>{slot.yell?.description?.[primaryLanguage]}</p>
                   </div>
                 </section>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isSourceImageOpen && slot && (
-        <div
-          ref={sourceImageRef}
-          className="fixed inset-0 z-30 flex w-screen bg-[#00246B] bg-opacity-50"
-        >
-          <div className="fixed inset-0 flex w-screen p-2 lg:p-6">
-            <div className="inset-0 mx-auto w-full overflow-y-auto rounded bg-white p-2 shadow-lg">
-              <div className="flex rounded bg-[#00246B] p-2 text-white shadow-sm scrollbar-thin">
-                <div className="flex absolute flex-col">
-                  <button
-                    onClick={() => {
-                      toggleSourceImageOpen(false);
-                      closeSourceImageModal();
-                    }}
-                    className="scale-[60%] rounded bg-red-500 hover:bg-red-700 p-2 text-white lg:scale-100"
-                  >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12.8536 2.85355C13.0488 2.65829 13.0488 2.34171 12.8536 2.14645C12.6583 1.95118 12.3417 1.95118 12.1464 2.14645L7.5 6.79289L2.85355 2.14645C2.65829 1.95118 2.34171 1.95118 2.14645 2.14645C1.95118 2.34171 1.95118 2.65829 2.14645 2.85355L6.79289 7.5L2.14645 12.1464C1.95118 12.3417 1.95118 12.6583 2.14645 12.8536C2.34171 13.0488 2.65829 13.0488 2.85355 12.8536L7.5 8.20711L12.1464 12.8536C12.3417 13.0488 12.6583 13.0488 12.8536 12.8536C13.0488 12.6583 13.0488 12.3417 12.8536 12.1464L8.20711 7.5L12.8536 2.85355Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </button>
-                  {slot.category == "Evolution" && (
-                    <>
-                      <button
-                        onClick={() => setShowSourceE(!showSourceE)}
-                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={slot.category !== "Evolution"}
-                      >
-                        <span className="font-semibold opacity-100 text-black">
-                          {showSourceE ? "Evolution Image" : "Initial Image"}
-                        </span>
-                      </button>
-                    </>
-                  )}
-                </div>
-                <div className="flex flex-col items-center justify-center text-center">
-                  <img
-                    src={
-                      showSourceE && slot.category === "Evolution"
-                        ? getCardSourceEUrl(
-                            slot._sourceName,
-                            slot.initial,
-                            slot.costumeTheme,
-                            slot.costumeIndex
-                          )
-                        : getCardSourceUrl(
-                            slot._sourceName,
-                            slot.initial,
-                            slot.costumeTheme,
-                            slot.costumeIndex
-                          ) || getPlaceholderImageUrl("square")
-                    }
-                    onError={(e) => {
-                      e.currentTarget.src = `${
-                        import.meta.env.BASE_URL
-                      }assets/default_image.png`;
-                      e.currentTarget.alt = "Image not available";
-                    }}
-                    alt={`Card ${slot._sourceName}`}
-                    className="h-full w-auto rounded bg-white object-cover p-1"
-                  />
-                </div>
               </div>
             </div>
           </div>

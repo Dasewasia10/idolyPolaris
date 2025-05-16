@@ -13,8 +13,6 @@ import { Outlet } from "react-router-dom";
 
 // import IdolDetailPage from "./pages/IdolDetailPage";
 // import LoveInterestChart from "./pages/LoveInterestChart";
-// import CardComparison from "./pages/CardComparison";
-// import CardOverviewPage from "./pages/CardOverviewPage";
 // //import CardDesign from "./pages/CardDesign (desperated)";
 
 // import CardDesign from "./pages/CardDesign";
@@ -24,6 +22,9 @@ import MainMenu from "./pages/MainMenu";
 import IdolListPage from "./pages/IdolListPage";
 import VideoBackground from "./components/videoBackground";
 import HomeContent from "./pages/HomeContent";
+import BdayCalendar from "./pages/BdayCalendar";
+import CardOverviewPage from "./pages/CardOverviewPage";
+import CardComparison from "./pages/CardComparison";
 
 const MainLayout = () => {
   return (
@@ -60,6 +61,9 @@ const App: React.FC = () => {
             <Route index element={<HomeContent />} />
             <Route path="idolList" element={<IdolListPage />} />
             <Route path="/lyric" element={<Lyrics />} />
+            <Route path="/bdayCalendar" element={<BdayCalendar />} />
+            <Route path="/cardOverview" element={<CardOverviewPage />} />
+          <Route path="/cardComparison" element={<CardComparison />} />
           </Route>
           {/* <Route path="/chat" element={<ChatPage />} /> */}
           {/* <Route path="/bookreader" element={<BookReader />} /> */}
@@ -69,8 +73,6 @@ const App: React.FC = () => {
 
           {/* <Route path="/idol/:idolName" element={<IdolDetailPage />} /> */}
           {/* <Route path="/loveInterestChart" element={<LoveInterestChart />} /> */}
-          {/* <Route path="/cardComparison" element={<CardComparison />} /> */}
-          {/* <Route path="/cardOverview" element={<CardOverviewPage />} /> */}
           {/* <Route path="/cardDesign" element={<CardDesign />} /> */}
 
           {/* <Route path="/test" element={<MainMenuTest />} /> */}

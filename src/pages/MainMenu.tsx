@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import BirthdayReminder from "../components/birthdayReminder";
 
 const MainMenu: React.FC = () => {
   const navigate = useNavigate();
@@ -12,12 +13,12 @@ const MainMenu: React.FC = () => {
     { name: "Card Overview", path: "/cardOverview" },
     { name: "Card Comparison", path: "/cardComparison" },
     { name: "Lyrics", path: "/lyric" },
+    { name: "Bday Calendar", path: "/bdayCalendar" },
   ];
 
   const upcomingFeatures = [
     { name: "Love Interest Chart", path: "/loveInterestChart" },
     { name: "Book Reader", path: "/bookreader" },
-    { name: "Bday Calendar", path: "/bday" },
     { name: "Card Design", path: "/cardDesign" },
     { name: "IdolyChat", path: "/chat" },
     { name: "KTP Manager", path: "/ktp" },
@@ -74,6 +75,9 @@ const MainMenu: React.FC = () => {
             {feature.name}
           </div>
         ))}
+      </div>
+      <div className="absolute bottom-0 right-0 z-[999] transition-all duration-500 ease-in-out">
+        <BirthdayReminder />
       </div>
     </div>
   );

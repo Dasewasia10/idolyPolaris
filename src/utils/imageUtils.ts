@@ -128,6 +128,45 @@ export const getCharacter3ImageUrl = (characterName: string): string => {
   return characterImages[characterName] || "";
 };
 
+export const getGiftItemImageUrl = (
+  characterName: string,
+  index: number = 0
+): string => {
+  // Mapping tipe hadiah untuk setiap karakter
+  const characterGiftTypes: Record<string, string> = {
+    Kotono: "stoic",
+    Nagisa: "sweet",
+    Mei: "sweet",
+    Suzu: "snack",
+    Saki: "adult",
+    Sakura: "snack",
+    Shizuku: "snack",
+    Chisa: "snack",
+    Haruko: "adult",
+    Rei: "stoic",
+    Rui: "stoic",
+    Sumire: "snack",
+    Yu: "adult",
+    Rio: "sweet",
+    Aoi: "stoic",
+    Ai: "stoic",
+    Kokoro: "sweet",
+    fran: "adult",
+    kana: "sweet",
+    miho: "adult",
+    Mana: "rice",
+  };
+
+  const type = characterGiftTypes[characterName];
+  if (!type) return "";
+
+  // Validasi index antara 0-1 (untuk memilih gambar pertama atau kedua)
+  const validatedIndex = Math.max(0, Math.min(1, index));
+  const indexStr = validatedIndex === 0 ? "01" : "02";
+
+  return `https://api.diveidolypapi.my.id/giftItem/img_item_thumb_enjoy-present-${type}-${indexStr}-01.png`;
+};
+
 export const getPlaceholderImageUrl = (typeName: string): string => {
   const placeholderImages: { [key: string]: string } = {
     square: "https://fakeimg.pl/500x500?text=None+To+View+Here&font=bebas",

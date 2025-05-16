@@ -352,10 +352,6 @@ const CardComparison: React.FC = () => {
     )}`;
   };
 
-  const handleBackClick = () => {
-    window.history.back();
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -382,8 +378,30 @@ const CardComparison: React.FC = () => {
     setIsOpen(false);
   };
 
+  const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(true);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Cek jika klik terjadi di luar kedua menu
+      const leftMenu = document.getElementById("leftConsole");
+
+      const isClickOutsideLeft =
+        leftMenu && !leftMenu.contains(event.target as Node);
+
+      // Jika salah satu menu terbuka dan klik di luar
+      if (isLeftMenuOpen && isClickOutsideLeft) {
+        setIsLeftMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isLeftMenuOpen]); // Tambahkan dependencies
+
   return (
-    <div className="transition-all duration-300 ease-out flex flex-col h-screen">
+    <div className="transition-all duration-300 ease-out flex flex-col">
       {/* Tombol Hamburger (Muncul hanya di layar kecil, `lg:hidden`) */}
       <button
         onClick={() => toggleMenu(false)}
@@ -406,82 +424,55 @@ const CardComparison: React.FC = () => {
       </button>
 
       {/* Sidebar Menu */}
-      <section
-        ref={menuRef}
-        className={`fixed z-30 w-full rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out 
-    ${isMenuOpen ? "block" : "hidden"} lg:block`}
-      >
-        <section className="flex flex-row justify-stretch">
-          <div className="flex flex-row items-center">
-            {/* Tombol Tutup (Hanya tampil di layar kecil, `lg:hidden`) */}
-            <button
-              onClick={() => toggleMenu(false)}
-              className="z-10 rounded bg-gray-800 p-2 text-white lg:hidden"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16m-7 6h7"
-                ></path>
-              </svg>
-            </button>
-            <div className="flex items-center gap-4">
-              <button
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-800 rounded-md hover:text-white font-semibold"
-                onClick={handleBackClick}
-              >
-                {"<"}
-              </button>
-              <h1 className="flex justify-center font-bold text-3xl text-white">
-                Card Comparison
-              </h1>
-            </div>
-          </div>
-          <div className="flex flex-row gap-2">
-            <div className="flex items-center gap-2 rounded border-2 border-white p-4">
-              <p className="text-white">Select language</p>
-              <div className="flex flex-row gap-4">
-                <button
-                  className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                    primaryLanguage === "global"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white"
-                  }`}
-                  onClick={() => setPrimaryLanguage("global")}
-                >
-                  en
-                </button>
-                <button
-                  className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                    primaryLanguage === "japanese"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white"
-                  }`}
-                  onClick={() => setPrimaryLanguage("japanese")}
-                >
-                  jp
-                </button>
-                <button
-                  className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                    primaryLanguage === "indo"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white"
-                  }`}
-                  onClick={() => setPrimaryLanguage("indo")}
-                >
-                  id
-                </button>
+      <section id="leftConsole" className="absolute z-20">
+        {/* Menu Sidebar */}
+        <div
+          className={`fixed left-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
+            isLeftMenuOpen ? "translate-x-0 w-72" : "-translate-x-full"
+          }`}
+        >
+          {/* Konten Menu */}
+          <div className="w-full bg-slate-900 p-4 overflow-y-auto gap-4 flex flex-col">
+            <h2 className="flex font-bold text-3xl text-white py-2">Handler</h2>
+            <div className="flex flex-col gap-4">
+              <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                <p className="text-white">Select language</p>
+                <div className="flex flex-row gap-4">
+                  <button
+                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                      primaryLanguage === "global"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white"
+                    }`}
+                    onClick={() => setPrimaryLanguage("global")}
+                  >
+                    en
+                  </button>
+                  <button
+                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                      primaryLanguage === "japanese"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white"
+                    }`}
+                    onClick={() => setPrimaryLanguage("japanese")}
+                  >
+                    jp
+                  </button>
+                  <button
+                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                      primaryLanguage === "indo"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white"
+                    }`}
+                    onClick={() => setPrimaryLanguage("indo")}
+                  >
+                    id
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-2 rounded border-2 py-2 px-1">
+
+            <div className="flex flex-col items-center justify-center gap-2 rounded border-2 py-2 px-1">
               <button
                 onClick={() => {
                   setIsOpen(true);
@@ -489,7 +480,7 @@ const CardComparison: React.FC = () => {
                 }}
                 className="w-24 self-center rounded bg-blue-500 hover:bg-blue-600 p-2 text-right text-white lg:w-max"
               >
-                {"< "}Choose First Card
+                Choose First Card
               </button>
               <button
                 onClick={() => {
@@ -498,14 +489,22 @@ const CardComparison: React.FC = () => {
                 }}
                 className="w-24 self-center rounded bg-blue-500 hover:bg-blue-600 p-2 text-left text-white lg:w-max"
               >
-                Choose Second Card{" >"}
+                Choose Second Card
               </button>
             </div>
           </div>
-        </section>
+          {/* Tombol Toggle yang menempel di sisi kanan sidebar */}
+          <button
+            onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
+            title="Klik untuk membuka/tutup menu kiri"
+            className={`absolute -right-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-r-md hover:bg-slate-700 transition-all flex items-center justify-center`}
+          >
+            {isLeftMenuOpen ? "<" : ">"}
+          </button>
+        </div>
       </section>
 
-      <div className="flex justify-between lg:mt-24">
+      <div className="flex justify-between z-10 gap-4 p-4">
         <div className="flex flex-1 flex-col">
           {slot1 &&
             (() => {
@@ -514,7 +513,7 @@ const CardComparison: React.FC = () => {
                 (slot1 as Record<string, any>).uniqueId || "Unknown";
 
               return (
-                <div className="flex flex-col gap-4 rounded border bg-[#00246B] p-4 text-white shadow-sm">
+                <div className="flex flex-col gap-4 rounded border bg-[#00246B] p-4 text-white shadow-sm h-[36rem] overflow-y-auto scrollbar-minimal">
                   <section className="flex flex-col items-center gap-4 lg:mt-4 lg:flex-row">
                     <section className="flex w-full flex-col justify-center gap-2 lg:gap-4">
                       <h3 className="w-full rounded bg-white text-center text-xl font-bold text-black lg:py-2 lg:text-2xl">
@@ -760,7 +759,7 @@ const CardComparison: React.FC = () => {
                 (slot2 as Record<string, any>).uniqueId || "Unknown";
 
               return (
-                <div className="flex flex-col gap-4 rounded border bg-[#00246B] p-4 text-white shadow-sm">
+                <div className="flex flex-col gap-4 rounded border bg-[#00246B] p-4 text-white shadow-sm h-[36rem] overflow-y-auto scrollbar-minimal">
                   <section className="flex flex-col items-center gap-4 lg:mt-4 lg:flex-row">
                     <section className="flex w-full flex-col justify-center gap-2 lg:gap-4">
                       <h3 className="w-full rounded bg-white text-center text-xl font-bold text-black lg:py-2 lg:text-2xl">
@@ -1033,7 +1032,7 @@ const CardComparison: React.FC = () => {
               onSearchChange={handleSearchChange}
               placeholderText="Search by name or group"
             />
-            <div className="h-full max-h-[calc(100%-150px)] overflow-y-auto">
+            <div className="h-full max-h-[calc(100%-150px)] overflow-y-auto mt-4">
               <CardList
                 cardAfterFilter={filteredCards}
                 onSelectCard={handleSelectCard}

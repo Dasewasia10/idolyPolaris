@@ -1,10 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "../interfaces/Card";
+import { Character } from "../interfaces/Character";
 
-import {
-  getAttributeImageUrl,
-  getCardTypeImageUrl2,
-} from "../utils/imageUtils";
+import { getCardTypeImageUrl2 } from "../utils/imageUtils";
 
 interface CardWithSourceName extends Card {
   _sourceName: string;
@@ -21,6 +19,27 @@ const CardList: React.FC<CardListProps> = ({
   onSelectCard,
   primaryLanguage,
 }) => {
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      try {
+        const response = await fetch(
+          "https://diveidolypapi.my.id/api/characters"
+        );
+        if (!response.ok) throw new Error("Failed to fetch characters");
+
+        const data = await response.json();
+        setCharacters(data);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    };
+
+    fetchCharacters();
+  }, []);
+
   const getCardVerticalUrl = (
     chara: string,
     initial: number,
@@ -45,54 +64,6 @@ const CardList: React.FC<CardListProps> = ({
     )}`;
   };
 
-  // const getCardVerticalBUrl = (
-  //   chara: string,
-  //   initial: number,
-  //   cosuName: string,
-  //   cosuIndex: number
-  // ) => {
-  //   // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-  //   const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-  //   return `https://www.diveidolypapi.my.id/api/img/card/verticalB/${encodeURIComponent(
-  //     chara.toLowerCase()
-  //   )}/${encodeURIComponent(
-  //     initial.toLocaleString("en-US", {
-  //       minimumIntegerDigits: 2,
-  //       useGrouping: false,
-  //     })
-  //   )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-  //     cosuIndex.toLocaleString("en-US", {
-  //       minimumIntegerDigits: 2,
-  //       useGrouping: false,
-  //     })
-  //   )}`;
-  // };
-
-  // const getCardVerticalEUrl = (
-  //   chara: string,
-  //   initial: number,
-  //   cosuName: string,
-  //   cosuIndex: number
-  // ) => {
-  //   // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-  //   const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-  //   return `https://www.diveidolypapi.my.id/api/img/card/verticalE/${encodeURIComponent(
-  //     chara.toLowerCase()
-  //   )}/${encodeURIComponent(
-  //     initial.toLocaleString("en-US", {
-  //       minimumIntegerDigits: 2,
-  //       useGrouping: false,
-  //     })
-  //   )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-  //     cosuIndex.toLocaleString("en-US", {
-  //       minimumIntegerDigits: 2,
-  //       useGrouping: false,
-  //     })
-  //   )}`;
-  // };
-
   const getColorByCardAttribute = (cardAttribute: string): string => {
     switch (cardAttribute) {
       case "Dance":
@@ -110,8 +81,30 @@ const CardList: React.FC<CardListProps> = ({
     return "✭".repeat(count);
   };
 
+  // Fungsi untuk mendapatkan warna karakter berdasarkan sourceName
+  const getCharacterColor = (sourceName: string): string => {
+    // Normalisasi nama untuk mencocokkan (case insensitive, hapus spasi ekstra)
+    const normalizedSourceName = sourceName.trim().toLowerCase();
+
+    const character = characters.find(
+      (char) => char.name.trim().toLowerCase() === normalizedSourceName
+    );
+
+    // Jika tidak ditemukan, coba cari dengan partial match
+    if (!character) {
+      const partialMatch = characters.find(
+        (char) =>
+          normalizedSourceName.includes(char.name.trim().toLowerCase()) ||
+          char.name.trim().toLowerCase().includes(normalizedSourceName)
+      );
+      return partialMatch?.color || "#ffffff"; // Default white jika tidak ditemukan
+    }
+
+    return character.color || "#ffffff";
+  };
+
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 transition-all duration-500 ease-out">
       {cardAfterFilter.length === 0 ? (
         <p>No cards available</p>
       ) : (
@@ -126,14 +119,25 @@ const CardList: React.FC<CardListProps> = ({
             const uniqueId =
               (card as Record<string, any>).uniqueId || "Unknown";
 
+            // Dapatkan warna karakter
+            const characterColor = getCharacterColor(sourceName);
+
+            console.log(characterColor)
             return (
               <div
                 key={index}
-                className="flex cursor-pointer gap-4 rounded border shadow-lg transition-all duration-500 ease-out hover:shadow-2xl"
+                className="flex cursor-pointer gap-4 rounded-r-lg border shadow-lg transition-all duration-500 ease-out hover:shadow-2xl bg-white hover:bg-slate-300"
                 onClick={() => onSelectCard(card)}
               >
-                <section className="inset-0 flex items-center gap-4">
-                  <div className="relative h-full w-20 transition-all duration-300 ease-out hover:w-24">
+                <section className="relative inset-0 flex items-center gap-2 w-full">
+                  {/* Segitiga kanan bawah */}
+                  <div
+                    className="absolute bottom-0 right-0 w-0 h-0  border-l-[50px] border-l-transparent border-b-[50px] rounded-br-lg"
+                    style={{
+                      borderBottomColor: `#${characterColor}`,
+                    }}
+                  />
+                  <div className="relative h-full w-20 transition-all duration-300 ease-out">
                     {card.type && (
                       <img
                         src={getCardTypeImageUrl2(card.type)}
@@ -158,17 +162,17 @@ const CardList: React.FC<CardListProps> = ({
                         e.currentTarget.alt = "Image not available";
                       }}
                       alt={`Card ${uniqueId}`}
-                      className="h-full w-auto rounded-r-xl object-cover transition-all duration-500 ease-out"
+                      className="h-full w-20 object-cover transition-all duration-500 ease-out"
                     />
                   </div>
-                  <div className="my-4">
-                    <h3 key={index} className="text-xl font-bold">
+                  <div className="w-2/3">
+                    <h3 key={index} className="text-lg font-bold">
                       {card.title?.[primaryLanguage]}
                     </h3>
-                    <h4 className="text-md font-bold">{sourceName}</h4>
+                    <h4 className="text-sm font-semibold">{sourceName}</h4>
                     <p className="text-xl">{generateStars(card.initial)}</p>
 
-                    <p className="text-xl">
+                    <p className="text-sm">
                       {[
                         card.skillOne,
                         card.skillTwo,
@@ -179,55 +183,6 @@ const CardList: React.FC<CardListProps> = ({
                         .map((skill) => skill?.typeSkill?.replace(/,/g, " /"))
                         .join(" / ")}
                     </p>
-                    <div className="shadow-sm">
-                      <section className="text-md flex flex-col gap-2 rounded border p-2 lg:mt-2 lg:flex-row">
-                        <div className="flex items-center justify-center text-center text-xl font-bold lg:justify-start">
-                          {card.stats.total}
-                        </div>
-                        <ul className="grid grid-cols-2 grid-rows-2 gap-1">
-                          <li className="grid justify-center border-x border-y p-2 text-center">
-                            <span className="flex flex-row items-center font-bold">
-                              <img
-                                src={getAttributeImageUrl("Vocal")}
-                                alt={"vocalStat"}
-                                className="h-auto w-6"
-                              />
-                              {card.stats.vocal}
-                            </span>
-                          </li>
-                          <li className="grid justify-center border-x border-y p-2 text-center">
-                            <span className="flex flex-row items-center font-bold">
-                              <img
-                                src={getAttributeImageUrl("Visual")}
-                                alt={"visualStat"}
-                                className="h-auto w-6"
-                              />
-                              {card.stats.visual}
-                            </span>
-                          </li>
-                          <li className="grid justify-center border-x border-y p-2 text-center">
-                            <span className="flex flex-row items-center font-bold">
-                              <img
-                                src={getAttributeImageUrl("Dance")}
-                                alt={"danceStat"}
-                                className="h-auto w-6"
-                              />
-                              {card.stats.dance}
-                            </span>
-                          </li>
-                          <li className="grid justify-center border-x border-y p-2 text-center">
-                            <span className="flex flex-row items-center font-bold">
-                              <img
-                                src={getAttributeImageUrl("Stamina")}
-                                alt={"staminaStat"}
-                                className="h-auto w-6"
-                              />
-                              {card.stats.stamina}
-                            </span>
-                          </li>
-                        </ul>
-                      </section>
-                    </div>
                   </div>
                 </section>
               </div>

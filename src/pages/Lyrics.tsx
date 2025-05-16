@@ -773,6 +773,8 @@ const Lyrics: React.FC = () => {
                 Kanji Only
               </button>
             </div>
+
+            <div className="border-l border-slate-500 mx-1"></div>
             {/* Column Toggles */}
             <div className="flex flex-row gap-2 items-center text-sm">
               {Object.keys(activeColumns).map((column) => (
