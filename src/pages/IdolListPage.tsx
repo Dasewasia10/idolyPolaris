@@ -221,7 +221,8 @@ const IdolListPage: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={prevGroup}
-          className="bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-20"
+          accessKey="g"
+          className="relative bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-20"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -237,6 +238,9 @@ const IdolListPage: React.FC = () => {
               d="M15 19l-7-7 7-7"
             />
           </svg>
+          <div className="absolute -bottom-3 -right-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
+            Alt + G
+          </div>
         </button>
 
         <h2 className="text-2xl font-bold text-white text-center bg-slate-800 mx-6 py-2 w-full">
@@ -245,7 +249,8 @@ const IdolListPage: React.FC = () => {
 
         <button
           onClick={nextGroup}
-          className="bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-20"
+          accessKey="h"
+          className="relative bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-20"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -261,6 +266,9 @@ const IdolListPage: React.FC = () => {
               d="M9 5l7 7-7 7"
             />
           </svg>
+          <div className="absolute -bottom-3 -left-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
+            Alt + H
+          </div>
         </button>
       </div>
 
