@@ -223,6 +223,7 @@ const IdolListPage: React.FC = () => {
           onClick={prevGroup}
           accessKey="g"
           className="relative bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-20"
+          title="Alt + G"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -238,9 +239,9 @@ const IdolListPage: React.FC = () => {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          <div className="absolute -bottom-3 -right-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
+          {/* <div className="absolute -bottom-3 -right-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
             Alt + G
-          </div>
+          </div> */}
         </button>
 
         <h2 className="text-2xl font-bold text-white text-center bg-slate-800 mx-6 py-2 w-full">
@@ -251,6 +252,7 @@ const IdolListPage: React.FC = () => {
           onClick={nextGroup}
           accessKey="h"
           className="relative bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-20"
+          title="Alt + H"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -266,9 +268,9 @@ const IdolListPage: React.FC = () => {
               d="M9 5l7 7-7 7"
             />
           </svg>
-          <div className="absolute -bottom-3 -left-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
+          {/* <div className="absolute -bottom-3 -left-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
             Alt + H
-          </div>
+          </div> */}
         </button>
       </div>
 
@@ -276,31 +278,48 @@ const IdolListPage: React.FC = () => {
         {/* Group Members List */}
         <div className="rounded-lg p-4 absolute z-20 bottom-10">
           <div className="flex gap-3 transition-all duration-500 ease-out">
-            {currentGroupMembers.map((idol: Character) => (
-              <motion.div
-                key={idol.name}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedIdol(idol)}
-                className={`cursor-pointer rounded-lg overflow-hidden`}
-                style={{ borderTop: `4px solid ${idol.color}` }}
-              >
-                <img
-                  src={getCharacterImageUrl(idol.name, "banner")}
-                  alt={idol.name}
-                  className="w-20 h-max object-cover select-none"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/placeholder-idol.png";
-                  }}
-                />
-                <div className="p-2 bg-slate-900">
-                  <h3 className="text-xs font-semibold text-white truncate">
-                    {idol.name}
-                  </h3>
-                </div>
-              </motion.div>
-            ))}
+            {currentGroupMembers.map((idol: Character, index: number) => {
+              const accessKey = (index + 1).toString(); // Convert number to string (1-5)
+
+              return (
+                <motion.div
+                  key={idol.name}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedIdol(idol)}
+                  className={`cursor-pointer rounded-lg overflow-hidden relative`}
+                  style={{ borderTop: `4px solid ${idol.color}` }}
+                  accessKey={accessKey}
+                  tabIndex={0} // Membuat div focusable
+                  role="button" // ARIA role untuk aksesibilitas
+                  title={`Alt + ${accessKey}`} // Tooltip untuk aksesibilitas
+                >
+                  {/* Number Badge dengan accessKey */}
+                  {/* <div
+                    className="absolute top-0 left-0 w-6 h-6 bg-black bg-opacity-70 flex items-center justify-center text-white font-bold text-xs rounded-br-lg"
+                    aria-label={`Shortcut key ${accessKey}`}
+                  >
+                    {accessKey}
+                  </div> */}
+
+                  <img
+                    src={getCharacterImageUrl(idol.name, "banner")}
+                    alt=""
+                    className="w-20 h-max object-cover select-none"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/placeholder-idol.png";
+                    }}
+                    aria-hidden="true"
+                  />
+                  <div className="p-2 bg-slate-900">
+                    <h3 className="text-xs font-semibold text-white truncate">
+                      {idol.name}
+                    </h3>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
 

@@ -465,7 +465,7 @@ const Lyrics: React.FC = () => {
               </h2>
               <div className="flex flex-col gap-4 bg-white p-4 rounded-md">
                 {/* Tab Header */}
-                <div className="flex gap-2 border-b border-gray-300 mb-4 text-sm">
+                <div className="flex gap-2 border-b border-gray-300 text-sm">
                   {["video", "detail", "source"].map((tab) => (
                     <button
                       key={tab}
@@ -498,7 +498,7 @@ const Lyrics: React.FC = () => {
                   )}
 
                   {activeTab === "detail" && (
-                    <div className="overflow-auto max-h-[40vh]">
+                    <div className="overflow-auto max-h-[40vh] scrollbar-minimal">
                       <div className="flex flex-col gap-4">
                         {/* Title */}
                         <div className="flex flex-col bg-gray-200 p-4 rounded-md">
@@ -572,20 +572,21 @@ const Lyrics: React.FC = () => {
                   )}
 
                   {activeTab === "source" && (
-                    <div className="text-center p-4">
-                      <p>
-                        <strong>Sumber Lirik:</strong>{" "}
+                    <div className="text-center p-2">
+                      <p className="flex flex-col gap-2">
                         {activeData[0]?.source ? (
-                          <a
-                            className="text-blue-600 hover:underline"
-                            href={activeData[0]?.source}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Klik Di Sini
-                          </a>
+                          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                            <a
+                              className=""
+                              href={activeData[0]?.source}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Click Here
+                            </a>
+                          </button>
                         ) : (
-                          <span className="text-gray-500">Tidak tersedia</span>
+                          <span className="text-gray-500">No source</span>
                         )}
                       </p>
                     </div>
@@ -630,7 +631,7 @@ const Lyrics: React.FC = () => {
           {/* Tampilkan lirik lagu */}
           {activeData.length > 0 && (
             <table className="table-auto w-full bg-white rounded-md">
-              <thead className="sticky top-0 bg-gray-200">
+              <thead className="sticky top-0 bg-slate-700 text-white">
                 <tr>
                   {activeColumns.kanji && <th className="px-4 py-2">Kanji</th>}
                   {activeColumns.romaji && (

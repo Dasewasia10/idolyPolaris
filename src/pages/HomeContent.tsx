@@ -44,7 +44,7 @@ const HomeContent = () => {
   ];
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto z-10">
+    <div className="flex-1 p-8 overflow-y-auto z-10 max-h-[38rem]">
       {/* Welcome Banner */}
       <div className="bg-slate-700 rounded-lg p-6 text-white bg-opacity-70 mb-4">
         <h1 className="text-3xl font-bold mb-2">
@@ -54,7 +54,7 @@ const HomeContent = () => {
       </div>
 
       {/* Collage Menu Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
         {menuItems.map((item) => (
           <div
             key={item.path}
@@ -88,7 +88,7 @@ const HomeContent = () => {
               <h3 className="text-2xl font-bold text-white drop-shadow-lg">
                 {item.name}
               </h3>
-              <p className="text-white/90 mt-1 drop-shadow-md">
+              <p className="text-white/90 mt-1 drop-shadow-md text-sm">
                 {item.description}
               </p>
 

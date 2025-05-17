@@ -84,10 +84,32 @@ const CharacterCalendar: React.FC = () => {
     // Render setiap hari dalam bulan
     for (let day = 1; day <= daysInMonth; day++) {
       const birthdayChars = getBirthdayCharacters(day, currentMonth);
+      const today = new Date();
+      const isToday =
+        day === today.getDate() &&
+        currentMonth === today.getMonth() &&
+        currentDate.getFullYear() === today.getFullYear();
 
       days.push(
-        <div key={`day-${day}`} className="h-24 p-1 border relative group">
-          <div className="text-right">{day}</div>
+        <div
+          key={`day-${day}`}
+          className={`h-24 p-1 border relative group ${
+            isToday ? "bg-blue-100/30 border-blue-400 border-2" : ""
+          }`}
+        >
+          <div
+            className={`text-right relative ${
+              isToday ? "font-bold text-blue-800" : ""
+            }`}
+          >
+            {day}
+            {isToday && (
+              <>
+                <span className="absolute top-1 left-1 inline-block w-5 h-5 rounded-full bg-blue-500 animate-pulse"></span>
+                <p className="">Today</p>
+              </>
+            )}
+          </div>
           <div className="flex flex-wrap gap-1">
             {birthdayChars.map((char) => (
               <div key={char.id} className="relative">

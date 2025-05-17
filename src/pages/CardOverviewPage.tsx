@@ -603,13 +603,13 @@ const CardOverview: React.FC = () => {
         {/* Menu Sidebar */}
         <div
           className={`fixed left-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
-            isLeftMenuOpen ? "translate-x-0 w-72" : "-translate-x-full"
+            isLeftMenuOpen ? "translate-x-0 w-96" : "-translate-x-full"
           }`}
         >
           {/* Konten Menu */}
           <div className="w-full bg-slate-900 p-4 overflow-y-auto">
             <h2 className="flex font-bold text-3xl text-white py-2">
-              Filtering
+              Handler
             </h2>
             <div className="flex flex-col gap-4">
               <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
@@ -769,7 +769,7 @@ const CardOverview: React.FC = () => {
                     toggleOpen(false);
                     closeModal();
                   }}
-                  className="scale-[60%] rounded bg-red-500 p-2 text-white lg:scale-100"
+                  className="scale-[60%] rounded bg-red-500 hover:bg-red-700 p-2 text-white lg:scale-100"
                 >
                   <svg
                     width="15"
