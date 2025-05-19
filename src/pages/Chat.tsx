@@ -113,12 +113,11 @@ const ChatPage: React.FC = () => {
   //   }
   // };
 
-const stampRef = useRef<Stamp | null>(null);
+  const stampRef = useRef<Stamp | null>(null);
   const handleStampClick = (stamp: Stamp) => {
-  console.log("Setting stamp:", stamp);
-  stampRef.current = stamp;
-  setSelectedStamp(stamp);
-};
+    stampRef.current = stamp;
+    setSelectedStamp(stamp);
+  };
 
   const handleSendMessage = (isStamp = false) => {
     if (!selectedIcon) {
@@ -127,12 +126,8 @@ const stampRef = useRef<Stamp | null>(null);
       return;
     }
 
-    
-  console.log("Current stamp (state):", selectedStamp);
-  console.log("Current stamp (ref):", stampRef.current);
-
-  // Gunakan ref sebagai fallback
-  const effectiveStamp = isStamp ? selectedStamp || stampRef.current : null;
+    // Gunakan ref sebagai fallback
+    const effectiveStamp = isStamp ? selectedStamp || stampRef.current : null;
 
     const newMessage: Message = {
       id: Date.now(),
@@ -140,7 +135,7 @@ const stampRef = useRef<Stamp | null>(null);
       name: selectedIcon.name,
       icon: selectedIcon.src,
       position,
-      stamp: isStamp ? effectiveStamp?.src : "undefined",
+      stamp: isStamp ? effectiveStamp?.src : undefined,
     };
 
     setMessages([...messages, newMessage]);
@@ -238,7 +233,7 @@ const stampRef = useRef<Stamp | null>(null);
   useEffect(() => {
     console.log("Current selectedStamp:", selectedStamp);
   }, [selectedStamp]);
-  
+
   return (
     <div className="h-[37rem] bg-gray-900 text-white px-4 py-6 z-10 m-4 rounded-lg">
       <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
