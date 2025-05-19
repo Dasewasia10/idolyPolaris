@@ -367,7 +367,7 @@ const Lyrics: React.FC = () => {
 
   return (
     <>
-      <div className="h-max z-10 flex flex-col p-4 gap-2">
+      <div className="h-max w-auto z-10 flex flex-col p-4 gap-2">
         <section id="leftConsole" className="absolute">
           {/* Menu Sidebar */}
           <div
@@ -627,7 +627,7 @@ const Lyrics: React.FC = () => {
           </div>
         </div>
 
-        <section className="flex flex-col w-[80rem] mx-auto overflow-auto gap-4 scrollbar-none h-[30rem]">
+        <section className="flex flex-col w-full mx-auto overflow-auto gap-4 scrollbar-none h-[30rem]">
           {/* Tampilkan lirik lagu */}
           {activeData.length > 0 && (
             <table className="table-auto w-full bg-white rounded-md">
@@ -691,9 +691,9 @@ const Lyrics: React.FC = () => {
 
         <div
           id="belowConsole"
-          className="w-[80rem] flex justify-around mx-auto py-2 items-center gap-4"
+          className="w-full flex flex-col md:flex-col lg:flex-row justify-around mx-auto py-2 items-center gap-4"
         >
-          <div className="w-1/2 z-10">
+          <div className="w-full lg:w-1/2 z-10">
             <SearchBar
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
@@ -706,7 +706,7 @@ const Lyrics: React.FC = () => {
           </div>
 
           {/* Toggle Controls */}
-          <div className="flex gap-4 p-2 bg-gray-100 rounded-lg sticky top-0 z-10 shadow-sm h-12">
+          <div className="flex gap-4 p-2 bg-gray-100 rounded-lg z-10 shadow-sm h-12">
             {/* Preset Buttons as Switch */}
             <div className="flex flex-row gap-2 border-l border-gray-200 pl-4">
               <button

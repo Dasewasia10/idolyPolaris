@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
+import axios from "axios";
 import TextareaAutosize from "react-textarea-autosize";
 
 import { Message } from "../interfaces/Message";
@@ -12,6 +13,8 @@ import exportToJson from "../utils/exportToJson";
 import importFromJson from "../utils/importFromJson";
 
 import Toast from "../components/Toast";
+
+const API_BASE_URL = "https://diveidolypapi.my.id/api";
 
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -50,78 +53,39 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(
-          "https://diveidolypapi.my.id/api/stamps"
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
+        const [stampsRes, charactersRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/stamps`),
+          axios.get(`${API_BASE_URL}/characters`),
+        ]);
 
-        const data: Stamp[] = await response.json();
-
-        const getStampUrl = (chara: string, expression: string) => {
-          return `https://diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
-            chara.toLowerCase()
-          )}/${encodeURIComponent(expression.toLowerCase())}`;
-        };
-
-        const formattedStamps = data.map((stamp: Stamp) => ({
+        // Proses data stamps
+        const formattedStamps = stampsRes.data.map((stamp: Stamp) => ({
           ...stamp,
           src: getStampUrl(stamp.character, stamp.expression),
         }));
         setStamps(formattedStamps);
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters"
+        // Proses data characters
+        const sortedCharacters = charactersRes.data.sort(
+          (a: Character, b: Character) => a.name.localeCompare(b.name)
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
+        const idolsWithIds = sortedCharacters.map(
+          (item: Character, index: number) => ({
+            ...item,
+            id: index + 1,
+          })
+        );
 
-        const data: Character[] = await response.json();
-        const filteredIdols = data.sort((a, b) => a.name.localeCompare(b.name)); // Urutkan berdasarkan nama idol
-
-        // ✅ Generate IDs untuk idols
-        const generateIds = (data: any[]) =>
-          data.map((item, index) => ({ ...item, id: index + 1 }));
-
-        const idolsWithIds = generateIds(filteredIdols);
-
-        const getCharacterIconUrl = (characterName: string) => {
-          return `https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
-            characterName.toLowerCase()
-          )}`;
-        };
-
-        // ✅ Simpan idols dengan ID ke state
         setIdols(idolsWithIds);
-
-        // ✅ Buat daftar icons dari idolsWithIds
-        const icons = idolsWithIds.map((idol) => ({
-          id: idol.id, // Gunakan ID yang sudah di-generate
-          name: idol.name,
-          src: getCharacterIconUrl(idol.name), // Gunakan fungsi untuk menghasilkan URL icon
-        }));
-
-        // ✅ Simpan daftar icons ke state
-        setIcons(icons);
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setIcons(
+          idolsWithIds.map((idol: Character) => ({
+            id: idol.id,
+            name: idol.name,
+            src: getCharacterIconUrl(idol.name),
+          }))
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -131,6 +95,21 @@ const ChatPage: React.FC = () => {
 
     fetchData();
   }, []);
+
+  const getStampUrl = (character: string, expression: string) => {
+    const formattedCharacter = character.toLowerCase().replace(/\s+/g, "");
+    const formattedExpression = expression.toLowerCase().replace(/\s+/g, "");
+    return `https://diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
+      formattedCharacter
+    )}/${encodeURIComponent(formattedExpression)}`;
+  };
+
+  const getCharacterIconUrl = (characterName: string) => {
+    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
+    return `https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
+      formattedName
+    )}`;
+  };
 
   const handleStampClick = (stamp: Stamp) => {
     console.log("Selected stamp:", stamp);
@@ -255,7 +234,7 @@ const ChatPage: React.FC = () => {
   }, [unsavedChanges]);
 
   return (
-    <div className="h-screen bg-gray-100 flex flex-col items-center p-4">
+    <div className="h-screen bg-gray-100 flex flex-col items-center p-4 z-10">
       <div className="h-full w-full max-w-screen bg-slate-700 rounded-lg shadow-md p-4 flex justify-evenly gap-10">
         <section className="flex flex-col flex-1">
           <div className="my-4 flex gap-4">

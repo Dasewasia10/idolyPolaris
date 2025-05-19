@@ -121,8 +121,7 @@ const CardList: React.FC<CardListProps> = ({
 
             // Dapatkan warna karakter
             const characterColor = getCharacterColor(sourceName);
-
-            console.log(characterColor)
+            
             return (
               <div
                 key={index}

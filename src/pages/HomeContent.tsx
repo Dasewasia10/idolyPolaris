@@ -44,7 +44,7 @@ const HomeContent = () => {
   ];
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto z-10 max-h-[38rem]">
+    <div className="flex-1 p-8 overflow-y-auto z-10 max-h-[38rem] scrollbar-minimal">
       {/* Welcome Banner */}
       <div className="bg-slate-700 rounded-lg p-6 text-white bg-opacity-70 mb-4">
         <h1 className="text-3xl font-bold mb-2">
