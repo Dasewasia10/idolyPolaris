@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import html2canvas from "html2canvas";
+import React, { useState, useEffect, useRef } from "react";
+// import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
+import domtoimage from "dom-to-image";
 import axios from "axios";
 import TextareaAutosize from "react-textarea-autosize";
 
@@ -9,63 +10,68 @@ import { Icon } from "../interfaces/Icon";
 import { Stamp } from "../interfaces/Stamp";
 import { Character } from "../interfaces/Character";
 
+import Toast from "../components/Toast";
+
 import exportToJson from "../utils/exportToJson";
 import importFromJson from "../utils/importFromJson";
-
-import Toast from "../components/Toast";
 
 const API_BASE_URL = "https://diveidolypapi.my.id/api";
 
 const ChatPage: React.FC = () => {
+  // State management
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState<string>("");
-  const [title, setTitle] = useState<string>("Title Here");
+  const [inputText, setInputText] = useState("");
+  const [title, setTitle] = useState("Title Here");
   const [selectedIcon, setSelectedIcon] = useState<Icon | null>(null);
   const [selectedStamp, setSelectedStamp] = useState<Stamp | null>(null);
   const [position, setPosition] = useState<"left" | "right">("left");
-  const [iconGroupVisible, setIconGroupVisible] = useState<boolean>(false);
-  const [stampGroupVisible, setStampGroupVisible] = useState<boolean>(false);
-  const [deleteButtonVisible, setDeleteButtonVisible] =
-    useState<boolean>(false);
-  const [unsavedChanges, setUnsavedChanges] = useState<boolean>(false);
-
-  const [toastMessage, setToastMessage] = useState<string>("");
-  const [isSuccess, setIsSuccess] = useState<boolean>(true);
+  const [iconGroupVisible, setIconGroupVisible] = useState(false);
+  const [stampGroupVisible, setStampGroupVisible] = useState(false);
+  const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(true);
   const [stamps, setStamps] = useState<Stamp[]>([]);
   const [icons, setIcons] = useState<Icon[]>([]);
-
   const [, setLoading] = useState(true);
 
+  // Helper functions
   const parseText = (text: string) => {
-    // Regex untuk pola formatting dengan aturan yang benar
-    const bold = /(?<!\*)\*\*(.+?)\*\*(?!\*)/g; // Hanya mencocokkan teks antara ** dan **
-    const italic = /(?<!\*)\*(.+?)\*(?!\*)/g; // Hanya mencocokkan teks antara * dan * tanpa double asterisk
-    const underline = /__(.+?)__/g; // Hanya mencocokkan teks antara __ dan __
+    const bold = /(?<!\*)\*\*(.+?)\*\*(?!\*)/g;
+    const italic = /(?<!\*)\*(.+?)\*(?!\*)/g;
+    const underline = /__(.+?)__/g;
 
-    const htmlText = text
+    return text
       .replace(bold, "<b>$1</b>")
       .replace(italic, "<i>$1</i>")
       .replace(underline, "<u>$1</u>");
-
-    return htmlText;
   };
 
+  const getStampUrl = (character: string, expression: string) => {
+    const formattedCharacter = character.toLowerCase().replace(/\s+/g, "");
+    const formattedExpression = expression.toLowerCase().replace(/\s+/g, "");
+    return `https://api.diveidolypapi.my.id/stampChat/stamp_${formattedCharacter}-${formattedExpression}.webp`;
+  };
+
+  const getCharacterIconUrl = (characterName: string) => {
+    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
+    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
+  };
+
+  // Data fetching
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const [stampsRes, charactersRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/stamps`),
           axios.get(`${API_BASE_URL}/characters`),
         ]);
 
-        // Process stamps data
         const processedStamps = stampsRes.data.map((stamp: Stamp) => ({
           ...stamp,
           src: getStampUrl(stamp.character, stamp.expression),
         }));
 
-        // Process characters data
         const sortedCharacters = charactersRes.data.sort(
           (a: Character, b: Character) => a.name.localeCompare(b.name)
         );
@@ -82,6 +88,8 @@ const ChatPage: React.FC = () => {
         setIcons(processedIcons);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setToastMessage("Failed to load data");
+        setIsSuccess(false);
       } finally {
         setLoading(false);
       }
@@ -90,94 +98,106 @@ const ChatPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const getStampUrl = (character: string, expression: string) => {
-    const formattedCharacter = character.toLowerCase().replace(/\s+/g, "");
-    const formattedExpression = expression.toLowerCase().replace(/\s+/g, "");
-    return `https://api.diveidolypapi.my.id/stampChat/stamp_${formattedCharacter}-${formattedExpression}.webp`;
-  };
+  // Handlers
 
-  const getCharacterIconUrl = (characterName: string) => {
-    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
-  };
+  // const handleBackClick = () => {
+  //   if (unsavedChanges) {
+  //     const confirmation = confirm(
+  //       "You have unsaved changes. Are you sure you want to leave?"
+  //     );
+  //     if (confirmation) {
+  //       window.history.back();
+  //     }
+  //   } else {
+  //     window.history.back();
+  //   }
+  // };
 
+const stampRef = useRef<Stamp | null>(null);
   const handleStampClick = (stamp: Stamp) => {
-    console.log("Selected stamp:", stamp);
-    setSelectedStamp(stamp);
-  };
+  console.log("Setting stamp:", stamp);
+  stampRef.current = stamp;
+  setSelectedStamp(stamp);
+};
 
   const handleSendMessage = (isStamp = false) => {
-    if (!selectedIcon) return;
+    if (!selectedIcon) {
+      setToastMessage("Please select a character icon first");
+      setIsSuccess(false);
+      return;
+    }
+
+    
+  console.log("Current stamp (state):", selectedStamp);
+  console.log("Current stamp (ref):", stampRef.current);
+
+  // Gunakan ref sebagai fallback
+  const effectiveStamp = isStamp ? selectedStamp || stampRef.current : null;
 
     const newMessage: Message = {
       id: Date.now(),
-      text: isStamp ? "" : inputText, // Kosongkan teks jika ini stamp
+      text: isStamp ? "" : inputText,
       name: selectedIcon.name,
       icon: selectedIcon.src,
       position,
-      stamp: isStamp ? selectedStamp?.src : undefined, // Tambahkan stamp jika ada
+      stamp: isStamp ? effectiveStamp?.src : "undefined",
     };
-
-    console.log("Sending message:", newMessage); // Debugging log
 
     setMessages([...messages, newMessage]);
     setInputText("");
-    if (isStamp) {
-      setTimeout(() => setSelectedStamp(null), 0); // Reset setelah pembaruan selesai
-    }
-  };
+    setUnsavedChanges(true);
 
-  const handleBackClick = () => {
-    if (unsavedChanges) {
-      const confirmation = confirm(
-        "Anda mungkin memiliki perubahan yang belum disimpan. Anda yakin ingin kembali?"
-      );
-      if (confirmation) {
-        setUnsavedChanges(false); // Mengatur kembali ke false setelah konfirmasi
-        window.history.back();
-      }
-    } else {
-      window.history.back();
+    if (isStamp) {
+      setSelectedStamp(null); // Tidak perlu setTimeout
     }
   };
 
   const handleDeleteMessage = (id: number) => {
     setMessages(messages.filter((msg) => msg.id !== id));
+    setUnsavedChanges(true);
   };
 
   const saveAsPng = async () => {
     const element = document.getElementById("idolyMessage");
-    if (!element) {
-      console.error("Element not found");
-      return;
-    }
+    if (!element) return;
 
-    const originalOverflow = element.style.overflow;
-    element.style.overflow = "visible";
+    const originalStyle = {
+      height: element.style.height,
+      overflow: element.style.overflow,
+    };
 
     try {
-      const canvas = await html2canvas(element, {
-        useCORS: true, // Aktifkan opsi ini
+      element.style.height = "auto";
+      element.style.overflow = "visible";
+
+      // Gunakan dom-to-image
+      const blob = await domtoimage.toBlob(element, {
+        quality: 1,
+        cacheBust: true,
+        style: {
+          transform: "none", // Handle transform issues
+        },
+        filter: (_node: any) => {
+          // Handle filter jika diperlukan
+          return true;
+        },
+        imagePlaceholder:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", // Placeholder untuk gambar error
       });
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve)
-      );
-      if (!blob) {
-        console.error("Blob not found");
-        return;
+
+      if (blob) {
+        saveAs(blob, `conversation_${title}.png`);
+        setToastMessage("Image saved successfully!");
+        setIsSuccess(true);
+        setUnsavedChanges(false);
       }
-
-      saveAs(blob, `conversation_of_${title}.png`);
-
-      setUnsavedChanges(false);
-      setToastMessage("Gambar telah tersimpan!");
-      setIsSuccess(true);
     } catch (error) {
       console.error("Error:", error);
-      setToastMessage("Failed to save image!");
+      setToastMessage("Failed to save image");
       setIsSuccess(false);
     } finally {
-      element.style.overflow = originalOverflow;
+      element.style.height = originalStyle.height;
+      element.style.overflow = originalStyle.overflow;
     }
   };
 
@@ -199,84 +219,82 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  // Before unload effect
   useEffect(() => {
-    const handleBeforeUnload = (event: {
-      preventDefault: () => void;
-      returnValue: string;
-    }) => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (unsavedChanges) {
-        const confirmationMessage =
-          "Anda mungkin memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin meninggalkan halaman ini?";
         event.preventDefault();
-        event.returnValue = confirmationMessage;
-        const leavePage = window.confirm(confirmationMessage);
-        if (leavePage) {
-          setUnsavedChanges(false); // Mengatur kembali ke false jika pengguna meninggalkan halaman
-        }
+        event.returnValue =
+          "You have unsaved changes. Are you sure you want to leave?";
       }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [unsavedChanges]);
 
+  useEffect(() => {
+    console.log("Current selectedStamp:", selectedStamp);
+  }, [selectedStamp]);
+  
   return (
-    <div className="h-screen bg-gray-100 flex flex-col items-center p-4 z-10">
-      <div className="h-full w-full max-w-screen bg-slate-700 rounded-lg shadow-md p-4 flex justify-evenly gap-10">
-        <section className="flex flex-col flex-1">
-          <div className="my-4 flex gap-4">
-            <button
-              className="px-4 py-2 bg-gray-300 hover:bg-gray-800 rounded-md hover:text-white font-semibold"
-              onClick={handleBackClick}
-            >
-              {"<"}
-            </button>
-            <button
-              onClick={() => setDeleteButtonVisible(!deleteButtonVisible)}
-              className="bg-red-300 hover:bg-red-500 p-2 rounded-lg w-2/3"
-            >
-              {deleteButtonVisible ? "Hide Delete" : "Show Delete"}
-            </button>
-            <button
-              onClick={() => saveAsPng()}
-              className="bg-green-300 hover:bg-green-500 p-2 rounded-lg w-2/3"
-            >
-              Save Conversation
-            </button>
-          </div>
-          <div className="my-4 flex justify-around w-full bg-white rounded-md p-2 items-center">
-            <button
-              className="bg-orange-300 hover:bg-orange-500 p-2 rounded-md"
-              onClick={handleExport}
-            >
-              Export to JSON
-            </button>
-            <div className="flex gap-3 items-center bg-amber-300 hover:bg-amber-500 p-2 rounded-md cursor-pointer">
-              <label htmlFor="importButton" className="cursor-pointer">
-                Import From JSON
+    <div className="h-[37rem] bg-gray-900 text-white px-4 py-6 z-10 m-4 rounded-lg">
+      <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left sidebar - Controls */}
+        <section className="lg:col-span-2 space-y-6 flex flex-col">
+          <div className="flex lg:flex-col lg:space-y-4 justify-around">
+            <div className="flex space-x-4 justify-around">
+              {/* <button
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md font-semibold"
+                onClick={handleBackClick}
+              >
+                {"< Back"}
+              </button> */}
+              <button
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-md w-full text-center h-full"
+                onClick={() => setDeleteButtonVisible(!deleteButtonVisible)}
+              >
+                {deleteButtonVisible ? "Hide Delete" : "Show Delete"}
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md w-full text-center h-full"
+                onClick={saveAsPng}
+              >
+                Save PNG
+              </button>
+            </div>
+
+            <div className="flex space-x-4 justify-around">
+              <button
+                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center h-full"
+                onClick={handleExport}
+              >
+                Export JSON
+              </button>
+              <label className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center h-full cursor-pointer">
+                Import JSON
+                <input
+                  type="file"
+                  accept="application/json"
+                  onChange={handleImport}
+                  className="hidden"
+                />
               </label>
-              <input
-                id="importButton"
-                className="w-40 cursor-pointer"
-                type="file"
-                accept="application/json"
-                onChange={handleImport}
-              />
             </div>
           </div>
-          <div className="flex flex-col lg:flex-row-reverse gap-10 justify-around">
-            <div className="flex flex-1 flex-col">
+
+          <div className="flex space-x-4">
+            <div className="flex-1 bg-gray-800 p-4 rounded-lg">
               <button
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4"
                 onClick={() => setIconGroupVisible(!iconGroupVisible)}
-                className="w-full bg-blue-500 text-white py-2 rounded-md mb-4"
               >
                 {iconGroupVisible ? "Hide Icons" : "Show Icons"}
               </button>
               {iconGroupVisible && (
-                <div className="flex overflow-auto w-full flex-wrap justify-around mb-4">
+                <div className="grid grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
                   {icons.map((icon) => (
                     <button
                       key={icon.id}
@@ -284,53 +302,58 @@ const ChatPage: React.FC = () => {
                         setSelectedIcon(icon);
                         setUnsavedChanges(true);
                       }}
-                      className={`p-1 rounded-full border ${
+                      className={`p-1 rounded-full transition-all ${
                         selectedIcon?.id === icon.id
-                          ? "border-blue-500"
-                          : "border-gray-300"
+                          ? "ring-2 ring-blue-500 transform scale-105"
+                          : "hover:ring-1 hover:ring-gray-400"
                       }`}
                     >
                       <img
                         src={icon.src}
                         alt={icon.name}
-                        title={icon.name}
-                        crossOrigin="anonymous"
-                        className="flex w-12 h-12 rounded-full"
+                        className="w-12 h-12 rounded-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            getCharacterIconUrl("default");
+                        }}
                       />
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            <div className="flex flex-1 flex-col">
+            <div className="flex-1 bg-gray-800 p-4 rounded-lg">
               <button
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4"
                 onClick={() => setStampGroupVisible(!stampGroupVisible)}
-                className="w-full bg-emerald-500 text-white py-2 rounded-md mb-4"
               >
                 {stampGroupVisible ? "Hide Stamps" : "Show Stamps"}
               </button>
               {stampGroupVisible && (
-                <div className="flex w-full flex-wrap justify-around overflow-y-auto h-80 lg:h-96 m-2 scrollbar-thin">
+                <div className="grid grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
                   {stamps.map((stamp) => (
                     <button
                       key={stamp.id}
-                      onMouseDown={() => handleStampClick(stamp)}
-                      onMouseUp={() => handleSendMessage(true)}
                       onClick={() => {
-                        setUnsavedChanges(true);
+                        handleStampClick(stamp);
+                        handleSendMessage(true);
                       }}
-                      className={`p-1 rounded-md border ${
+                      className={`p-1 rounded-md transition-all ${
                         selectedStamp?.id === stamp.id
-                          ? "border-blue-500"
-                          : "border-gray-300"
+                          ? "ring-2 ring-blue-500 transform scale-105"
+                          : "hover:ring-1 hover:ring-gray-400"
                       }`}
                     >
                       <img
-                        src={getStampUrl(stamp.character, stamp.expression)}
-                        alt={stamp.character + stamp.expression}
-                        title={stamp.character + " " + stamp.expression}
-                        crossOrigin="anonymous"
-                        className="flex w-12 h-12 rounded-md"
+                        src={stamp.src}
+                        alt={`${stamp.character} ${stamp.expression}`}
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = getStampUrl(
+                            "default",
+                            "error"
+                          );
+                        }}
                       />
                     </button>
                   ))}
@@ -339,110 +362,127 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
         </section>
-        <section className="flex flex-col justify-between w-96">
+
+        {/* Main content - Chat area */}
+        <section className="lg:col-span-2">
           <div
             id="idolyMessage"
-            className="mb-4 space-y-2 shadow-lg p-4 rounded-md h-auto overflow-y-auto bg-blend-multiply bg-repeat bg-[url('/assets/chat_bg_text.png')]"
+            className="bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[19rem] scrollbar-minimal z-[9999]"
           >
-            <h1 className="bg-slate-900 text-white p-2 rounded-md pl-3">
+            <h2>
               <TextareaAutosize
-                className="w-full h-auto appearance-none border-none bg-transparent font-bold text-xl break-words whitespace-pre-wrap"
-                title={"Input title here"}
-                placeholder={"Input title here"}
+                className="w-full bg-gray-900 text-white text-2xl font-bold p-3 mb-4 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
                   setUnsavedChanges(true);
                 }}
+                placeholder="Chat Title"
               />
-            </h1>
+            </h2>
+
             {messages.map((msg, index) => {
-              const isFirstMessageByUser =
+              const isFirst =
                 index === 0 || messages[index - 1].name !== msg.name;
-              const isLastMessageByUser =
+              const isLast =
                 index === messages.length - 1 ||
                 messages[index + 1].name !== msg.name;
-              const isMiddleMessageByUser =
-                !isFirstMessageByUser && !isLastMessageByUser;
+              const isMiddle = !isFirst && !isLast;
+              const bubbleClass =
+                msg.position === "left"
+                  ? "bg-gray-700 text-white"
+                  : "bg-blue-600 text-white";
 
               return (
                 <div
                   key={msg.id}
-                  className={`flex z-10 ${
+                  className={`flex ${
                     msg.position === "left" ? "justify-start" : "justify-end"
                   }`}
                 >
                   <div
-                    className={`flex items-center space-x-2 ${
+                    className={`flex items-start max-w-xs lg:max-w-md space-x-2 ${
                       msg.position === "right"
                         ? "flex-row-reverse space-x-reverse"
                         : ""
                     }`}
                   >
                     <section
-                      className={`flex items-center ${
-                        isFirstMessageByUser ? "h-16" : ""
+                      className={`flex items-center space-x-3 ${
+                        msg.position === "right"
+                          ? "flex-row-reverse space-x-reverse"
+                          : ""
                       }`}
                     >
-                      <img
-                        src={msg.icon}
-                        alt={msg.name}
-                        crossOrigin="anonymous"
-                        className={`w-12 h-12 rounded-full ${
-                          isFirstMessageByUser ? "" : "opacity-0"
-                        }`}
-                      />
-                    </section>
-                    <section>
-                      {isFirstMessageByUser && (
-                        <span
-                          className={`flex text-black text-xs pb-1 ${
-                            msg.position === "left"
-                              ? ""
-                              : "flex-row-reverse space-x-reverse"
+                      <div>
+                        <img
+                          src={msg.icon}
+                          alt={msg.name}
+                          className={`w-12 h-12 rounded-full ${
+                            isFirst ? "" : "opacity-0"
                           }`}
-                        >
-                          {msg.name}
-                        </span>
-                      )}
-                      <div
-                        className={`flex justify-start p-2 ${
-                          msg.position === "left"
-                            ? isFirstMessageByUser
-                              ? "bg-gray-300 rounded-br-lg rounded-t-lg"
-                              : isMiddleMessageByUser
-                              ? "bg-gray-300 rounded-r-lg"
-                              : "bg-gray-300 rounded-tr-lg rounded-b-lg"
-                            : isFirstMessageByUser
-                            ? "bg-green-600 text-white rounded-bl-lg rounded-t-lg"
-                            : isMiddleMessageByUser
-                            ? "bg-green-600 text-white rounded-l-lg"
-                            : "bg-green-600 text-white rounded-tl-lg rounded-b-lg"
-                        } max-w-[16rem] break-words`}
-                      >
-                        {msg.stamp ? (
-                          <img
-                            src={msg.stamp}
-                            alt="stamp"
-                            crossOrigin="anonymous"
-                            className="w-16 h-16"
-                          />
-                        ) : (
-                          <div
-                            className="text-left"
-                            dangerouslySetInnerHTML={{
-                              __html: parseText(msg.text),
-                            }}
-                          ></div>
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        {/* Span nama hanya muncul jika isFirst */}
+                        {isFirst && (
+                          <span
+                            className={`text-xs text-gray-400 mb-1 ${
+                              msg.position === "right"
+                                ? "text-right"
+                                : "text-left"
+                            }`}
+                          >
+                            {msg.name}
+                          </span>
                         )}
+
+                        <div
+                          className={`flex justify-start px-3 py-2 ${bubbleClass} ${
+                            msg.position === "left"
+                              ? isFirst
+                                ? "rounded-br-lg rounded-t-lg"
+                                : isMiddle
+                                ? "rounded-r-lg"
+                                : "rounded-tr-lg rounded-b-lg"
+                              : isFirst
+                              ? "text-white rounded-bl-lg rounded-t-lg"
+                              : isMiddle
+                              ? "text-white rounded-l-lg"
+                              : "text-white rounded-tl-lg rounded-b-lg"
+                          } max-w-[14rem] break-words`}
+                        >
+                          {msg.stamp ? (
+                            <img
+                              src={msg.stamp}
+                              alt="Stamp"
+                              className="w-16 h-16"
+                              crossOrigin="anonymous"
+                              onError={(e) => {
+                                e.currentTarget.src = `${
+                                  import.meta.env.BASE_URL
+                                }assets/default_image.png`;
+                                e.currentTarget.alt = "Image not available";
+                              }}
+                            />
+                          ) : (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: parseText(msg.text),
+                              }}
+                              className="prose prose-invert"
+                            />
+                          )}
+                        </div>
                       </div>
                     </section>
+
                     {deleteButtonVisible && (
                       <button
                         onClick={() => handleDeleteMessage(msg.id)}
-                        className="text-red-500"
+                        className="text-red-500 hover:text-red-400 -translate-x-1"
                       >
-                        Delete
+                        ×
                       </button>
                     )}
                   </div>
@@ -450,15 +490,16 @@ const ChatPage: React.FC = () => {
               );
             })}
           </div>
-          <div className="flex flex-col bg-slate-800 p-2 rounded-lg shadow-md">
-            <div className="flex gap-2 items-center mb-2">
+
+          <div className="bg-gray-800 p-4 rounded-lg shadow-xl mt-4">
+            <div className="flex items-center space-x-2 mb-4">
               <img
                 src={
-                  selectedIcon ? selectedIcon.src : getCharacterIconUrl("kohei")
+                  selectedIcon?.src ||
+                  `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`
                 }
-                alt="icon"
-                crossOrigin="anonymous"
-                className="h-12 w-12 rounded-full"
+                alt="Selected icon"
+                className="w-10 h-10 rounded-full"
               />
               <textarea
                 value={inputText}
@@ -467,17 +508,19 @@ const ChatPage: React.FC = () => {
                   setUnsavedChanges(true);
                 }}
                 placeholder="Type a message... Use *italic*, **bold**, or __underline__ syntax."
-                className="w-full border border-gray-300 rounded-md p-2"
+                className="flex-1 p-2 rounded border border-gray-600 bg-gray-700 text-white"
+                rows={3}
               />
             </div>
-            <div className="mb-4 flex space-x-4">
+
+            <div className="flex space-x-4 mb-4">
               <button
                 onClick={() => {
                   setPosition("left");
                   setUnsavedChanges(true);
                 }}
                 className={`px-4 py-2 rounded-md ${
-                  position === "left" ? "bg-blue-500 text-white" : "bg-gray-200"
+                  position === "left" ? "bg-blue-600 text-white" : "bg-gray-700"
                 }`}
               >
                 Left
@@ -489,33 +532,31 @@ const ChatPage: React.FC = () => {
                 }}
                 className={`px-4 py-2 rounded-md ${
                   position === "right"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-700"
                 }`}
               >
                 Right
               </button>
             </div>
+
             <button
-              onClick={() => {
-                handleSendMessage();
-                setUnsavedChanges(true);
-              }}
-              className="w-full bg-green-500 text-white py-2 rounded-md"
+              onClick={() => handleSendMessage()}
+              className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-md"
             >
-              Send
+              Send Message
             </button>
           </div>
         </section>
-        {toastMessage && (
-          <Toast
-            message={toastMessage}
-            isSuccess={isSuccess}
-            key={Date.now()}
-            onClose={() => setToastMessage("")}
-          />
-        )}
       </div>
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          isSuccess={isSuccess}
+          onClose={() => setToastMessage("")}
+        />
+      )}
     </div>
   );
 };

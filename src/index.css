@@ -101,3 +101,37 @@
 .animate-slide-in-right {
   animation: slideInFromRight 0.2s ease-out forwards;
 }
+
+/* Untuk animasi muncul (slide down) */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Untuk animasi menghilang (slide up) */
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -100%);
+  }
+}
+
+/* Class untuk animasi masuk */
+.toast-enter {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+/* Class untuk animasi keluar */
+.toast-exit {
+  animation: slideUp 0.3s ease-out forwards;
+}

@@ -58,7 +58,7 @@ const MainMenu: React.FC = () => {
               onClick={() => handleNavigation(feature.path)}
               onMouseEnter={() => setIsHovered(feature.path)}
               onMouseLeave={() => setIsHovered(null)}
-              className={`text-left px-2 py-3 rounded-lg transition-all duration-200 ${
+              className={`text-center text-sm px-2 py-3 rounded-lg transition-all duration-200 ${
                 location.pathname === feature.path
                   ? "bg-white text-black shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.5)] border-t border-slate-600"
                   : isHovered === feature.path
