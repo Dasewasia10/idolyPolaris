@@ -1,4 +1,4 @@
-//import { useState } from "react";
+// import { useState, useEffect } from "react";
 import Draggable from "react-draggable";
 
 interface VideoModalProps {
@@ -30,6 +30,10 @@ export default function VideoModal({
     setIsSmall(!isSmall);
   };
 
+  // const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+  if (!isOpen) return null;
+
   return (
     <div className="flex flex-col items-center">
       {/* Thumbnail + Logo YouTube */}
@@ -50,28 +54,25 @@ export default function VideoModal({
 
       {/* Draggable Modal */}
       {isOpen && (
-        <Draggable>
-          <div className="fixed top-0 left-0 bg-white p-4 rounded-lg shadow-lg z-50 w-auto h-auto">
-            <div className="flex justify-between py-1">
+        <Draggable cancel=".no-drag">
+          <div className="fixed bg-white rounded-lg shadow-lg  z-50 top-0 left-0">
+            <div className="flex justify-between items-center p-2 bg-gray-100 rounded-t-lg">
               <button
-                className={`text-gray-600 hover:text-gray-900 ${
-                  isSmall ? "text-sm" : "text-xl"
-                }`}
+                className="no-drag p-2 text-gray-600 hover:text-gray-900 text-lg"
                 onClick={() => setIsOpen(false)}
                 title="Close"
               >
                 ✖
               </button>
               <button
-                className={`text-gray-600 hover:text-gray-900 ${
-                  isSmall ? "text-sm" : "text-xl"
-                }`}
+                className="no-drag p-2 text-gray-600 hover:text-gray-900 text-lg"
                 onClick={toggleSize}
                 title={isSmall ? "Expand" : "Shrink"}
               >
                 {isSmall ? "🔍" : "🔎"}
               </button>
             </div>
+
             <iframe
               width={isSmall ? "200" : "560"}
               height={isSmall ? "108" : "315"}
@@ -87,4 +88,3 @@ export default function VideoModal({
     </div>
   );
 }
-

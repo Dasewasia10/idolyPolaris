@@ -58,7 +58,7 @@ const MainMenu: React.FC = () => {
               onClick={() => handleNavigation(feature.path)}
               onMouseEnter={() => setIsHovered(feature.path)}
               onMouseLeave={() => setIsHovered(null)}
-              className={`text-center text-sm px-2 py-3 rounded-lg transition-all duration-200 ${
+              className={`text-center text-sm px-2 xl:py-3 justify-center flex items-center rounded-lg transition-all duration-200 self-center h-full ${
                 location.pathname === feature.path
                   ? "bg-white text-black shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.5)] border-t border-slate-600"
                   : isHovered === feature.path
@@ -77,7 +77,7 @@ const MainMenu: React.FC = () => {
           {upcomingFeatures.map((feature) => (
             <div
               key={feature.path}
-              className="relative text-left px-2 py-3 rounded-lg bg-slate-900 text-gray-400 cursor-not-allowed overflow-hidden"
+              className="relative text-center text-sm px-2 xl:py-3 justify-center flex items-center rounded-lg bg-slate-900 text-gray-400 cursor-not-allowed overflow-hidden self-center h-full"
             >
               <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
                 <img

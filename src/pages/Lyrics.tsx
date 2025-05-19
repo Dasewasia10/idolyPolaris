@@ -49,7 +49,7 @@ const Lyrics: React.FC = () => {
   const [activeSource, setActiveSource] = useState<string>("");
   const [activeData, setActiveData] = useState<any[]>([]);
   const [videoModalIsOpen, setVideoModalIsOpen] = useState(false);
-  const [videoModalIsSmall, setVideoModalIsSmall] = useState(false);
+  const [videoModalIsSmall, setVideoModalIsSmall] = useState(true);
 
   const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
   const [isRightMenuOpen, setIsRightMenuOpen] = useState(false);
@@ -706,7 +706,7 @@ const Lyrics: React.FC = () => {
           </div>
 
           {/* Toggle Controls */}
-          <div className="flex gap-4 p-2 bg-gray-100 rounded-lg z-10 shadow-sm h-12">
+          <div className="flex gap-4 p-2 bg-gray-100 rounded-lg z-10 shadow-sm h-12 flex-col lg:flex-row">
             {/* Preset Buttons as Switch */}
             <div className="flex flex-row gap-2 border-l border-gray-200 pl-4">
               <button
@@ -775,9 +775,9 @@ const Lyrics: React.FC = () => {
               </button>
             </div>
 
-            <div className="border-l border-slate-500 mx-1"></div>
+            <div className="border-l border-slate-500 mx-1 hidden lg:block"></div>
             {/* Column Toggles */}
-            <div className="flex flex-row gap-2 items-center text-sm">
+            <div className="flex flex-row gap-2 items-center text-sm bg-gray-100 rounded-lg p-2">
               {Object.keys(activeColumns).map((column) => (
                 <label
                   key={column}

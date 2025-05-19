@@ -93,7 +93,7 @@ const CharacterCalendar: React.FC = () => {
       days.push(
         <div
           key={`day-${day}`}
-          className={`h-24 p-1 border relative group ${
+          className={`h-16 md:h-20 lg:h-24 p-1 border relative group ${
             isToday ? "bg-blue-100/30 border-blue-400 border-2" : ""
           }`}
         >
@@ -116,7 +116,7 @@ const CharacterCalendar: React.FC = () => {
                 <img
                   src={getCharacterImageUrl(char.name, "icon")}
                   alt={char.name}
-                  className="w-16 h-16 rounded-full border border-gray-300 transition-transform"
+                  className="w-8 md:w-12 lg:w-16 h-8 md:h-12 lg:h-16 rounded-full border border-gray-300 transition-transform"
                 />
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-white p-1 rounded shadow-md text-xs whitespace-nowrap z-10">
                   {char.name}'s Birthday
@@ -149,7 +149,7 @@ const CharacterCalendar: React.FC = () => {
   };
 
   return (
-    <div className="flex gap-10 z-10 justify-center w-full mx-auto p-4 bg-white rounded-lg shadow-md max-w-5xl max-h-[38rem] mt-2 relative overflow-hidden">
+    <div className="flex gap-2 lg:gap-10 z-10 w-full mx-auto p-4 bg-white rounded-lg shadow-md max-w-5xl max-h-[38rem] mt-2 relative overflow-hidden flex-col lg:flex-row">
       {/* Background dengan pola dots */}
       <div
         className="absolute w-full h-[36rem] clip-trapezoid-outer 
@@ -172,83 +172,84 @@ const CharacterCalendar: React.FC = () => {
         </svg>
       </div>
 
-      <section className="w-full max-w-2xl z-10">
-        <div className="flex justify-between items-center mb-4">
-          <button
-            onClick={() => changeMonth(-1)}
-            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
-          >
-            &lt; Prev
-          </button>
-          <h2 className="text-xl font-bold p-2 rounded-lg w-max bg-gradient-to-r from-transparent via-white to-transparent text-center px-10">
-            {format(currentDate, "MMMM yyyy")}
-          </h2>
-          <button
-            onClick={() => changeMonth(1)}
-            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
-          >
-            Next &gt;
-          </button>
-        </div>
-        {/* Header hari */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div key={day} className="text-center font-semibold p-2">
-              {day}
-            </div>
-          ))}
-        </div>
-        {/* Kalender */}
-        <div className="border rounded-lg overflow-hidden h-[30rem]">
-          {renderCalendar()}
-        </div>
-      </section>
-
-      {/* Legenda */}
-      <div className="mt-6 z-20">
-        <h3 className="font-bold mb-2">Birthdays This Month:</h3>
-        {characters.filter((char) => {
-          const bdayDate = parseISO(char.birthdayDate);
-          return bdayDate.getMonth() === currentDate.getMonth();
-        }).length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {characters
-              .filter((char) => {
-                const bdayDate = parseISO(char.birthdayDate);
-                return bdayDate.getMonth() === currentDate.getMonth();
-              })
-              .sort((a, b) => {
-                const aDate = parseISO(a.birthdayDate).getDate();
-                const bDate = parseISO(b.birthdayDate).getDate();
-                return aDate - bDate;
-              })
-              .map((char) => (
-                <div
-                  key={char.id}
-                  className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg"
-                >
-                  <div className="relative">
-                    <img
-                      src={getCharacterImageUrl(char.name, "icon")}
-                      alt={char.name}
-                      className="w-10 h-10 rounded-full border-2 border-pink-400"
-                    />
-                    <div className="absolute -bottom-1 -right-1 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {parseISO(char.birthdayDate).getDate()}
+      <div className="flex flex-col gap-4 lg:flex-row mx-auto overflow-y-auto w-full">
+        <section className="flex flex-col w-full max-w-2xl z-10">
+          <div className="flex justify-between items-center mb-4">
+            <button
+              onClick={() => changeMonth(-1)}
+              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+            >
+              &lt; Prev
+            </button>
+            <h2 className="text-xl font-bold p-2 rounded-lg w-max bg-gradient-to-r from-transparent via-white to-transparent text-center px-10">
+              {format(currentDate, "MMMM yyyy")}
+            </h2>
+            <button
+              onClick={() => changeMonth(1)}
+              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+            >
+              Next &gt;
+            </button>
+          </div>
+          {/* Header hari */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div key={day} className="text-center font-semibold p-2">
+                {day}
+              </div>
+            ))}
+          </div>
+          {/* Kalender */}
+          <div className="border rounded-lg overflow-hidden h-[22rem] lg:h-[30rem]">
+            {renderCalendar()}
+          </div>
+        </section>
+        {/* Legenda */}
+        <div className="flex flex-col mt-6 z-20">
+          <h3 className="font-bold mb-2">Birthdays This Month:</h3>
+          {characters.filter((char) => {
+            const bdayDate = parseISO(char.birthdayDate);
+            return bdayDate.getMonth() === currentDate.getMonth();
+          }).length > 0 ? (
+            <div className="grid grid-cols-1 gap-4">
+              {characters
+                .filter((char) => {
+                  const bdayDate = parseISO(char.birthdayDate);
+                  return bdayDate.getMonth() === currentDate.getMonth();
+                })
+                .sort((a, b) => {
+                  const aDate = parseISO(a.birthdayDate).getDate();
+                  const bDate = parseISO(b.birthdayDate).getDate();
+                  return aDate - bDate;
+                })
+                .map((char) => (
+                  <div
+                    key={char.id}
+                    className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg"
+                  >
+                    <div className="relative">
+                      <img
+                        src={getCharacterImageUrl(char.name, "icon")}
+                        alt={char.name}
+                        className="w-7 lg:w-10 h-7 lg:h-10 rounded-full border-2 border-pink-400"
+                      />
+                      <div className="absolute -bottom-1 -right-1 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {parseISO(char.birthdayDate).getDate()}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-medium">{char.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {format(parseISO(char.birthdayDate), "MMMM do")}
+                      </p>
                     </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{char.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {format(parseISO(char.birthdayDate), "MMMM do")}
-                    </p>
-                  </div>
-                </div>
-              ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">No birthdays this month</p>
-        )}
+                ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No birthdays this month</p>
+          )}
+        </div>
       </div>
     </div>
   );

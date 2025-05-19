@@ -231,11 +231,11 @@ const ChatPage: React.FC = () => {
   }, [unsavedChanges]);
 
   return (
-    <div className="h-[37rem] bg-gray-900 text-white px-4 py-6 z-10 m-4 rounded-lg">
+    <div className="bg-gray-900 text-white px-4 py-6 z-10 rounded-lg">
       <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left sidebar - Controls */}
-        <section className="lg:col-span-2 space-y-6 flex flex-col">
-          <div className="flex lg:flex-col lg:space-y-4 justify-around">
+        <section className="lg:col-span-2 space-y-6 flex flex-col text-xs lg:text-base">
+          <div className="flex lg:flex-col lg:space-y-4 justify-around space-x-3 lg:space-x-0">
             <div className="flex space-x-4 justify-around">
               {/* <button
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md font-semibold"
@@ -259,7 +259,7 @@ const ChatPage: React.FC = () => {
 
             <div className="flex space-x-4 justify-around">
               <button
-                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center h-full"
+                className="lg:px-4 lg:py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center h-full"
                 onClick={handleExport}
               >
                 Export JSON
@@ -285,7 +285,7 @@ const ChatPage: React.FC = () => {
                 {iconGroupVisible ? "Hide Icons" : "Show Icons"}
               </button>
               {iconGroupVisible && (
-                <div className="grid grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
                   {icons.map((icon) => (
                     <button
                       key={icon.id}
@@ -321,7 +321,7 @@ const ChatPage: React.FC = () => {
                 {stampGroupVisible ? "Hide Stamps" : "Show Stamps"}
               </button>
               {stampGroupVisible && (
-                <div className="grid grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
                   {stamps.map((stamp) => (
                     <button
                       key={stamp.id}
@@ -355,7 +355,7 @@ const ChatPage: React.FC = () => {
         </section>
 
         {/* Main content - Chat area */}
-        <section className="lg:col-span-2">
+        <section className="lg:col-span-2 overflow-y-auto no-scrollbar">
           <div
             id="idolyMessage"
             className="bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[19rem] scrollbar-minimal z-[9999]"
@@ -429,7 +429,7 @@ const ChatPage: React.FC = () => {
                         )}
 
                         <div
-                          className={`flex justify-start px-3 py-2 ${bubbleClass} ${
+                          className={`flex justify-start px-3 py-2 mt-2 ${bubbleClass} ${
                             msg.position === "left"
                               ? isFirst
                                 ? "rounded-br-lg rounded-t-lg"
@@ -448,7 +448,6 @@ const ChatPage: React.FC = () => {
                               src={msg.stamp}
                               alt="Stamp"
                               className="w-16 h-16"
-                              crossOrigin="anonymous"
                               onError={(e) => {
                                 e.currentTarget.src = `${
                                   import.meta.env.BASE_URL
