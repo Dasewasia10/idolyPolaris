@@ -33,7 +33,6 @@ const ChatPage: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState<boolean>(true);
   const [stamps, setStamps] = useState<Stamp[]>([]);
   const [icons, setIcons] = useState<Icon[]>([]);
-  const [, setIdols] = useState<Character[]>([]);
 
   const [, setLoading] = useState(true);
 
@@ -60,32 +59,27 @@ const ChatPage: React.FC = () => {
           axios.get(`${API_BASE_URL}/characters`),
         ]);
 
-        // Proses data stamps
-        const formattedStamps = stampsRes.data.map((stamp: Stamp) => ({
+        // Process stamps data
+        const processedStamps = stampsRes.data.map((stamp: Stamp) => ({
           ...stamp,
           src: getStampUrl(stamp.character, stamp.expression),
         }));
-        setStamps(formattedStamps);
 
-        // Proses data characters
+        // Process characters data
         const sortedCharacters = charactersRes.data.sort(
           (a: Character, b: Character) => a.name.localeCompare(b.name)
         );
-        const idolsWithIds = sortedCharacters.map(
-          (item: Character, index: number) => ({
-            ...item,
+
+        const processedIcons = sortedCharacters.map(
+          (character: Character, index: number) => ({
             id: index + 1,
+            name: character.name,
+            src: getCharacterIconUrl(character.name),
           })
         );
 
-        setIdols(idolsWithIds);
-        setIcons(
-          idolsWithIds.map((idol: Character) => ({
-            id: idol.id,
-            name: idol.name,
-            src: getCharacterIconUrl(idol.name),
-          }))
-        );
+        setStamps(processedStamps);
+        setIcons(processedIcons);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -99,16 +93,12 @@ const ChatPage: React.FC = () => {
   const getStampUrl = (character: string, expression: string) => {
     const formattedCharacter = character.toLowerCase().replace(/\s+/g, "");
     const formattedExpression = expression.toLowerCase().replace(/\s+/g, "");
-    return `https://diveidolypapi.my.id/api/img/stamps/${encodeURIComponent(
-      formattedCharacter
-    )}/${encodeURIComponent(formattedExpression)}`;
+    return `https://api.diveidolypapi.my.id/stampChat/stamp_${formattedCharacter}-${formattedExpression}.webp`;
   };
 
   const getCharacterIconUrl = (characterName: string) => {
     const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
-    return `https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
-      formattedName
-    )}`;
+    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
   };
 
   const handleStampClick = (stamp: Stamp) => {
@@ -336,7 +326,7 @@ const ChatPage: React.FC = () => {
                       }`}
                     >
                       <img
-                        src={stamp.src || "https://placehold.co/600x400"}
+                        src={getStampUrl(stamp.character, stamp.expression)}
                         alt={stamp.character + stamp.expression}
                         title={stamp.character + " " + stamp.expression}
                         crossOrigin="anonymous"
@@ -464,9 +454,7 @@ const ChatPage: React.FC = () => {
             <div className="flex gap-2 items-center mb-2">
               <img
                 src={
-                  selectedIcon
-                    ? selectedIcon.src
-                    : "https://diveidolypapi.my.id/api/img/character/icon/kohei/"
+                  selectedIcon ? selectedIcon.src : getCharacterIconUrl("kohei")
                 }
                 alt="icon"
                 crossOrigin="anonymous"
