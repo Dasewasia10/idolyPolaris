@@ -126,6 +126,8 @@ const CardOverview: React.FC = () => {
   const [showIconE, setShowIconE] = useState<boolean>(false);
   const [showSourceE, setShowSourceE] = useState<boolean>(false);
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // State untuk filter
   const [selectedGroup, setSelectedGroup] = useState<
     { value: string; label: string }[]
@@ -597,6 +599,25 @@ const CardOverview: React.FC = () => {
     };
   }, [isLeftMenuOpen]); // Tambahkan dependencies
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)"); // Sesuaikan dengan breakpoint lg Anda
+
+    const handleResize = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        // Jika ukuran layar menjadi desktop (lg), tutup sidebar
+        setIsSidebarOpen(false);
+      }
+    };
+
+    // Tambahkan listener
+    mediaQuery.addEventListener("change", handleResize);
+
+    // Bersihkan listener saat komponen unmount
+    return () => {
+      mediaQuery.removeEventListener("change", handleResize);
+    };
+  }, []);
+
   return (
     <div className="transition-all duration-300 ease-out flex flex-col z-10 mt-4 gap-8 items-center w-full">
       <section id="leftConsole" className="absolute">
@@ -608,9 +629,7 @@ const CardOverview: React.FC = () => {
         >
           {/* Konten Menu */}
           <div className="w-full bg-slate-900 p-4 overflow-y-auto">
-            <h2 className="flex font-bold text-3xl text-white py-2">
-              Handler
-            </h2>
+            <h2 className="flex font-bold text-3xl text-white py-2">Handler</h2>
             <div className="flex flex-col gap-4">
               <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
                 <p className="text-white">Select language</p>
@@ -754,14 +773,55 @@ const CardOverview: React.FC = () => {
       </div>
 
       {isOpen && slot && (
-        <div className="fixed inset-0 items-center justify-center z-30 flex bg-[#00246B] bg-opacity-50">
+        <div className="fixed inset-0 items-center justify-center z-30 flex bg-[#00246B] bg-opacity-50 pt-40 lg:pt-20 xl:pt-0">
           <div
             ref={openRef}
-            className="isolate relative flex h-[42rem] w-full p-6 lg:p-12"
+            className="isolate relative flex h-[42rem] w-full p-6 lg:p-12 lg:flex-row flex-col"
           >
-            <section className="z-10 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:px-6 lg:py-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white lg:text-3xl">
+            {/* Tombol toggle sidebar untuk mobile */}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="fixed bottom-40 right-4 z-40 rounded-full bg-blue-500 p-3 text-white shadow-lg lg:hidden"
+            >
+              {isSidebarOpen ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
+            </button>
+            <section
+              className={`z-40 flex flex-col w-fit gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out lg:px-6 lg:py-4 mt-20 lg:mt-0 ${
+                isSidebarOpen ? "fixed left-4 top-4" : "hidden lg:block"
+              }`}
+            >
+              <div className="flex items-center justify-between lg:mb-5">
+                <h3 className="flex text-xl font-bold text-white lg:text-3xl">
                   Handler
                 </h3>
                 <button
@@ -769,7 +829,7 @@ const CardOverview: React.FC = () => {
                     toggleOpen(false);
                     closeModal();
                   }}
-                  className="scale-[60%] rounded bg-red-500 hover:bg-red-700 p-2 text-white lg:scale-100"
+                  className="scale-[60%] rounded bg-red-500 hover:bg-red-700 p-2 text-white lg:scale-100 lg:block hidden"
                 >
                   <svg
                     width="15"
@@ -787,94 +847,98 @@ const CardOverview: React.FC = () => {
                   </svg>
                 </button>
               </div>
-              <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-                <p className="text-white">Select language</p>
-                <div className="flex flex-row gap-4">
-                  <button
-                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                      primaryLanguage === "global"
-                        ? "bg-blue-500 text-white"
-                        : "bg-white"
-                    }`}
-                    onClick={() => setPrimaryLanguage("global")}
-                  >
-                    en
-                  </button>
-                  <button
-                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                      primaryLanguage === "japanese"
-                        ? "bg-blue-500 text-white"
-                        : "bg-white"
-                    }`}
-                    onClick={() => setPrimaryLanguage("japanese")}
-                  >
-                    jp
-                  </button>
-                  <button
-                    className={`rounded px-4 py-1 hover:bg-blue-300 ${
-                      primaryLanguage === "indo"
-                        ? "bg-blue-500 text-white"
-                        : "bg-white"
-                    }`}
-                    onClick={() => setPrimaryLanguage("indo")}
-                  >
-                    id
-                  </button>
+              <div className="flex space-x-2 lg:space-x-0 lg:flex-col space-y-0 lg:space-y-2">
+                <div className="flex">
+                  <div className="flex flex-col gap-2 rounded border-2 border-white p-4">
+                    <p className="text-white">Select language</p>
+                    <div className="flex flex-row gap-4">
+                      <button
+                        className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                          primaryLanguage === "global"
+                            ? "bg-blue-500 text-white"
+                            : "bg-white"
+                        }`}
+                        onClick={() => setPrimaryLanguage("global")}
+                      >
+                        en
+                      </button>
+                      <button
+                        className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                          primaryLanguage === "japanese"
+                            ? "bg-blue-500 text-white"
+                            : "bg-white"
+                        }`}
+                        onClick={() => setPrimaryLanguage("japanese")}
+                      >
+                        jp
+                      </button>
+                      <button
+                        className={`rounded px-4 py-1 hover:bg-blue-300 ${
+                          primaryLanguage === "indo"
+                            ? "bg-blue-500 text-white"
+                            : "bg-white"
+                        }`}
+                        onClick={() => setPrimaryLanguage("indo")}
+                      >
+                        id
+                      </button>
+                    </div>
+                  </div>
                 </div>
+                {slot.category == "Evolution" && (
+                  <>
+                    <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
+                      <p className="text-white">Evolution Icon</p>
+                      <button
+                        onClick={() => setShowIconE(!showIconE)}
+                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        disabled={slot.category !== "Evolution"}
+                      >
+                        <span className="font-semibold opacity-100">
+                          {showIconE ? "Evolution Icon" : "Initial Icon"}
+                        </span>
+                      </button>
+                    </div>
+                  </>
+                )}
+                {/* Periksa apakah slot memiliki iconImageB yang valid */}
+                {slot.initial !== 5 && (
+                  <>
+                    <div className="flex flex-col gap-2 rounded border-2 border-white p-4">
+                      <p className="text-white">Trained Icon</p>
+                      <button
+                        onClick={() => setShowIconB(!showIconB)}
+                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        disabled={slot.initial === 5}
+                      >
+                        <span className="font-semibold opacity-100">
+                          {showIconB ? "Non-*5 Icon" : "Trained Icon"}
+                        </span>
+                      </button>
+                    </div>
+                  </>
+                )}
+                {slot.category == "Evolution" && (
+                  <>
+                    <div className="flex flex-col gap-2 rounded border-2 border-white p-4">
+                      <p className="text-white">Evolution Image</p>
+                      <button
+                        onClick={() => setShowSourceE(!showSourceE)}
+                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        disabled={slot.category !== "Evolution"}
+                      >
+                        <span className="font-semibold opacity-100 text-black">
+                          {showSourceE ? "Evolution Image" : "Initial Image"}
+                        </span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-              {slot.category == "Evolution" && (
-                <>
-                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-                    <p className="text-white">Evolution Icon</p>
-                    <button
-                      onClick={() => setShowIconE(!showIconE)}
-                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      disabled={slot.category !== "Evolution"}
-                    >
-                      <span className="font-semibold opacity-100">
-                        {showIconE ? "Evolution Icon" : "Initial Icon"}
-                      </span>
-                    </button>
-                  </div>
-                </>
-              )}
-              {/* Periksa apakah slot memiliki iconImageB yang valid */}
-              {slot.initial !== 5 && (
-                <>
-                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-                    <p className="text-white">Trained Icon</p>
-                    <button
-                      onClick={() => setShowIconB(!showIconB)}
-                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      disabled={slot.initial === 5}
-                    >
-                      <span className="font-semibold opacity-100">
-                        {showIconB ? "Non-*5 Icon" : "Trained Icon"}
-                      </span>
-                    </button>
-                  </div>
-                </>
-              )}
-              {slot.category == "Evolution" && (
-                <>
-                  <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
-                    <p className="text-white">Evolution Image</p>
-                    <button
-                      onClick={() => setShowSourceE(!showSourceE)}
-                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      disabled={slot.category !== "Evolution"}
-                    >
-                      <span className="font-semibold opacity-100 text-black">
-                        {showSourceE ? "Evolution Image" : "Initial Image"}
-                      </span>
-                    </button>
-                  </div>
-                </>
-              )}
             </section>
-            <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative">
+            <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative mb-36 lg:mb-0">
               {/* Gambar fixed (diam) */}
-              <div className="sticky top-0 z-0">
+              <div className="sticky top-0 z-0 hidden lg:block">
                 <img
                   src={
                     showSourceE && slot.category === "Evolution"
@@ -901,9 +965,9 @@ const CardOverview: React.FC = () => {
                   className="h-full w-auto rounded bg-white object-cover p-1"
                 />
               </div>
-              {/* Pita Scroll */}
+              {/* Pita Scroll - hanya tampil di desktop */}
               <div
-                className="sticky top-0 z-10 flex justify-center py-2 -translate-y-16"
+                className="sticky bottom-0 z-10 hidden lg:flex justify-center py-2 -translate-y-16 lg:translate-y-0"
                 onClick={() => {
                   const mainContent = document.getElementById("main-content");
                   mainContent?.scrollIntoView({ behavior: "smooth" });
@@ -1201,6 +1265,29 @@ const CardOverview: React.FC = () => {
                 </section>
               </div>
             </div>
+            {/* Tombol close untuk mobile */}
+            <button
+              onClick={() => {
+                toggleOpen(false);
+                closeModal();
+              }}
+              className="fixed bottom-20 right-4 z-40 lg:hidden rounded-full bg-red-500 p-3 text-white shadow-lg"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       )}

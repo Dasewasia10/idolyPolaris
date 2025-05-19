@@ -293,10 +293,6 @@ const CardComparison: React.FC = () => {
     );
   }, [primaryLanguage, cards]);
 
-  const toggleMenu = (_p0: boolean) => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   const toggleOpen = (_p0: boolean) => {
     setIsOpen(!isOpen);
   };
@@ -402,27 +398,6 @@ const CardComparison: React.FC = () => {
 
   return (
     <div className="transition-all duration-300 ease-out flex flex-col">
-      {/* Tombol Hamburger (Muncul hanya di layar kecil, `lg:hidden`) */}
-      <button
-        onClick={() => toggleMenu(false)}
-        className="fixed left-4 top-4 z-30 rounded bg-gray-800 p-2 text-white transition-all duration-300 ease-in-out lg:hidden"
-      >
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M4 6h16M4 12h16m-7 6h7"
-          ></path>
-        </svg>
-      </button>
-
       {/* Sidebar Menu */}
       <section id="leftConsole" className="absolute z-20">
         {/* Menu Sidebar */}
