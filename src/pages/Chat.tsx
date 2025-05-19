@@ -230,10 +230,6 @@ const ChatPage: React.FC = () => {
     };
   }, [unsavedChanges]);
 
-  useEffect(() => {
-    console.log("Current selectedStamp:", selectedStamp);
-  }, [selectedStamp]);
-
   return (
     <div className="h-[37rem] bg-gray-900 text-white px-4 py-6 z-10 m-4 rounded-lg">
       <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
