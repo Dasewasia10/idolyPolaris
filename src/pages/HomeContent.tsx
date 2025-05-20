@@ -41,6 +41,13 @@ const HomeContent = () => {
         "https://api.diveidolypapi.my.id/image3Character/source-rio-05-fes-03-full.webp",
       description: "Never miss an idol's birthday",
     },
+    {
+      name: "Idoly Chat",
+      path: "/chat",
+      bgImage:
+        "https://api.diveidolypapi.my.id/image3Character/source-aoi-05-kaito-00-full.webp",
+      description: "Make your custom chat with your favorite idol",
+    },
   ];
 
   return (
