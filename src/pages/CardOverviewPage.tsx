@@ -625,7 +625,7 @@ const CardOverview: React.FC = () => {
         {/* Menu Sidebar */}
         <div
           className={`fixed left-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
-            isLeftMenuOpen ? "translate-x-0 w-96" : "-translate-x-full"
+            isLeftMenuOpen ? "translate-x-0 w-72 lg:w-96" : "-translate-x-full"
           }`}
         >
           {/* Konten Menu */}
@@ -757,7 +757,7 @@ const CardOverview: React.FC = () => {
         </div>
       </section>
 
-      <div className="z-20 w-2/3">
+      <div className="z-0 w-2/3">
         <SearchBar
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}

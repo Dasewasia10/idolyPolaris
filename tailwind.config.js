@@ -2,6 +2,18 @@
 export default {
   content: ["./src/index.html", "./src/**/*.{vue,js,ts,jsx,tsx,css}"],
   theme: {
+    fontFamily: {
+      sans: [
+        "Arial",
+        // Fallback fonts
+        "-apple-system",
+        "BlinkMacSystemFont",
+        '"Segoe UI"',
+        "Roboto",
+        '"Helvetica Neue"',
+        "sans-serif",
+      ],
+    },
     extend: {
       animation: {
         "gradient-rotate": "gradientRotate 8s linear infinite",
