@@ -620,7 +620,7 @@ const CardOverview: React.FC = () => {
   }, []);
 
   return (
-    <div className="transition-all duration-300 ease-out flex flex-col z-10 mt-4 gap-8 items-center w-full">
+    <div className="transition-all duration-300 ease-out flex flex-col z-10 gap-8 items-center w-full">
       <section id="leftConsole" className="absolute">
         {/* Menu Sidebar */}
         <div

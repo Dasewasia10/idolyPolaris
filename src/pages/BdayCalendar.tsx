@@ -149,7 +149,7 @@ const CharacterCalendar: React.FC = () => {
   };
 
   return (
-    <div className="flex gap-2 lg:gap-10 z-10 w-full mx-auto p-4 bg-white rounded-lg shadow-md max-w-5xl max-h-[38rem] mt-2 relative overflow-hidden flex-col lg:flex-row">
+    <div className="flex gap-2 lg:gap-10 z-10 w-full mx-auto p-4 bg-white rounded-lg shadow-md max-w-5xl max-h-[38rem] relative overflow-hidden flex-col lg:flex-row">
       {/* Background dengan pola dots */}
       <div
         className="absolute w-full h-[36rem] clip-trapezoid-outer 
