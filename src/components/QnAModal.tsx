@@ -47,7 +47,7 @@ const QnAModal: React.FC<QnAModalProps> = ({
       <div className="bg-white rounded-lg w-5/6 h-4/5 flex flex-col p-4 relative">
         <button
           onClick={onClose}
-          className="absolute top-2 -right-12 px-3 py-2 rounded-full bg-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+          className="absolute -top-4 -left-4 px-3 py-2 rounded-full bg-slate-200 hover:bg-slate-700 hover:text-white transition-colors w-fit"
         >
           ✕
         </button>
