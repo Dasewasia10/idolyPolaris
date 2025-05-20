@@ -367,7 +367,7 @@ const Lyrics: React.FC = () => {
 
   return (
     <>
-      <div className="h-max w-auto z-10 flex flex-col p-2 gap-2 -mb-10">
+      <div className="h-max w-auto z-10 flex flex-col p-2 gap-2 -mb-10 lg:mb-0">
         <section id="leftConsole" className="absolute">
           {/* Menu Sidebar */}
           <div
