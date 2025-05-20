@@ -358,7 +358,7 @@ const ChatPage: React.FC = () => {
         <section className="lg:col-span-2 overflow-y-auto no-scrollbar">
           <div
             id="idolyMessage"
-            className="bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[19rem] scrollbar-minimal z-[9999]"
+            className={`bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[19rem] scrollbar-minimal z-[9999] bg-[url('/assets/chat-bg.png')] bg-repeat bg-blend-multiply bg-cover`}
           >
             <h2>
               <TextareaAutosize
