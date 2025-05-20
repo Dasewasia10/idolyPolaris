@@ -124,6 +124,7 @@ const CardOverview: React.FC = () => {
 
   const [showIconB, setShowIconB] = useState<boolean>(false);
   const [showIconE, setShowIconE] = useState<boolean>(false);
+  const [showSource, setShowSource] = useState<boolean>(false);
   const [showSourceE, setShowSourceE] = useState<boolean>(false);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -847,7 +848,7 @@ const CardOverview: React.FC = () => {
                   </svg>
                 </button>
               </div>
-              <div className="flex space-x-2 lg:space-x-0 lg:flex-col space-y-0 lg:space-y-2">
+              <div className="flex flex-col space-y-2">
                 <div className="flex">
                   <div className="flex flex-col gap-2 rounded border-2 border-white p-4">
                     <p className="text-white">Select language</p>
@@ -920,7 +921,7 @@ const CardOverview: React.FC = () => {
                 )}
                 {slot.category == "Evolution" && (
                   <>
-                    <div className="flex flex-col gap-2 rounded border-2 border-white p-4">
+                    <div className="flex flex-col gap-2 rounded border-2 border-white p-4 lg:block hidden">
                       <p className="text-white">Evolution Image</p>
                       <button
                         onClick={() => setShowSourceE(!showSourceE)}
@@ -934,8 +935,78 @@ const CardOverview: React.FC = () => {
                     </div>
                   </>
                 )}
+                {(slot.initial == 5 || 4) && (
+                  <div className="flex flex-col gap-2 rounded border-2 border-white p-4 lg:hidden block">
+                    <p className="text-white">Full Image</p>
+                    <button
+                      onClick={() => {
+                        setShowSource(!showSource);
+                      }}
+                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <span className="font-semibold text-black">
+                        {showSource ? "Hide Image" : "Show Image"}
+                      </span>
+                    </button>
+                    {slot.category == "Evolution" && (
+                      <button
+                        onClick={() => {
+                          setShowSourceE(!showSourceE);
+                        }}
+                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        <span className="font-semibold text-black">
+                          {showSourceE
+                            ? "Hide Evolution Image"
+                            : "Show Evolution Image"}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
+
+            {showSource && (
+              <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
+                <img
+                  src={getCardSourceUrl(
+                    slot._sourceName,
+                    slot.initial,
+                    slot.costumeTheme,
+                    slot.costumeIndex
+                  )}
+                  alt={`Source ${slot._sourceName}`}
+                  className="max-w-full h-auto rounded-lg border-2 border-white"
+                  onError={(e) => {
+                    e.currentTarget.src = `${
+                      import.meta.env.BASE_URL
+                    }assets/default_image.png`;
+                    e.currentTarget.alt = "Image not available";
+                  }}
+                />
+              </div>
+            )}
+            {showSourceE && (
+              <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
+                <img
+                  src={getCardSourceEUrl(
+                    slot._sourceName,
+                    slot.initial,
+                    slot.costumeTheme,
+                    slot.costumeIndex
+                  )}
+                  alt={`Source ${slot._sourceName}`}
+                  className="max-w-full h-auto rounded-lg border-2 border-white"
+                  onError={(e) => {
+                    e.currentTarget.src = `${
+                      import.meta.env.BASE_URL
+                    }assets/default_image.png`;
+                    e.currentTarget.alt = "Image not available";
+                  }}
+                />
+              </div>
+            )}
             <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative mb-36 lg:mb-0">
               {/* Gambar fixed (diam) */}
               <div className="sticky top-0 z-0 hidden lg:block">
