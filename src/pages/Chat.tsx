@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-// import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import domtoimage from "dom-to-image";
 import axios from "axios";
@@ -9,7 +8,10 @@ import { Message } from "../interfaces/Message";
 import { Icon } from "../interfaces/Icon";
 import { Stamp } from "../interfaces/Stamp";
 import { Character } from "../interfaces/Character";
+import { CallLog } from "../interfaces/CallLog";
 
+import CallIcon from "../components/CallIcon";
+import CallLogModal from "../components/CallLogModal";
 import Toast from "../components/Toast";
 
 import exportToJson from "../utils/exportToJson";
@@ -28,12 +30,17 @@ const ChatPage: React.FC = () => {
   const [iconGroupVisible, setIconGroupVisible] = useState(false);
   const [stampGroupVisible, setStampGroupVisible] = useState(false);
   const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
+  const [replyButtonVisible, setReplyButtonVisible] = useState(false);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(true);
   const [stamps, setStamps] = useState<Stamp[]>([]);
   const [icons, setIcons] = useState<Icon[]>([]);
   const [, setLoading] = useState(true);
+
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [showCallLogModal, setShowCallLogModal] = useState(false);
 
   // Helper functions
   const parseText = (text: string) => {
@@ -98,25 +105,61 @@ const ChatPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // Handlers
-
-  // const handleBackClick = () => {
-  //   if (unsavedChanges) {
-  //     const confirmation = confirm(
-  //       "You have unsaved changes. Are you sure you want to leave?"
-  //     );
-  //     if (confirmation) {
-  //       window.history.back();
-  //     }
-  //   } else {
-  //     window.history.back();
-  //   }
-  // };
-
   const stampRef = useRef<Stamp | null>(null);
   const handleStampClick = (stamp: Stamp) => {
     stampRef.current = stamp;
     setSelectedStamp(stamp);
+  };
+
+  const handleReplyClick = (message: Message) => {
+    setReplyingTo(message);
+  };
+
+  const handleAddCallLog = () => {
+    if (!selectedIcon || icons.length < 2) {
+      setToastMessage("Need at least 2 characters to create call log");
+      setIsSuccess(false);
+      return;
+    }
+
+    const availableReceivers = icons.filter(
+      (icon) => icon.id !== selectedIcon.id
+    );
+    if (availableReceivers.length === 0) {
+      setToastMessage("No available receivers");
+      setIsSuccess(false);
+      return;
+    }
+
+    const receiver =
+      availableReceivers[Math.floor(Math.random() * availableReceivers.length)];
+
+    const newCallLog: CallLog = {
+      id: Date.now(),
+      caller: selectedIcon,
+      receiver,
+      duration: `${Math.floor(Math.random() * 5) + 1}:${Math.floor(
+        Math.random() * 60
+      )
+        .toString()
+        .padStart(2, "0")}`,
+      timestamp: new Date().toISOString(),
+    };
+
+    setCallLogs([newCallLog, ...callLogs]);
+    setToastMessage("Call log added!");
+    setIsSuccess(true);
+    setUnsavedChanges(true);
+  };
+
+  const handleClearCallLog = () => {
+    if (callLogs.length < 2) {
+      setToastMessage("There's no call logs!");
+      setIsSuccess(false);
+      return;
+    }
+
+    setCallLogs([]);
   };
 
   const handleSendMessage = (isStamp = false) => {
@@ -136,19 +179,73 @@ const ChatPage: React.FC = () => {
       icon: selectedIcon.src,
       position,
       stamp: isStamp ? effectiveStamp?.src : undefined,
+      replyTo: replyingTo
+        ? {
+            id: replyingTo.id,
+            text: replyingTo.text,
+            name: replyingTo.name,
+          }
+        : undefined,
     };
 
     setMessages([...messages, newMessage]);
     setInputText("");
+    setReplyingTo(null);
     setUnsavedChanges(true);
 
     if (isStamp) {
-      setSelectedStamp(null); // Tidak perlu setTimeout
+      setSelectedStamp(null);
     }
   };
 
   const handleDeleteMessage = (id: number) => {
     setMessages(messages.filter((msg) => msg.id !== id));
+    setUnsavedChanges(true);
+  };
+
+  const handleClearMessage = () => {
+    if (messages.length > 0) {
+      if (window.confirm("Are you sure you want to clear all messages?")) {
+        setMessages([]);
+        setTitle("Title Here");
+        setToastMessage("All messages have been cleared");
+        setIsSuccess(true);
+        setUnsavedChanges(true); // Mark as changed karena kita mengosongkan pesan
+      }
+    } else {
+      setToastMessage("No messages to clear");
+      setIsSuccess(false);
+    }
+  };
+
+  const handleAddCallObject = () => {
+    if (!selectedIcon) {
+      setToastMessage("Please select a character icon first");
+      setIsSuccess(false);
+      return;
+    }
+
+    const getRandomDuration = () => {
+      const minutes = Math.floor(Math.random() * 5) + 1;
+      const seconds = Math.floor(Math.random() * 60);
+      return `${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
+    };
+
+    const newMessage: Message = {
+      id: Date.now(),
+      text: "",
+      name: selectedIcon.name,
+      icon: selectedIcon.src,
+      position,
+      isCall: true,
+      callDuration: getRandomDuration(),
+      callBgColor: "#3B82F6", // Warna default (blue-500)
+      callIconColor: "#FFFFFF", // Warna default (putih)
+    };
+
+    setMessages([...messages, newMessage]);
     setUnsavedChanges(true);
   };
 
@@ -236,13 +333,19 @@ const ChatPage: React.FC = () => {
         {/* Left sidebar - Controls */}
         <section className="lg:col-span-2 space-y-6 flex flex-col text-xs lg:text-base">
           <div className="flex lg:flex-col lg:space-y-4 justify-around space-x-3 lg:space-x-0">
-            <div className="flex space-x-4 justify-around">
-              {/* <button
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md font-semibold"
-                onClick={handleBackClick}
+            <div className="grid grid-cols-2 gap-4 justify-around">
+              <button
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-md w-full text-center h-full"
+                onClick={handleClearMessage}
               >
-                {"< Back"}
-              </button> */}
+                Clear Message
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md w-full text-center h-full"
+                onClick={() => setReplyButtonVisible(!replyButtonVisible)}
+              >
+                {replyButtonVisible ? "Hide Reply" : "Show Reply"}
+              </button>
               <button
                 className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-md w-full text-center h-full"
                 onClick={() => setDeleteButtonVisible(!deleteButtonVisible)}
@@ -257,7 +360,7 @@ const ChatPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex space-x-4 justify-around">
+            <div className="flex space-y-2 space-x-0 lg:space-y-0 lg:space-x-4 justify-center flex-col lg:flex-row">
               <button
                 className="lg:px-4 lg:py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center h-full"
                 onClick={handleExport}
@@ -285,7 +388,7 @@ const ChatPage: React.FC = () => {
                 {iconGroupVisible ? "Hide Icons" : "Show Icons"}
               </button>
               {iconGroupVisible && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto scrollbar-minimal">
                   {icons.map((icon) => (
                     <button
                       key={icon.id}
@@ -321,7 +424,7 @@ const ChatPage: React.FC = () => {
                 {stampGroupVisible ? "Hide Stamps" : "Show Stamps"}
               </button>
               {stampGroupVisible && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-80 overflow-y-auto scrollbar-minimal">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto scrollbar-minimal">
                   {stamps.map((stamp) => (
                     <button
                       key={stamp.id}
@@ -352,6 +455,15 @@ const ChatPage: React.FC = () => {
               )}
             </div>
           </div>
+          <div className="relative">
+            <button
+              className="fixed bottom-20 left-8 z-20 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-md items-center flex gap-4"
+              onClick={() => setShowCallLogModal(true)}
+            >
+              <CallIcon color={"white"} size={24} />
+              <span className="hidden lg:block">Call Logs</span>
+            </button>
+          </div>
         </section>
 
         {/* Main content - Chat area */}
@@ -362,7 +474,7 @@ const ChatPage: React.FC = () => {
           >
             <h2>
               <TextareaAutosize
-                className="w-full bg-gray-900 text-white text-2xl font-bold p-3 mb-4 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-900 text-white text-lg lg:text-2xl font-bold p-3 mb-4 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
@@ -379,15 +491,16 @@ const ChatPage: React.FC = () => {
                 index === messages.length - 1 ||
                 messages[index + 1].name !== msg.name;
               const isMiddle = !isFirst && !isLast;
-              const bubbleClass =
-                msg.position === "left"
-                  ? "bg-gray-700 text-white"
-                  : "bg-blue-600 text-white";
+              const bubbleClass = msg.stamp
+                ? "-m-4 scale-125"
+                : msg.position === "left"
+                ? "bg-gray-700 text-white"
+                : "bg-blue-600 text-white";
 
               return (
                 <div
                   key={msg.id}
-                  className={`flex ${
+                  className={`flex text-sm lg:text-base ${
                     msg.position === "left" ? "justify-start" : "justify-end"
                   }`}
                 >
@@ -399,7 +512,7 @@ const ChatPage: React.FC = () => {
                     }`}
                   >
                     <section
-                      className={`flex items-center space-x-3 ${
+                      className={`flex items-center ${
                         msg.position === "right"
                           ? "flex-row-reverse space-x-reverse"
                           : ""
@@ -414,7 +527,28 @@ const ChatPage: React.FC = () => {
                           }`}
                         />
                       </div>
-                      <div className="flex flex-col">
+                      <div
+                        className={`flex flex-col ${
+                          msg.position === "left" ? "ml-3" : "mr-3"
+                        }`}
+                      >
+                        {/* Reply indicator */}
+                        {msg.replyTo && (
+                          <div
+                            className={`text-xs text-gray-400 mb-1 flex items-center w-24 lg:w-48 ${
+                              msg.position === "right"
+                                ? "justify-end"
+                                : "justify-start"
+                            } ${index === 0 ? "" : "mt-2"}`}
+                          >
+                            <span className="mr-1">
+                              ↩ Replying to {msg.replyTo.name}
+                            </span>
+                            <div className="max-w-xs truncate">
+                              "{msg.replyTo.text}"
+                            </div>
+                          </div>
+                        )}
                         {/* Span nama hanya muncul jika isFirst */}
                         {isFirst && (
                           <span
@@ -422,7 +556,7 @@ const ChatPage: React.FC = () => {
                               msg.position === "right"
                                 ? "text-right"
                                 : "text-left"
-                            }`}
+                            } ${index === 0 ? "" : "mt-3"}`}
                           >
                             {msg.name}
                           </span>
@@ -443,38 +577,54 @@ const ChatPage: React.FC = () => {
                               : "text-white rounded-tl-lg rounded-b-lg"
                           } max-w-[14rem] break-words`}
                         >
-                          {msg.stamp ? (
-                            <img
-                              src={msg.stamp}
-                              alt="Stamp"
-                              className="w-16 h-16"
-                              onError={(e) => {
-                                e.currentTarget.src = `${
-                                  import.meta.env.BASE_URL
-                                }assets/default_image.png`;
-                                e.currentTarget.alt = "Image not available";
-                              }}
-                            />
-                          ) : (
-                            <div
-                              dangerouslySetInnerHTML={{
-                                __html: parseText(msg.text),
-                              }}
-                              className="prose prose-invert"
-                            />
-                          )}
+                          <div className={``}>
+                            {msg.isCall ? (
+                              <div className="flex flex-col items-center text-white px-3 py-2">
+                                <CallIcon
+                                  color={msg.callIconColor || "white"}
+                                  size={24}
+                                />
+                                <span className="text-sm mt-2">
+                                  {msg.callDuration || "00:00"}
+                                </span>
+                              </div>
+                            ) : msg.stamp ? (
+                              <img
+                                src={msg.stamp}
+                                alt="Stamp"
+                                className="w-24 h-24 object-contain"
+                              />
+                            ) : (
+                              <div
+                                dangerouslySetInnerHTML={{
+                                  __html: parseText(msg.text),
+                                }}
+                                className="prose prose-invert"
+                              />
+                            )}
+                          </div>
                         </div>
                       </div>
                     </section>
 
-                    {deleteButtonVisible && (
-                      <button
-                        onClick={() => handleDeleteMessage(msg.id)}
-                        className="text-red-500 hover:text-red-400 -translate-x-1"
-                      >
-                        ×
-                      </button>
-                    )}
+                    <div className="flex flex-col -translate-x-1">
+                      {deleteButtonVisible && (
+                        <button
+                          onClick={() => handleDeleteMessage(msg.id)}
+                          className="text-red-500 hover:text-red-400"
+                        >
+                          ×
+                        </button>
+                      )}
+                      {replyButtonVisible && (
+                        <button
+                          onClick={() => handleReplyClick(msg)}
+                          className="text-gray-400 hover:text-gray-300 text-xs"
+                        >
+                          Reply
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -482,6 +632,20 @@ const ChatPage: React.FC = () => {
           </div>
 
           <div className="bg-gray-800 p-4 rounded-lg shadow-xl mt-4">
+            {replyingTo && (
+              <div className="bg-gray-700 p-2 rounded mb-2 flex justify-between items-center">
+                <div className="text-xs">
+                  Replying to <b>{replyingTo.name}</b>:{" "}
+                  {replyingTo.text.substring(0, 30)}...
+                </div>
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="text-red-400 hover:text-red-300 text-sm"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="flex items-center space-x-2 mb-4">
               <img
                 src={
@@ -503,31 +667,43 @@ const ChatPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex space-x-4 mb-4">
-              <button
-                onClick={() => {
-                  setPosition("left");
-                  setUnsavedChanges(true);
-                }}
-                className={`px-4 py-2 rounded-md ${
-                  position === "left" ? "bg-blue-600 text-white" : "bg-gray-700"
-                }`}
-              >
-                Left
-              </button>
-              <button
-                onClick={() => {
-                  setPosition("right");
-                  setUnsavedChanges(true);
-                }}
-                className={`px-4 py-2 rounded-md ${
-                  position === "right"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-700"
-                }`}
-              >
-                Right
-              </button>
+            <div className="flex justify-around">
+              <div className="flex space-x-4 mb-4">
+                <button
+                  onClick={() => {
+                    setPosition("left");
+                    setUnsavedChanges(true);
+                  }}
+                  className={`px-4 py-2 rounded-md ${
+                    position === "left"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-700"
+                  }`}
+                >
+                  Left
+                </button>
+                <button
+                  onClick={() => {
+                    setPosition("right");
+                    setUnsavedChanges(true);
+                  }}
+                  className={`px-4 py-2 rounded-md ${
+                    position === "right"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-700"
+                  }`}
+                >
+                  Right
+                </button>
+              </div>
+              <div>
+                <button
+                  onClick={handleAddCallObject}
+                  className="px-4 py-2 rounded-md bg-blue-600 text-white"
+                >
+                  Add Call
+                </button>
+              </div>
             </div>
 
             <button
@@ -547,6 +723,15 @@ const ChatPage: React.FC = () => {
           onClose={() => setToastMessage("")}
         />
       )}
+      <CallLogModal
+        isOpen={showCallLogModal}
+        onClose={() => setShowCallLogModal(false)}
+        callLogs={callLogs}
+        selectedIcon={selectedIcon}
+        icons={icons}
+        addCallLog={handleAddCallLog}
+        clearCallLog={handleClearCallLog}
+      />
     </div>
   );
 };
