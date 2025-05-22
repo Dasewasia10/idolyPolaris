@@ -367,7 +367,7 @@ const Lyrics: React.FC = () => {
 
   return (
     <>
-      <div className="h-max w-auto z-10 flex flex-col p-2 gap-2 -mb-10 lg:mb-0">
+      <div className="h-max w-auto z-10 flex flex-col p-2 gap-2 mb-10 lg:mb-0 mt-10 lg:mt-0">
         <section id="leftConsole" className="absolute">
           {/* Menu Sidebar */}
           <div
@@ -627,7 +627,7 @@ const Lyrics: React.FC = () => {
           </div>
         </div>
 
-        <section className="flex flex-col w-full mx-auto overflow-auto gap-4 scrollbar-none h-[30rem]">
+        <section className="flex flex-col w-full mx-auto overflow-auto gap-4 scrollbar-none h-[28rem]">
           {/* Tampilkan lirik lagu */}
           {activeData.length > 0 && (
             <table className="table-auto w-full bg-white rounded-md">

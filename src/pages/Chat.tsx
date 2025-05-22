@@ -328,7 +328,7 @@ const ChatPage: React.FC = () => {
   }, [unsavedChanges]);
 
   return (
-    <div className="bg-gray-900 text-white px-4 py-6 z-10 rounded-lg">
+    <div className="bg-gray-900 text-white px-4 py-6 z-10 rounded-lg mt-10 lg:mt-0">
       <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left sidebar - Controls */}
         <section className="lg:col-span-2 space-y-6 flex flex-col text-xs lg:text-base">
