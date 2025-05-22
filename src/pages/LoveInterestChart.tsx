@@ -1,21 +1,23 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import html2canvas from "html2canvas";
+import axios from "axios";
+import domtoimage from "dom-to-image";
 
 import { Character } from "../interfaces/Character";
+import { Icon } from "../interfaces/Icon";
+
+const API_BASE_URL = "https://diveidolypapi.my.id/api";
 
 const LoveInterestChart: React.FC = () => {
   const menuRef = useRef(null);
-  const chartRef = useRef(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   const draggableRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
 
-  const [idols, setIdols] = useState<Character[]>([]);
+  const [icons, setIcons] = useState<Icon[]>([]);
   const [positions, setPositions] = useState<{
     [key: number]: { x: number; y: number };
   }>({});
   const [fileName, setFileName] = useState("");
-  const [isRendered, setIsRendered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [title, setTitle] = useState("Title here");
@@ -28,17 +30,15 @@ const LoveInterestChart: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isPositionChanged, setIsPositionChanged] = useState(false);
 
+  const getCharacterIconUrl = (characterName: string) => {
+    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
+    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/characters"
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const data: Character[] = await response.json();
+        const response = await axios.get(`${API_BASE_URL}/characters`);
 
         // ✅ Filter hanya idol yang ada dalam grup tertentu
         const allowedGroups = [
@@ -50,12 +50,21 @@ const LoveInterestChart: React.FC = () => {
           "Mana Nagase",
         ];
 
-        const filteredIdols = data
-          .filter((idol) => allowedGroups.includes(idol.groupName))
-          .sort((a, b) => a.name.localeCompare(b.name)); // Urutkan berdasarkan nama idol
+        const sortedCharacters = response.data
+          .filter((idol: { groupName: string }) =>
+            allowedGroups.includes(idol.groupName)
+          )
+          .sort((a: Character, b: Character) => a.name.localeCompare(b.name));
 
-        setIdols(filteredIdols); // ✅ Simpan hanya idol dalam grup tertentu
-        setIsRendered(true);
+        const processedIcons = sortedCharacters.map(
+          (character: Character, index: number) => ({
+            id: index + 1,
+            name: character.name,
+            src: getCharacterIconUrl(character.name),
+          })
+        );
+
+        setIcons(processedIcons);
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
@@ -81,18 +90,6 @@ const LoveInterestChart: React.FC = () => {
     };
   }, [isPositionChanged]);
 
-  const navigate = useNavigate();
-
-  const handleBackClick = () => {
-    const message = isPositionChanged
-      ? "Anda telah mengubah posisi. Apakah Anda yakin ingin kembali? Perubahan tidak akan tersimpan."
-      : "Apakah Anda yakin ingin kembali?";
-
-    if (window.confirm(message)) {
-      navigate("/");
-    }
-  };
-
   const handleScreenshot = () => {
     if (!fileName.trim()) {
       alert("Nama file harus terisi sebelum men-download.");
@@ -100,22 +97,38 @@ const LoveInterestChart: React.FC = () => {
     }
 
     const node = chartRef.current;
-    if (node && isRendered) {
-      html2canvas(node, {
-        allowTaint: true, // Izinkan gambar yang terkontaminasi CORS
-        useCORS: true, // Coba gunakan CORS
-        logging: true, // Aktifkan logging untuk debugging
-        scale: window.devicePixelRatio, // Sesuaikan dengan DPI perangkat
-      })
-        .then((canvas) => {
+
+    if (node) {
+      // Konfigurasi dom-to-image
+      const options = {
+        quality: 1, // Kualitas maksimum (0-1)
+        bgcolor: "#ffffff", // Warna background jika ada elemen transparan
+        style: {
+          transform: "none", // Handle transform issues
+          filter: "none", // Handle CSS filters
+        },
+        width: node.clientWidth, // Lebar elemen
+        height: node.clientHeight, // Tinggi elemen
+        cacheBust: true, // Hindari cache
+      };
+
+      domtoimage
+        .toPng(node, options)
+        .then((dataUrl) => {
+          // Buat link download
           const link = document.createElement("a");
-          link.href = canvas.toDataURL("image/png");
           link.download = `${fileName}.png`;
+          link.href = dataUrl;
           link.click();
+
+          // Bersihkan memori
+          URL.revokeObjectURL(dataUrl);
         })
         .catch((error) => {
-          console.error("Error capturing screenshot:", error);
-          alert("Gagal mengambil screenshot. Pastikan gambar dapat diakses.");
+          console.error("Error generating image:", error);
+          alert(
+            "Gagal mengambil screenshot. Coba lagi atau periksa konsol untuk detail."
+          );
         });
     }
   };
@@ -162,215 +175,227 @@ const LoveInterestChart: React.FC = () => {
     setActiveIndex(index);
   };
 
-  const getCharacterIconUrl = (characterName: string) => {
-    return `https://www.diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
-      characterName
-    )}`;
-  };
-
   return (
-    <div className="relative h-dvh w-dvw bg-[#182cfc] lg:h-screen lg:w-screen">
-      {!isMenuOpen && (
-        <div className="absolute left-4 top-12 flex h-fit w-24 flex-col gap-2 bg-white p-4 transition-all duration-500 ease-out lg:h-60">
-          <span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-            >
-              <path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 4.702z" />
-            </svg>
-          </span>
-          <p>Click here for customize and come back</p>
-        </div>
-      )}
+    <div className="relative h-[38rem] w-full bg-gradient-to-br from-[#182cfc] to-[#6a11cb] overflow-hidden">
+      {/* Floating Menu Button */}
       {!isMenuOpen && (
         <button
           onClick={toggleMenu}
-          className="absolute left-4 top-4 z-20 rounded bg-gray-800 p-2 text-white transition-all duration-300 ease-in-out"
+          className="absolute left-4 top-4 z-20 rounded-full bg-white/20 p-3 backdrop-blur-md transition-all duration-300 hover:bg-white/30"
         >
           <svg
-            className="h-6 w-6"
+            className="h-6 w-6 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
               d="M4 6h16M4 12h16m-7 6h7"
-            ></path>
+            />
           </svg>
         </button>
       )}
+
+      {/* Customization Panel */}
       {isMenuOpen && (
-        <section
+        <div
           ref={menuRef}
-          className="absolute left-2 top-4 z-30 flex w-fit flex-col gap-2 rounded bg-gray-800 px-4 py-2 transition-all duration-300 ease-in-out"
+          className="absolute left-4 top-4 z-30 w-80 rounded-xl bg-gray-800/90 backdrop-blur-lg shadow-2xl transition-all duration-300"
         >
-          <div className="flex flex-row items-center justify-between">
-            <button
-              onClick={toggleMenu}
-              className="z-10 rounded bg-gray-800 p-2 text-white"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16m-7 6h7"
-                ></path>
-              </svg>
-            </button>
-            <div className="flex items-center gap-4">
+          <div className="p-4">
+            {/* Panel Header */}
+            <div className="flex items-center justify-between border-b border-gray-700 pb-3">
+              <h2 className="text-xl font-bold text-white">
+                Customization Panel
+              </h2>
               <button
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-800 rounded-md hover:text-white font-semibold"
-                onClick={handleBackClick}
+                onClick={toggleMenu}
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-700 hover:text-white"
               >
-                {"<"}
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
               </button>
             </div>
+
+            {/* Save Section */}
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  File Name
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={fileName}
+                    onChange={(e) => setFileName(e.target.value)}
+                    className="flex-1 rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Enter file name"
+                  />
+                  <button
+                    onClick={handleScreenshot}
+                    className="rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-2 font-medium text-white transition-all hover:from-pink-600 hover:to-rose-600 hover:shadow-lg"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+
+              {/* Title Customization */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  Chart Title
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="Enter title"
+                />
+              </div>
+
+              {/* Axis Labels */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  Axis Labels
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={top}
+                    onChange={(e) => setTop(e.target.value)}
+                    className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Top"
+                  />
+                  <input
+                    type="text"
+                    value={bottom}
+                    onChange={(e) => setBottom(e.target.value)}
+                    className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Bottom"
+                  />
+                  <input
+                    type="text"
+                    value={left}
+                    onChange={(e) => setLeft(e.target.value)}
+                    className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Left"
+                  />
+                  <input
+                    type="text"
+                    value={right}
+                    onChange={(e) => setRight(e.target.value)}
+                    className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Right"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="mt-4 pl-1 font-semibold text-white">Save file name</p>
-          <div className="flex gap-4">
-            <input
-              type="text"
-              value={fileName}
-              onChange={(e) => setFileName(e.target.value)}
-              className="rounded border p-2"
-              placeholder="Enter file name"
-            />
-            <button
-              onClick={handleScreenshot}
-              className="text-bg-gray-600 rounded bg-rose-300 p-2 transition-colors duration-300 ease-in-out hover:bg-rose-700 hover:text-white"
-            >
-              Save Screenshot
-            </button>
-          </div>
-          <div
-            id="custom-title"
-            className="mt-4 flex flex-col gap-4 border border-white p-2"
-          >
-            <label htmlFor="title-custom" className="font-semibold text-white">
-              Custom title
-            </label>
-            <input
-              id="title-custom"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="rounded border p-2"
-              placeholder="Enter title"
-            />
-          </div>
-          <div
-            id="custom-label"
-            className="mt-4 flex flex-col gap-4 border border-white p-2"
-          >
-            <p className="font-semibold text-white">Custom label</p>
-            <input
-              type="text"
-              value={top}
-              onChange={(e) => setTop(e.target.value)}
-              className="rounded border p-2"
-              placeholder="Enter top label"
-            />
-            <input
-              type="text"
-              value={bottom}
-              onChange={(e) => setBottom(e.target.value)}
-              className="rounded border p-2"
-              placeholder="Enter bottom label"
-            />
-            <input
-              type="text"
-              value={left}
-              onChange={(e) => setLeft(e.target.value)}
-              className="rounded border p-2"
-              placeholder="Enter left label"
-            />
-            <input
-              type="text"
-              value={right}
-              onChange={(e) => setRight(e.target.value)}
-              className="rounded border p-2"
-              placeholder="Enter right label"
-            />
-          </div>
-        </section>
+        </div>
       )}
 
-      <section
+      {/* Chart Container */}
+      <div
         ref={chartRef}
-        className="absolute bottom-12 z-20 h-1/2 w-full scale-95 bg-white lg:right-2 lg:top-1 lg:h-screen lg:w-2/3"
+        className="absolute bottom-6 left-1/2 z-20 h-[55%] w-[95%] -translate-x-1/2 transform rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl lg:right-6 lg:top-1/2 lg:left-auto lg:h-[80%] lg:w-[60%] lg:-translate-y-1/2 lg:translate-x-0"
       >
-        <section className="absolute left-0 top-0 flex flex-wrap gap-2 lg:w-[50%]">
-          <div className="text-warp absolute min-w-12 max-w-32 border-4 border-black p-4 text-center font-bold">
-            {title}
-          </div>
-          {idols.map((item, index) => (
+        {/* Title */}
+        <div className="absolute left-1/2 -top-12 -translate-x-1/2 transform rounded-full bg-white/80 px-6 py-2 text-center text-lg font-bold shadow-md backdrop-blur-sm">
+          {title}
+        </div>
+
+        {/* Icons Grid */}
+        <div className="absolute left-0 top-0 flex flex-wrap gap-4 p-4 lg:w-[50%]">
+          {icons.map((item, index) => (
             <Draggable
-              onMouseDown={() => clickHandlerDraggable(index)}
               key={index}
               defaultPosition={positions[index] || { x: 0, y: 0 }}
               onStop={(e, data) => handleStop(e, data, index)}
-              nodeRef={
-                draggableRefs.current[index] as React.RefObject<HTMLDivElement>
-              }
+              nodeRef={draggableRefs.current[index]}
+              onMouseDown={() => clickHandlerDraggable(index)}
             >
               <div
-                ref={
-                  draggableRefs.current[index] ||
-                  (draggableRefs.current[index] = React.createRef())
-                }
+                ref={draggableRefs.current[index]}
+                className={`transition-transform duration-200 ${
+                  activeIndex === index ? "scale-110" : "scale-100"
+                }`}
                 style={{
                   zIndex: activeIndex === index ? highestZIndex : 1,
                 }}
               >
                 <img
-                  src={getCharacterIconUrl(item.name?.toLowerCase() || "mei")}
+                  src={getCharacterIconUrl(item.name)}
                   alt={`icon-${index}`}
-                  crossOrigin="anonymous"
-                  className="h-8 w-auto lg:h-16"
+                  className="h-10 w-auto cursor-move rounded-full border-2 border-white shadow-md transition-all hover:border-blue-400 lg:h-14"
                 />
               </div>
             </Draggable>
           ))}
-        </section>
-        <section className="">
-          <div className="absolute left-1/2 top-0 h-full w-px scale-90 bg-black"></div>
-          <div className="absolute left-0 top-1/2 h-px w-full scale-75 bg-black"></div>
-          <div className="text-warp absolute left-1/2 top-2 -translate-x-1/2 transform text-center">
+        </div>
+
+        {/* Chart Axes and Labels */}
+        <div className="h-full w-full">
+          {/* Center Lines */}
+          <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 transform bg-gray-300"></div>
+          <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 transform bg-gray-300"></div>
+
+          {/* Axis Labels */}
+          <div className="absolute left-1/2 top-2 -translate-x-1/2 transform rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
             {top}
           </div>
-          <div className="text-warp absolute bottom-2 left-1/2 -translate-x-1/2 transform text-center">
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 transform rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
             {bottom}
           </div>
-          <div className="text-warp absolute left-2 top-1/2 w-20 -translate-y-1/2 transform text-left">
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 transform -rotate-90 rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
             {left}
           </div>
-          <div className="text-warp absolute right-2 top-1/2 w-20 -translate-y-1/2 transform text-right">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 transform rotate-90 rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
             {right}
           </div>
-        </section>
-      </section>
+        </div>
+      </div>
 
-      <div className="absolute z-10 h-screen w-screen bg-[#182cfc] bg-opacity-0"></div>
+      {/* Logo */}
       <img
         src="https://raw.githubusercontent.com/765Pro-Hoshimi/IDOLY-PRIDE-Logo/5e7f4e7a6b7889a12e266f1be1306cd6b2178a65/Logo/idoly-pride-logo-full-white.svg"
-        alt="Idoly-Pride-Logo-White"
-        crossOrigin="anonymous"
-        className="absolute -right-4 -top-4 h-32 w-auto transition-all duration-500 ease-out lg:-left-2 lg:top-1/2 lg:h-60"
+        alt="Idoly-Pride-Logo"
+        className="absolute left-0 top-1/2 h-24 w-auto opacity-90 lg:h-40"
       />
+
+      {/* Helper Tooltip */}
+      {!isMenuOpen && (
+        <div className="absolute left-4 top-12 max-w-xs rounded-xl bg-white/20 p-4 backdrop-blur-md transition-all duration-500">
+          <div className="flex items-center gap-2 text-white">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 4.702z" />
+            </svg>
+            <p className="text-sm">
+              Click the menu button to customize your chart
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

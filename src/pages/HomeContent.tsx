@@ -48,10 +48,17 @@ const HomeContent = () => {
         "https://api.diveidolypapi.my.id/image3Character/source-aoi-05-kaito-00-full.webp",
       description: "Make your custom chat with your favorite idol",
     },
+    {
+      name: "Love Interest Chart",
+      path: "/loveInterestChart",
+      bgImage:
+        "https://api.diveidolypapi.my.id/sourceImage/source-chisa-05-pajama-00-full.webp",
+      description: "Make your custom chart, not limited to love only",
+    },
   ];
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto z-10 max-h-[38rem] scrollbar-minimal">
+    <div className="flex-1 p-8 overflow-y-auto z-10 scrollbar-minimal lg:-mb-10">
       {/* Welcome Banner */}
       <div className="bg-slate-700 rounded-lg p-6 text-white bg-opacity-70 mb-4">
         <h1 className="text-3xl font-bold mb-2">

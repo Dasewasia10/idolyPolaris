@@ -12,7 +12,7 @@ import { Outlet } from "react-router-dom";
 // import KTPManager from "./pages/KTPManager";
 
 // import IdolDetailPage from "./pages/IdolDetailPage";
-// import LoveInterestChart from "./pages/LoveInterestChart";
+import LoveInterestChart from "./pages/LoveInterestChart";
 // //import CardDesign from "./pages/CardDesign (desperated)";
 
 // import CardDesign from "./pages/CardDesign";
@@ -68,15 +68,12 @@ const App: React.FC = () => {
             <Route path="/cardOverview" element={<CardOverviewPage />} />
             <Route path="/cardComparison" element={<CardComparison />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/loveInterestChart" element={<LoveInterestChart />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}
-          {/* <Route path="/qna" element={<QnAPage />} /> */}
           {/* <Route path="/ktp" element={<KTPManager />} /> */}
-          {/* Pass the historyData to the History component */}
 
-          {/* <Route path="/idol/:idolName" element={<IdolDetailPage />} /> */}
-          {/* <Route path="/loveInterestChart" element={<LoveInterestChart />} /> */}
           {/* <Route path="/cardDesign" element={<CardDesign />} /> */}
 
           {/* <Route path="/test" element={<MainMenuTest />} /> */}

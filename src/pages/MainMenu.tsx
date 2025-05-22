@@ -17,10 +17,10 @@ const MainMenu: React.FC = () => {
     { name: "Lyrics", path: "/lyric" },
     { name: "Bday Calendar", path: "/bdayCalendar" },
     { name: "IdolyChat", path: "/chat" },
+    { name: "Love Interest Chart", path: "/loveInterestChart" },
   ];
 
   const upcomingFeatures = [
-    { name: "Love Interest Chart", path: "/loveInterestChart" },
     { name: "Book Reader", path: "/bookreader" },
     { name: "Card Design", path: "/cardDesign" },
     { name: "KTP Manager", path: "/ktp" },
@@ -51,7 +51,7 @@ const MainMenu: React.FC = () => {
           />
         </button>
 
-        <div className="flex-1 flex gap-2 justify-center">
+        <div className="flex gap-2 justify-center">
           {availableFeatures.map((feature) => (
             <button
               key={feature.path}
