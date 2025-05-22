@@ -90,91 +90,46 @@ const LoveInterestChart: React.FC = () => {
     };
   }, [isPositionChanged]);
 
-  const handleScreenshot = async () => {
+  const handleScreenshot = () => {
     if (!fileName.trim()) {
       alert("Nama file harus terisi sebelum men-download.");
       return;
     }
 
     const node = chartRef.current;
-    if (!node) return;
 
-    try {
-      // 1. Simpan style asli
-      const originalStyles = {
-        overflow: node.style.overflow,
-        height: node.style.height,
-      };
-
-      // 2. Aktifkan overflow dan auto height
-      node.style.overflow = "visible";
-      node.style.height = "auto";
-
-      // 3. Hitung ulang dimensi untuk mencakup semua konten
-      const calculateFullDimensions = () => {
-        const rects = Array.from(node.getElementsByTagName("*")).map((el) =>
-          el.getBoundingClientRect()
-        );
-
-        const minX = Math.min(...rects.map((r) => r.left));
-        const maxX = Math.max(...rects.map((r) => r.right));
-        const minY = Math.min(...rects.map((r) => r.top));
-        const maxY = Math.max(...rects.map((r) => r.bottom));
-
-        return {
-          width: maxX - minX,
-          height: maxY - minY,
-        };
-      };
-
-      const { width, height } = calculateFullDimensions();
-
-      // 4. Konfigurasi dengan dimensi yang diperbarui
+    if (node) {
+      // Konfigurasi dom-to-image
       const options = {
-        quality: 1,
-        bgcolor: "#ffffff",
-        width: width,
-        height: height,
+        quality: 1, // Kualitas maksimum (0-1)
+        bgcolor: "#ffffff", // Warna background jika ada elemen transparan
         style: {
-          transform: "none",
-          filter: "none",
+          transform: "none", // Handle transform issues
+          filter: "none", // Handle CSS filters
         },
-        cacheBust: true,
+        width: node.clientWidth, // Lebar elemen
+        height: node.clientHeight, // Tinggi elemen
+        cacheBust: true, // Hindari cache
       };
 
-      // 5. Tunggu hingga semua gambar selesai load
-      const images = node.getElementsByTagName("img");
-      await Promise.all(
-        Array.from(images).map((img) => {
-          if (!img.complete) {
-            return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
-            });
-          }
-          return Promise.resolve();
+      domtoimage
+        .toPng(node, options)
+        .then((dataUrl) => {
+          // Buat link download
+          const link = document.createElement("a");
+          link.download = `${fileName}.png`;
+          link.href = dataUrl;
+          link.click();
+
+          // Bersihkan memori
+          URL.revokeObjectURL(dataUrl);
         })
-      );
-
-      // 6. Ambil screenshot
-      const dataUrl = await domtoimage.toPng(node, options);
-
-      // 7. Download gambar
-      const link = document.createElement("a");
-      link.download = `${fileName}.png`;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // 8. Kembalikan style asli
-      node.style.overflow = originalStyles.overflow;
-      node.style.height = originalStyles.height;
-    } catch (error) {
-      console.error("Error generating image:", error);
-      alert(
-        "Gagal mengambil screenshot. Coba lagi atau periksa konsol untuk detail."
-      );
+        .catch((error) => {
+          console.error("Error generating image:", error);
+          alert(
+            "Gagal mengambil screenshot. Coba lagi atau periksa konsol untuk detail."
+          );
+        });
     }
   };
 
