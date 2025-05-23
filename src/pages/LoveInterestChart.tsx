@@ -173,7 +173,7 @@ const LoveInterestChart: React.FC = () => {
   return (
     <div className="relative lg:h-[38rem] w-full bg-gradient-to-br from-[#182cfc] to-[#6a11cb] overflow-hidden flex flex-col lg:flex-row items-center lg:justify-between gap-20">
       {/* Customization Panel */}
-      <div className="z-30 w-80 rounded-xl bg-gray-800/90 backdrop-blur-lg shadow-2xl transition-all duration-300 m-4 lg:m-0 justify-center flex">
+      <div className="z-30 w-80 lg:h-full rounded-xl lg:rounded-r-xl bg-gray-800/90 backdrop-blur-lg shadow-2xl transition-all duration-300 m-4 lg:m-0 justify-center flex">
         <div className="p-4">
           {/* Save Section */}
           <div className="mt-4 space-y-4">
@@ -255,7 +255,7 @@ const LoveInterestChart: React.FC = () => {
       {/* Chart Container */}
       <div
         id="idolyChart"
-        className="z-20 h-96 lg:h-4/5 w-full lg:w-1/2 rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl m-10"
+        className="z-20 h-96 w-full lg:w-1/2 rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl m-10"
       >
         {/* Title */}
         <div className="absolute left-1/2 top-0 -translate-x-1/2 transform rounded-full bg-white/80 px-6 py-2 text-center text-lg font-bold shadow-md backdrop-blur-sm">
@@ -263,7 +263,7 @@ const LoveInterestChart: React.FC = () => {
         </div>
 
         {/* Icons Grid */}
-        <div className="absolute left-0 top-0 flex flex-wrap gap-4 p-4 lg:w-[50%]">
+        <div className="absolute left-0 top-0 flex flex-wrap gap-4 p-4 lg:w-[75%]">
           {icons.map((item, index) => (
             <Draggable
               key={index}
