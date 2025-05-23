@@ -48,13 +48,13 @@ const HomeContent = () => {
         "https://api.diveidolypapi.my.id/image3Character/source-aoi-05-kaito-00-full.webp",
       description: "Make your custom chat with your favorite idol",
     },
-    // {
-    //   name: "Love Interest Chart",
-    //   path: "/loveInterestChart",
-    //   bgImage:
-    //     "https://api.diveidolypapi.my.id/sourceImage/source-chisa-05-pajama-00-full.webp",
-    //   description: "Make your custom chart, not limited to love only",
-    // },
+    {
+      name: "Love Interest Chart",
+      path: "/loveInterestChart",
+      bgImage:
+        "https://api.diveidolypapi.my.id/sourceImage/source-chisa-05-pajama-00-full.webp",
+      description: "Make your custom chart, not limited to love only",
+    },
   ];
 
   return (
