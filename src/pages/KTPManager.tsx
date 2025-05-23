@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { saveAs } from "file-saver";
 import domtoimage from "dom-to-image";
+import axios from "axios";
 import { Icon } from "../interfaces/Icon";
 import { Character } from "../interfaces/Character";
 
 import Toast from "../components/Toast";
 import IDCard from "../components/IDCard";
 
+const API_BASE_URL = "https://diveidolypapi.my.id/api";
+
 const KTPManager: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
   const [title, setTitle] = useState<string>("Hoshimi Production's Manager");
   const [name, setName] = useState<string>("Nama / Nickname");
   const [selectedIcon, setSelectedIcon] = useState<Icon[]>([]);
-  const [idols, setIdols] = useState<Character[]>([]);
+  const [icons, setIcons] = useState<Icon[]>([]);
   const [selectedIdolGroup, setSelectedIdolGroup] =
     useState<string>("Tsuki no Tempest");
   const [unsavedChanges, setUnsavedChanges] = useState<boolean>(false);
@@ -81,14 +84,7 @@ const KTPManager: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters"
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const data: Character[] = await response.json();
+        const response = await axios.get(`${API_BASE_URL}/characters`);
 
         // ✅ Filter hanya idol yang ada dalam grup tertentu
         const allowedGroups = [
@@ -98,18 +94,27 @@ const KTPManager: React.FC = () => {
           "LizNoir",
           "IIIX",
           "Mana Nagase",
-          "Collaboration",
         ];
 
-        const filteredIdols = data
-          .filter((idol) => allowedGroups.includes(idol.groupName))
-          .sort((a, b) => a.name.localeCompare(b.name)); // Urutkan berdasarkan nama idol
+        const sortedCharacters = response.data
+          .filter((idol: { groupName: string }) =>
+            allowedGroups.includes(idol.groupName)
+          )
+          .sort((a: Character, b: Character) => a.name.localeCompare(b.name));
 
-        setIdols(filteredIdols); // ✅ Simpan hanya idol dalam grup tertentu
+        const processedIcons = sortedCharacters.map(
+          (character: Character, index: number) => ({
+            id: index + 1,
+            name: character.name,
+            src: getCharacterIconUrl(character.name),
+          })
+        );
+
+        setIcons(processedIcons);
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
-        console.log("Fetching error", error);
+        console.error("Error fetching data:", error);
       }
     };
 
@@ -117,23 +122,8 @@ const KTPManager: React.FC = () => {
   }, []);
 
   const getCharacterIconUrl = (characterName: string) => {
-    return `https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(
-      characterName.toLowerCase()
-    )}`;
-  };
-
-  const generateIds = (data: any[]) =>
-    data.map((item, index) => ({ ...item, id: index + 1 }));
-
-  const idolsWithIds = generateIds(idols);
-
-  const getCharacterIcon = (character: Character): Icon => {
-    const idol = idolsWithIds.find((idol) => idol.name === character.name);
-    return {
-      id: idol ? idol.id : -1, // Gunakan ID dari idolsWithIds atau fallback ke -1 jika tidak ditemukan
-      name: character.name,
-      src: getCharacterIconUrl(character.name),
-    };
+    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
+    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -263,7 +253,7 @@ const KTPManager: React.FC = () => {
               </span>
             </h2>
             <div className="flex overflow-auto w-full flex-wrap justify-around p-4 gap-2">
-              {idols.map((idol) => (
+              {icons.map((idol) => (
                 <button
                   key={idol.id}
                   onClick={() => {
@@ -279,7 +269,15 @@ const KTPManager: React.FC = () => {
                         );
                       } else if (prevSelectedIcons.length < 3) {
                         setMaxSelectionReached(false); // Reset pesan batas maksimal
-                        return [...prevSelectedIcons, getCharacterIcon(idol)];
+                        return [
+                          ...prevSelectedIcons,
+                          {
+                            ...idol,
+                            id: idol.id,
+                            name: idol.name,
+                            src: getCharacterIconUrl(idol.name),
+                          },
+                        ];
                       } else {
                         setMaxSelectionReached(true); // Tampilkan pesan batas maksimal
                         return prevSelectedIcons;
@@ -403,7 +401,9 @@ const KTPManager: React.FC = () => {
         />
       )}
 
-      <div className="flex border-b border-slate-500 mx-2 h-20 opacity-0 pointer-none lg:hidden">Test</div>
+      <div className="flex border-b border-slate-500 mx-2 h-20 opacity-0 pointer-none lg:hidden">
+        Test
+      </div>
     </div>
   );
 };
