@@ -150,11 +150,13 @@ const KTPManager: React.FC = () => {
         });
       })
     );
-    
+
     const originalStyle = {
       height: element.style.height,
       overflow: element.style.overflow,
     };
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     try {
       element.style.height = "full";
@@ -167,8 +169,13 @@ const KTPManager: React.FC = () => {
         style: {
           transform: "none", // Handle transform issues
         },
-        filter: (_node: any) => {
-          // Handle filter jika diperlukan
+        filter: (node) => {
+          // Skip jika node adalah gambar error
+          if (
+            (node as HTMLElement).tagName === "IMG" &&
+            !(node as HTMLImageElement).complete
+          )
+            return false;
           return true;
         },
         imagePlaceholder:

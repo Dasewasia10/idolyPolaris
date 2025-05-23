@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 
 interface IDCardProps {
@@ -24,6 +24,7 @@ const IDCard: React.FC<IDCardProps> = ({
   name,
   selectedIcon,
 }) => {
+  const profileImgRef = useRef<HTMLImageElement>(null);
   const groupOfIdol = [
     {
       key: "tsukisto",
@@ -78,8 +79,10 @@ const IDCard: React.FC<IDCardProps> = ({
       <div className="relative h-32 bg-gradient-to-r from-blue-700/70 to-purple-700/70 flex items-center justify-center p-6">
         <div className="absolute -bottom-6 left-6 w-24 h-24 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
           <img
+            ref={profileImgRef}
             src={profilePic || `${getPlaceholderImageUrl("square")}`}
             alt="Profile"
+            crossOrigin="anonymous"
             className="w-full h-full object-cover"
             onLoad={() => {
               // Force re-render jika perlu
