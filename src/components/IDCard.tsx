@@ -81,6 +81,10 @@ const IDCard: React.FC<IDCardProps> = ({
             src={profilePic || `${getPlaceholderImageUrl("square")}`}
             alt="Profile"
             className="w-full h-full object-cover"
+            onLoad={() => {
+              // Force re-render jika perlu
+              if (profilePic) URL.revokeObjectURL(profilePic);
+            }}
           />
         </div>
         <div className="absolute -bottom-8 left-24 w-8 h-8">

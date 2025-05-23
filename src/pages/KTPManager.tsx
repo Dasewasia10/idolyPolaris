@@ -140,6 +140,17 @@ const KTPManager: React.FC = () => {
       return;
     }
 
+    // Pastikan semua gambar sudah dimuat
+    await Promise.all(
+      Array.from(element.getElementsByTagName("img")).map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve; // Lanjutkan meskipun ada error
+        });
+      })
+    );
+    
     const originalStyle = {
       height: element.style.height,
       overflow: element.style.overflow,
