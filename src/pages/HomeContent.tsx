@@ -55,6 +55,13 @@ const HomeContent = () => {
         "https://api.diveidolypapi.my.id/sourceImage/source-chisa-05-pajama-00-full.webp",
       description: "Make your custom chart, not limited to love only",
     },
+    {
+      name: "Manager ID",
+      path: "/ktp",
+      bgImage:
+        "https://api.diveidolypapi.my.id/sourceImage/source-sakura-05-china-00-full.webp",
+      description: "Make your custom ktp- I mean Manager ID and share with your friends",
+    },
   ];
 
   return (

@@ -2,22 +2,13 @@ import React from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 // import { DarkModeProvider, DarkModeContext } from "./context/DarkMode";
 // import { HistoryProvider, useHistory } from "./context/History";
-
 import { Outlet } from "react-router-dom";
 
-// import MainMenu from "./pages/tetttt";
-
 // // import BookReader from "./pages/BookReader";
-// import QnAPage from "./pages/ListOfQnA";
-// import KTPManager from "./pages/KTPManager";
-
-// import IdolDetailPage from "./pages/IdolDetailPage";
+import KTPManager from "./pages/KTPManager";
 import LoveInterestChart from "./pages/LoveInterestChart";
-// //import CardDesign from "./pages/CardDesign (desperated)";
-
 // import CardDesign from "./pages/CardDesign";
 import Lyrics from "./pages/Lyrics";
-
 import MainMenu from "./pages/MainMenu";
 import IdolListPage from "./pages/IdolListPage";
 import VideoBackground from "./components/videoBackground";
@@ -69,10 +60,10 @@ const App: React.FC = () => {
             <Route path="/cardComparison" element={<CardComparison />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/loveInterestChart" element={<LoveInterestChart />} />
+            <Route path="/ktp" element={<KTPManager />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}
-          {/* <Route path="/ktp" element={<KTPManager />} /> */}
 
           {/* <Route path="/cardDesign" element={<CardDesign />} /> */}
 

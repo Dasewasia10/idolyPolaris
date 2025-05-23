@@ -8,22 +8,26 @@ const MainMenu: React.FC = () => {
   const [isHovered, setIsHovered] = useState<string | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUpcomingDropdown, setShowUpcomingDropdown] = useState(false);
+  const [showPlaygroundDropdown, setShowPlaygroundDropdown] = useState(false);
 
-  // Combined menu items
-  const availableFeatures = [
+  // Menu items
+  const mainFeatures = [
     { name: "Idol Detail", path: "/idolList" },
     { name: "Card Overview", path: "/cardOverview" },
     { name: "Card Comparison", path: "/cardComparison" },
     { name: "Lyrics", path: "/lyric" },
     { name: "Bday Calendar", path: "/bdayCalendar" },
+  ];
+
+  const playgroundFeatures = [
     { name: "IdolyChat", path: "/chat" },
     { name: "Love Interest Chart", path: "/loveInterestChart" },
+    { name: "KTP Manager", path: "/ktp" },
   ];
 
   const upcomingFeatures = [
     { name: "Book Reader", path: "/bookreader" },
     { name: "Card Design", path: "/cardDesign" },
-    { name: "KTP Manager", path: "/ktp" },
   ];
 
   const handleNavigation = (path: string) => {
@@ -34,7 +38,8 @@ const MainMenu: React.FC = () => {
   return (
     <div className="flex flex-col bg-slate-600 items-center">
       {/* Desktop Navigation */}
-      <div className="h-20 bg-slate-800 p-4 flex gap-2 overflow-y-auto justify-between z-10 fixed top-0 w-full z-20 hidden lg:flex">
+      <div className="bg-slate-800 p-4 flex gap-2 justify-between z-10 fixed top-0 w-full z-20 hidden lg:flex">
+        {/* Logo Home */}
         <button
           onClick={() => navigate("/")}
           className="group relative flex rounded-full bg-white hover:bg-slate-300 text-black items-center justify-center w-12 h-12"
@@ -51,8 +56,9 @@ const MainMenu: React.FC = () => {
           />
         </button>
 
-        <div className="flex gap-2 justify-center">
-          {availableFeatures.map((feature) => (
+        {/* Main Navigation */}
+        <div className="flex gap-2 justify-center relative">
+          {mainFeatures.map((feature) => (
             <button
               key={feature.path}
               onClick={() => handleNavigation(feature.path)}
@@ -69,6 +75,61 @@ const MainMenu: React.FC = () => {
               {feature.name}
             </button>
           ))}
+
+          {/* Playground Dropdown */}
+          <div className="relative z-20">
+            <button
+              onClick={() => setShowPlaygroundDropdown(!showPlaygroundDropdown)}
+              onMouseEnter={() => setShowPlaygroundDropdown(true)}
+              onMouseLeave={() => setShowPlaygroundDropdown(false)}
+              className={`text-center text-sm px-2 xl:py-3 justify-center flex items-center rounded-lg transition-all duration-200 self-center h-full ${
+                playgroundFeatures.some((f) => location.pathname === f.path)
+                  ? "bg-white text-black shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.5)] border-t border-slate-600"
+                  : showPlaygroundDropdown || isHovered === "playground"
+                  ? "bg-slate-700 text-white scale-105"
+                  : "bg-slate-900 text-white"
+              }`}
+            >
+              Idoly Playground
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`ml-1 h-4 w-4 transition-transform duration-200 ${
+                  showPlaygroundDropdown ? "rotate-180" : ""
+                }`}
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            {showPlaygroundDropdown && (
+              <div
+                className="absolute mx-auto w-48 rounded-md shadow-lg bg-slate-800 z-50"
+                onMouseEnter={() => setShowPlaygroundDropdown(true)}
+                onMouseLeave={() => setShowPlaygroundDropdown(false)}
+              >
+                <div className="py-1">
+                  {playgroundFeatures.map((feature) => (
+                    <button
+                      key={feature.path}
+                      onClick={() => handleNavigation(feature.path)}
+                      className={`block w-full text-left px-4 py-2 text-sm ${
+                        location.pathname === feature.path
+                          ? "bg-white text-black"
+                          : "text-white hover:bg-slate-700"
+                      }`}
+                    >
+                      {feature.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex border-l border-slate-500 mx-2"></div>
@@ -134,7 +195,7 @@ const MainMenu: React.FC = () => {
       {showMobileMenu && (
         <div className="fixed top-20 left-0 right-0 bg-slate-800 shadow-lg z-20 lg:hidden">
           <div className="flex flex-col p-4 gap-2">
-            {availableFeatures.map((feature) => (
+            {mainFeatures.map((feature) => (
               <button
                 key={feature.path}
                 onClick={() => handleNavigation(feature.path)}
@@ -147,6 +208,50 @@ const MainMenu: React.FC = () => {
                 {feature.name}
               </button>
             ))}
+
+            {/* Playground Dropdown Mobile */}
+            <div className="relative">
+              <button
+                onClick={() =>
+                  setShowPlaygroundDropdown(!showPlaygroundDropdown)
+                }
+                className="w-full text-left px-4 py-3 rounded-lg bg-slate-900 text-white flex justify-between items-center hover:bg-slate-700"
+              >
+                <span>Idoly Playground</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-5 w-5 transition-transform duration-200 ${
+                    showPlaygroundDropdown ? "rotate-180" : ""
+                  }`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              {showPlaygroundDropdown && (
+                <div className="mt-2 ml-4 flex flex-col gap-2">
+                  {playgroundFeatures.map((feature) => (
+                    <button
+                      key={feature.path}
+                      onClick={() => handleNavigation(feature.path)}
+                      className={`text-left px-4 py-3 rounded-lg transition-all duration-200 ${
+                        location.pathname === feature.path
+                          ? "bg-white text-black shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.5)] border-t border-slate-600"
+                          : "bg-slate-700 text-white hover:bg-slate-600"
+                      }`}
+                    >
+                      {feature.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="relative">
               <button

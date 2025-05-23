@@ -55,126 +55,148 @@ const IDCard: React.FC<IDCardProps> = ({
       name: "Mana Nagase",
       altName: "mana",
     },
-    // Tambahkan sumber lain di sini
   ];
 
-  // Cari grup yang sesuai
   const matchedGroup = groupOfIdol.find((g) => g.name === group);
 
   const getIdolGroupUrl = (groupName: string) => {
-    const originalUrl = `https://api.diveidolypapi.my.id/idolGroup/group-${groupName}-circle.png`;
-    return `https://diveidolypapi.my.id/api/proxy/image?url=${encodeURIComponent(
-      originalUrl
-    )}`;
+    return `https://api.diveidolypapi.my.id/idolGroup/group-${groupName}-circle.png`;
   };
 
-  // Gunakan matchedGroup untuk mendapatkan URL gambar
   const groupImageUrl = matchedGroup
     ? getIdolGroupUrl(matchedGroup.altName)
-    : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`; // Fallback image
+    : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`;
 
   return (
-    <div className="h-2/3 max-h-screen bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-xl flex flex-col items-center p-4 relative gap-3">
-      {/* Foto Profil */}
-      <div>
-        <div className="w-40 h-40 rounded-full overflow-hidden border-2 border-white shadow-lg">
+    <div className="w-[32rem] h-[38rem] bg-gradient-to-br from-blue-900 to-purple-900 rounded-2xl shadow-2xl overflow-hidden relative border-4 border-white/20">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-striped-brick.png')]"></div>
+      </div>
+
+      {/* Header Section */}
+      <div className="relative h-32 bg-gradient-to-r from-blue-700/70 to-purple-700/70 flex items-center justify-center p-6">
+        <div className="absolute -bottom-6 left-6 w-24 h-24 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
           <img
             src={profilePic || `${getPlaceholderImageUrl("square")}`}
             alt="Profile"
             className="w-full h-full object-cover"
           />
         </div>
-        {/* Logo Group */}
-        <div
-          className={`absolute left-1/2 -translate-y-12 translate-x-6 w-16 h-16}`}
-        >
+        <div className="absolute -bottom-8 left-24 w-8 h-8">
           <img
             src={groupImageUrl}
             alt="idolgroup"
-            crossOrigin="anonymous"
             className="w-full h-full object-contain"
             onError={(e) => {
-              // Fallback jika gambar error
               (e.target as HTMLImageElement).src = `${
                 import.meta.env.BASE_URL
               }assets/default_image.png`;
             }}
           />
         </div>
-      </div>
 
-      {/* Nama */}
-      <input
-        className="appearance-none border-none bg-transparent text-lg font-bold mt-2 whitespace-pre-wrap text-center"
-        title={"Nama / Nickname"}
-        placeholder={"Nama / Nickname"}
-        value={name}
-        maxLength={20}
-        onChange={(e) => {
-          setName(e.target.value);
-          setUnsavedChanges(true);
-        }}
-      />
-
-      {/* Agensi */}
-      <p className="text-base italic text-gray-200">{title}</p>
-
-      {/* ID Game */}
-      <div className="flex items-center mt-2 text-xs gap-2">
-        <div className="">
-          <h4 className="font-bold">JP ID :</h4>
-          <input
-            type="text"
-            maxLength={8}
-            className="rounded h-max text-base pl-2 text-black"
-          />
-        </div>
-        <div className="">
-          <h4 className="font-bold">Global ID :</h4>
-          <input
-            type="text"
-            maxLength={8}
-            className="rounded h-max text-base pl-2 text-black"
-          />
+        <div className="ml-28 gap-2 flex flex-col">
+          <h1 className="text-2xl font-bold text-white drop-shadow-md">
+            {title.toUpperCase()}
+          </h1>
+          <div className="flex items-center">
+            <span className="text-sm text-white/80 font-medium">{group}</span>
+          </div>
         </div>
       </div>
 
-      {/* Oshi (max 3) */}
-      <div className="flex text-white items-center gap-2 flex-col">
-        <h3 className="italic pr-2 text-sm">Oshi :</h3>
-        <div className="flex gap-2">
-          {selectedIcon.map((icon, index) => (
-            <img
-              key={index}
-              src={icon.src || `${getPlaceholderImageUrl("square")}`}
-              alt={`oshi${index + 1}`}
-              crossOrigin="anonymous"
-              className="h-12 w-12 rounded-full"
+      {/* Main Content */}
+      <div className="p-6 pt-10 z-10">
+        {/* Name Section */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-white/70 mb-1">
+            MANAGER NAME
+          </label>
+          <input
+            className="w-full bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3 text-xl font-bold text-white border-b-2 border-white/30 focus:outline-none focus:border-blue-400 transition-colors"
+            placeholder="Your Name"
+            value={name}
+            maxLength={20}
+            onChange={(e) => {
+              setName(e.target.value);
+              setUnsavedChanges(true);
+            }}
+          />
+        </div>
+
+        {/* ID Section */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1">
+              JP ID
+            </label>
+            <input
+              type="text"
+              maxLength={8}
+              className="w-full bg-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-          ))}
-          {selectedIcon.length < 3 &&
-            Array.from({ length: 3 - selectedIcon.length }).map((_, index) => (
-              <img
-                key={selectedIcon.length + index}
-                src={`${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`}
-                alt={`oshi${selectedIcon.length + index + 1}`}
-                crossOrigin="anonymous"
-                className="flex h-12 w-12 rounded-full"
-              />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1">
+              GLOBAL ID
+            </label>
+            <input
+              type="text"
+              maxLength={8}
+              className="w-full bg-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+        </div>
+
+        {/* Oshi Section */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-white/70 mb-2">
+            MY OSHI ({selectedIcon.length}/3)
+          </label>
+          <div className="flex gap-3">
+            {selectedIcon.map((icon, index) => (
+              <div key={index} className="relative group">
+                <img
+                  src={icon.src || `${getPlaceholderImageUrl("square")}`}
+                  alt={`oshi${index + 1}`}
+                  className="h-12 w-12 rounded-full object-cover border-2 border-white/80 shadow-md transition-transform group-hover:scale-110"
+                />
+              </div>
             ))}
+            {selectedIcon.length < 3 &&
+              Array.from({ length: 3 - selectedIcon.length }).map(
+                (_, index) => (
+                  <div
+                    key={selectedIcon.length + index}
+                    className="h-12 w-12 rounded-full bg-white/10 border-2 border-dashed border-white/30 flex items-center justify-center"
+                  >
+                    <span className="text-white/50 text-2xl">+</span>
+                  </div>
+                )
+              )}
+          </div>
+        </div>
+
+        {/* Signature Section */}
+        <div>
+          <label className="block text-sm font-medium text-white/70 mb-1">
+            SIGNATURE / MESSAGE
+          </label>
+          <textarea
+            value={inputText}
+            onChange={(e) => {
+              setInputText(e.target.value);
+              setUnsavedChanges(true);
+            }}
+            placeholder="Write your signature or favorite quote..."
+            className="w-full h-24 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none"
+          />
         </div>
       </div>
 
-      {/* Rant */}
-      <textarea
-        value={inputText}
-        onChange={(e) => {
-          setInputText(e.target.value);
-          setUnsavedChanges(true);
-        }}
-        placeholder="Type your signature, motivation, or just rant. Anything is fine!"
-        className="w-full border border-gray-300 rounded-md p-2 text-black"
-      />
+      {/* Footer */}
+      <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
     </div>
   );
 };

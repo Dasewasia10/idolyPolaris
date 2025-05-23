@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
+import domtoimage from "dom-to-image";
 import { Icon } from "../interfaces/Icon";
 import { Character } from "../interfaces/Character";
 
@@ -20,7 +20,6 @@ const KTPManager: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string>("");
   const [isSuccess, setIsSuccess] = useState<boolean>(true);
   const [maxSelectionReached, setMaxSelectionReached] = useState(false);
-  
 
   const agencies = [
     {
@@ -144,20 +143,6 @@ const KTPManager: React.FC = () => {
     }
   };
 
-  const handleBackClick = () => {
-    if (unsavedChanges) {
-      const confirmation = confirm(
-        "Anda mungkin memiliki perubahan yang belum disimpan. Anda yakin ingin kembali?"
-      );
-      if (confirmation) {
-        setUnsavedChanges(false); // Mengatur kembali ke false setelah konfirmasi
-        window.history.back();
-      }
-    } else {
-      window.history.back();
-    }
-  };
-
   const saveAsPng = async () => {
     const element = document.getElementById("AipuraKtp");
     if (!element) {
@@ -165,16 +150,29 @@ const KTPManager: React.FC = () => {
       return;
     }
 
-    const originalOverflow = element.style.overflow;
-    element.style.overflow = "visible";
+    const originalStyle = {
+      height: element.style.height,
+      overflow: element.style.overflow,
+    };
 
     try {
-      const canvas = await html2canvas(element, {
-        useCORS: true, // Aktifkan opsi ini
+      element.style.height = "full";
+      element.style.overflow = "visible";
+
+      // Gunakan dom-to-image
+      const blob = await domtoimage.toBlob(element, {
+        quality: 1,
+        cacheBust: true,
+        style: {
+          transform: "none", // Handle transform issues
+        },
+        filter: (_node: any) => {
+          // Handle filter jika diperlukan
+          return true;
+        },
+        imagePlaceholder:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", // Placeholder untuk gambar error
       });
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve)
-      );
       if (!blob) {
         console.error("Blob not found");
         return;
@@ -182,18 +180,16 @@ const KTPManager: React.FC = () => {
 
       // Simpan gambar secara lokal
       saveAs(blob, `ktp_of_${name}.png`);
-
-      setUnsavedChanges(false);
-
-      setToastMessage("Gambar telah tersimpan!");
+      setToastMessage("Image saved successfully!");
       setIsSuccess(true);
+      setUnsavedChanges(false);
     } catch (error) {
       console.error("Error:", error);
       setToastMessage("Failed to save image!");
       setIsSuccess(false);
     } finally {
-      // Kembalikan overflow ke nilai asli
-      element.style.overflow = originalOverflow;
+      element.style.height = originalStyle.height;
+      element.style.overflow = originalStyle.overflow;
     }
   };
 
@@ -227,66 +223,46 @@ const KTPManager: React.FC = () => {
   }, [unsavedChanges]);
 
   return (
-    <div className="h-screen bg-slate-400 flex flex-col lg:flex-row p-4 gap-10 items-center lg:items-start">
-      <div className="absolute left-1/3 top-16 flex h-fit w-24 flex-col gap-2 bg-white p-4 transition-all duration-500 ease-out text-black opacity-0 lg:opacity-100">
-        <span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            className="-rotate-90"
-          >
-            <path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 4.702z" />
-          </svg>
-        </span>
-        <p>You can scroll this</p>
-      </div>
+    <div className="h-[38rem] bg-gradient-to-br from-[#182cfc] to-[#6a11cb] rounded-2xl flex flex-col lg:flex-row gap-10 items-center lg:justify-between mt-10 lg:mt-0">
       <section
         id="leftConsole"
-        className="flex flex-col gap-2 w-full lg:w-[30%] lg:h-[90%]"
+        className="flex flex-col gap-2 w-full lg:w-[30%] lg:h-full"
       >
-        <div className="flex items-center">
-          <button
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-800 rounded-md hover:text-white font-semibold"
-            onClick={handleBackClick}
-          >
-            {"<"}
-          </button>
-        </div>
-        <section className="flex flex-col gap-2 w-full overflow-y-auto no-scrollbar">
-          <div className="bg-slate-900 p-2 sticky top-0 z-10 border-b-slate-400 border-b-8">
-            <h2 className="sticky flex text-right font-bold text-white">
-              <span>Simpan KTP-mu!</span>
+        <section className="flex flex-col gap-2 w-full overflow-y-auto scrollbar-minimal rounded-2xl lg:rounded-l-2xl">
+          <div className="bg-slate-900 p-2 sticky top-0 z-10">
+            <h2 className="sticky flex text-center w-full items-center justify-center font-bold text-white">
+              <span>Save Your ID</span>
             </h2>
             <div className="flex w-full p-4 gap-2 justify-center">
               <button
                 onClick={() => saveAsPng()}
                 className="bg-green-300 hover:bg-green-500 p-2 rounded-lg w-2/3"
               >
-                Save Your Aipura KTP
+                Save
               </button>
             </div>
+            <div className="flex border-b-4 border-slate-500 mx-2"></div>
           </div>
-          <div className="bg-slate-900 p-2">
-            <h2 className="sticky flex text-right font-bold text-white">
-              <span>Upload Foto Profil</span>
+          <div className="bg-slate-900 p-2 gap-4 flex flex-col">
+            <h2 className="sticky flex text-center w-full items-center justify-center font-bold text-white">
+              <span>Upload Profile Image</span>
             </h2>
-            <div className="flex w-full p-4 gap-2 justify-center">
+            <label className="flex w-full justify-center mr-4 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer">
+              Choose File
               <input
                 type="file"
                 onChange={(e) => handleChange(e)}
-                className="w-24 h-12 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                className="hidden"
               />
-            </div>
+            </label>
           </div>
-          <div className="bg-slate-900 p-2">
-            <h2 className="sticky flex text-right font-bold text-white">
+          <div className="bg-slate-900 p-2 relative">
+            <h2 className="sticky flex text-center w-full items-center justify-center font-bold text-white">
               <span>
-                Pilih <i>oshi</i>-mu!
+                Choose Your <i>Oshi</i>
               </span>
             </h2>
-            <div className="flex overflow-auto w-full flex-wrap justify-around p-4">
+            <div className="flex overflow-auto w-full flex-wrap justify-around p-4 gap-2">
               {idols.map((idol) => (
                 <button
                   key={idol.id}
@@ -326,7 +302,7 @@ const KTPManager: React.FC = () => {
                 </button>
               ))}
             </div>
-            <div className="flex items-center justify-center">
+            <div className="flex absolute top-1 left-1">
               {/* Tombol Reset */}
               {selectedIcon.length > 0 && (
                 <button
@@ -337,13 +313,13 @@ const KTPManager: React.FC = () => {
                   }}
                   className="flex px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
                 >
-                  Reset Pilihan
+                  Reset
                 </button>
               )}
             </div>
           </div>
           <div className="bg-slate-900 p-2">
-            <h2 className="sticky flex text-right font-bold text-white">
+            <h2 className="sticky flex text-center w-full items-center justify-center font-bold text-white">
               <span>Pilih group idol-mu!</span>
             </h2>
             <div className="flex overflow-auto w-full flex-wrap justify-around p-2 gap-2">
@@ -368,7 +344,7 @@ const KTPManager: React.FC = () => {
             </div>
           </div>
           <div className="bg-slate-900 p-2">
-            <h2 className="sticky flex text-right font-bold text-white">
+            <h2 className="sticky flex text-center w-full items-center justify-center font-bold text-white">
               <span>Pilih agensi-mu!</span>
             </h2>
             <div className="flex w-full p-4 gap-2">
@@ -392,7 +368,7 @@ const KTPManager: React.FC = () => {
           </div>
         </section>
       </section>
-      <section className="flex z-10 h-max flex-col lg:absolute lg:left-1/2 lg:scale-100 scale-[60%] md:scale-75 lg:top-1/2 lg:-translate-y-1/2">
+      <section className="flex z-10 h-max flex-col lg:scale-90 scale-[80%]">
         <div className="px-4 py-2 rounded-xl flex gap-4 flex-col w-full justify-center">
           <div id="AipuraKtp">
             <IDCard
@@ -420,13 +396,14 @@ const KTPManager: React.FC = () => {
       )}
       {maxSelectionReached && (
         <Toast
-          message={"Anda hanya dapat memilih maksimal 3 karakter."}
+          message={"You can only choose max 3 oshi!"}
           isSuccess={false}
           key={Date.now()}
           onClose={() => setToastMessage("")}
         />
       )}
-      <div className="opacity-0">----</div>
+
+      <div className="flex border-b border-slate-500 mx-2 h-20 opacity-0 pointer-none lg:hidden">Test</div>
     </div>
   );
 };
