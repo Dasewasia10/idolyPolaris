@@ -17,13 +17,13 @@ const MainMenu: React.FC = () => {
     { name: "Lyrics", path: "/lyric" },
     { name: "Bday Calendar", path: "/bdayCalendar" },
     { name: "IdolyChat", path: "/chat" },
-    { name: "Love Interest Chart", path: "/loveInterestChart" },
   ];
 
   const upcomingFeatures = [
     { name: "Book Reader", path: "/bookreader" },
     { name: "Card Design", path: "/cardDesign" },
     { name: "KTP Manager", path: "/ktp" },
+    { name: "Love Interest Chart", path: "/loveInterestChart" },
   ];
 
   const handleNavigation = (path: string) => {
