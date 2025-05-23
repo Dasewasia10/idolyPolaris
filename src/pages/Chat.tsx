@@ -469,7 +469,7 @@ const ChatPage: React.FC = () => {
               >
                 Export JSON
               </button>
-              <label className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center">
+              <label className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center cursor-pointer">
                 Import JSON
                 <input
                   type="file"
@@ -557,7 +557,7 @@ const ChatPage: React.FC = () => {
                                 : "justify-start"
                             } ${index === 0 ? "" : "mt-2"}`}
                           >
-                            <span className="mr-1">
+                            <span className="mr-1 mt-1">
                               ↩ Replying to {msg.replyTo.name}
                             </span>
                             <div className="max-w-xs truncate">
@@ -572,14 +572,16 @@ const ChatPage: React.FC = () => {
                               msg.position === "right"
                                 ? "text-right"
                                 : "text-left"
-                            } ${index === 0 ? "" : "mt-3"}`}
+                            } ${index === 0 ? "" : "mt-3"} ${
+                              msg.reactions ? "mb-2" : ""
+                            } ${msg.replyTo ? "-mt-[0.01rem]" : ""}`}
                           >
                             {msg.name}
                           </span>
                         )}
 
                         <div
-                          className={`relative flex justify-start px-3 py-2 mt-2 ${bubbleClass} ${
+                          className={`relative flex justify-start px-3 py-2 ${bubbleClass} ${
                             msg.position === "left"
                               ? isFirst
                                 ? "rounded-br-lg rounded-t-lg"
@@ -591,8 +593,6 @@ const ChatPage: React.FC = () => {
                               : isMiddle
                               ? "text-white rounded-l-lg"
                               : "text-white rounded-tl-lg rounded-b-lg"
-                          } ${
-                            msg.reactions ? "mb-2" : ""
                           } max-w-[14rem] break-words`}
                         >
                           <div className={`relative`}>
