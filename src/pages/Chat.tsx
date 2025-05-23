@@ -572,9 +572,9 @@ const ChatPage: React.FC = () => {
                               msg.position === "right"
                                 ? "text-right"
                                 : "text-left"
-                            } ${index === 0 ? "" : "mt-3"} ${
-                              msg.reactions ? "mb-2" : ""
-                            } ${msg.replyTo ? "-mt-[0.01rem]" : ""}`}
+                            } ${msg.reactions ? "mb-2" : ""} ${
+                              msg.replyTo ? "-mt-[0.01rem]" : ""
+                            }`}
                           >
                             {msg.name}
                           </span>
@@ -586,8 +586,8 @@ const ChatPage: React.FC = () => {
                               ? isFirst
                                 ? "rounded-br-lg rounded-t-lg"
                                 : isMiddle
-                                ? "rounded-r-lg"
-                                : "rounded-tr-lg rounded-b-lg"
+                                ? "rounded-r-lg mt-3"
+                                : "rounded-tr-lg rounded-b-lg mt-3"
                               : isFirst
                               ? "text-white rounded-bl-lg rounded-t-lg"
                               : isMiddle
