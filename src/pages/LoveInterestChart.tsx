@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import axios from "axios";
-import domtoimage from "dom-to-image";
+import { toPng } from "html-to-image";
 
 import { Character } from "../interfaces/Character";
 import { Icon } from "../interfaces/Icon";
@@ -90,7 +90,7 @@ const LoveInterestChart: React.FC = () => {
     };
   }, [isPositionChanged]);
 
-  const handleScreenshot = () => {
+  const handleScreenshot = async () => {
     if (!fileName.trim()) {
       alert("Nama file harus terisi sebelum men-download.");
       return;
@@ -99,36 +99,21 @@ const LoveInterestChart: React.FC = () => {
     const node = chartRef.current;
 
     if (node) {
-      const rect = node.getBoundingClientRect();
-
-      const options = {
-        quality: 1,
-        width: rect.width,
-        height: rect.height,
-        style: {
-          transform: "none",
-          left: `${rect.left}px`,
-          top: `${rect.top}px`,
-          position: "fixed", // Penting untuk capture area yang tepat
-        },
-        cacheBust: true,
-      };
-
-      domtoimage
-        .toPng(node, options)
-        .then((dataUrl) => {
-          const link = document.createElement("a");
-          link.download = `${fileName}.png`;
-          link.href = dataUrl;
-          link.click();
-          URL.revokeObjectURL(dataUrl);
-        })
-        .catch((error) => {
-          console.error("Error generating image:", error);
-          alert(
-            "Gagal mengambil screenshot. Coba lagi atau periksa konsol untuk detail."
-          );
+      try {
+        const dataUrl = await toPng(node, {
+          quality: 1,
+          pixelRatio: 2, // Untuk hasil yang lebih tajam
+          backgroundColor: "white",
         });
+
+        const link = document.createElement("a");
+        link.download = `${fileName}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (error) {
+        console.error("Error generating image:", error);
+        alert("Gagal mengambil screenshot.");
+      }
     }
   };
 
