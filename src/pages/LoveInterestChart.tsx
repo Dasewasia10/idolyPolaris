@@ -99,29 +99,28 @@ const LoveInterestChart: React.FC = () => {
     const node = chartRef.current;
 
     if (node) {
-      // Konfigurasi dom-to-image
+      const rect = node.getBoundingClientRect();
+
       const options = {
-        quality: 1, // Kualitas maksimum (0-1)
-        bgcolor: "#ffffff", // Warna background jika ada elemen transparan
+        quality: 1,
+        width: rect.width,
+        height: rect.height,
         style: {
-          transform: "none", // Handle transform issues
-          filter: "none", // Handle CSS filters
+          transform: "none",
+          left: `${rect.left}px`,
+          top: `${rect.top}px`,
+          position: "fixed", // Penting untuk capture area yang tepat
         },
-        width: node.clientWidth, // Lebar elemen
-        height: node.clientHeight, // Tinggi elemen
-        cacheBust: true, // Hindari cache
+        cacheBust: true,
       };
 
       domtoimage
         .toPng(node, options)
         .then((dataUrl) => {
-          // Buat link download
           const link = document.createElement("a");
           link.download = `${fileName}.png`;
           link.href = dataUrl;
           link.click();
-
-          // Bersihkan memori
           URL.revokeObjectURL(dataUrl);
         })
         .catch((error) => {

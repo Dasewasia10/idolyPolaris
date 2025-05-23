@@ -16,4 +16,7 @@ export interface Message {
   callDuration?: string; // Durasi panggilan
   callBgColor?: string; // Tambahkan properti untuk warna background
   callIconColor?: string; // Tambahkan properti untuk warna icon
+  reactions?: {
+    [emoji: string]: string[]; // Key: emoji, Value: array of user IDs/names
+  };
 }

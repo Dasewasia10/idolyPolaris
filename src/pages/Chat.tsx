@@ -3,6 +3,8 @@ import { saveAs } from "file-saver";
 import domtoimage from "dom-to-image";
 import axios from "axios";
 import TextareaAutosize from "react-textarea-autosize";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { Smile } from "lucide-react"; // atau icon smile dari library lain
 
 import { Message } from "../interfaces/Message";
 import { Icon } from "../interfaces/Icon";
@@ -20,7 +22,7 @@ import importFromJson from "../utils/importFromJson";
 const API_BASE_URL = "https://diveidolypapi.my.id/api";
 
 const ChatPage: React.FC = () => {
-  // State management
+  const emojiRef = useRef(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [title, setTitle] = useState("Title Here");
@@ -31,16 +33,23 @@ const ChatPage: React.FC = () => {
   const [stampGroupVisible, setStampGroupVisible] = useState(false);
   const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
   const [replyButtonVisible, setReplyButtonVisible] = useState(false);
+  const [emojiButtonVisible, setEmojiButtonVisible] = useState(false);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(true);
   const [stamps, setStamps] = useState<Stamp[]>([]);
   const [icons, setIcons] = useState<Icon[]>([]);
   const [, setLoading] = useState(true);
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
 
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [showCallLogModal, setShowCallLogModal] = useState(false);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState<number | null>(
+    null
+  );
 
   // Helper functions
   const parseText = (text: string) => {
@@ -111,13 +120,18 @@ const ChatPage: React.FC = () => {
     setSelectedStamp(stamp);
   };
 
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setInputText((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
   const handleReplyClick = (message: Message) => {
     setReplyingTo(message);
   };
 
   const handleAddCallLog = () => {
     if (!selectedIcon || icons.length < 2) {
-      setToastMessage("Need at least 2 characters to create call log");
+      setToastMessage("Need to choose atleast one character to create call log");
       setIsSuccess(false);
       return;
     }
@@ -249,6 +263,63 @@ const ChatPage: React.FC = () => {
     setUnsavedChanges(true);
   };
 
+  const handleAddReaction = (messageId: number, emojiData: EmojiClickData) => {
+    setMessages(
+      messages.map((msg) => {
+        if (msg.id === messageId) {
+          const reactions = msg.reactions || {};
+          const emoji = emojiData.emoji;
+
+          // Jika sudah ada reaction dengan emoji ini, tambahkan user
+          // Di sini saya menggunakan nama user sebagai contoh, bisa diganti dengan ID user
+          if (reactions[emoji]) {
+            if (!reactions[emoji].includes(selectedIcon?.name || "")) {
+              reactions[emoji] = [
+                ...reactions[emoji],
+                selectedIcon?.name || "",
+              ];
+            }
+          } else {
+            reactions[emoji] = [selectedIcon?.name || ""];
+          }
+
+          return { ...msg, reactions };
+        }
+        return msg;
+      })
+    );
+    setShowReactionPicker(null);
+    setUnsavedChanges(true);
+  };
+
+  const handleRemoveReaction = (messageId: number, emoji: string) => {
+    setMessages(
+      messages.map((msg) => {
+        if (msg.id === messageId && msg.reactions?.[emoji]) {
+          const newReactions = { ...msg.reactions };
+          const filteredUsers = newReactions[emoji].filter(
+            (user) => user !== (selectedIcon?.name || "")
+          );
+
+          if (filteredUsers.length === 0) {
+            delete newReactions[emoji];
+          } else {
+            newReactions[emoji] = filteredUsers;
+          }
+
+          return {
+            ...msg,
+            reactions: Object.keys(newReactions).length
+              ? newReactions
+              : undefined,
+          };
+        }
+        return msg;
+      })
+    );
+    setUnsavedChanges(true);
+  };
+
   const saveAsPng = async () => {
     const element = document.getElementById("idolyMessage");
     if (!element) return;
@@ -327,19 +398,41 @@ const ChatPage: React.FC = () => {
     };
   }, [unsavedChanges]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: { target: any }) => {
+      if (
+        (emojiRef.current as unknown as HTMLElement) &&
+        !(emojiRef.current as unknown as HTMLElement).contains(event.target)
+      ) {
+        setIsEmojiOpen(false);
+      }
+    };
+
+    if (isEmojiOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isEmojiOpen]);
+
   return (
     <div className="bg-gray-900 text-white px-4 py-6 z-10 rounded-lg mt-10 lg:mt-0">
       <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left sidebar - Controls */}
-        <section className="lg:col-span-2 space-y-6 flex flex-col text-xs lg:text-base">
-          <div className="flex lg:flex-col lg:space-y-4 justify-around space-x-3 lg:space-x-0">
-            <div className="grid grid-cols-2 gap-4 justify-around">
+        <section className="space-y-6 flex flex-col text-xs lg:text-base">
+          <div className="flex flex-col justify-around gap-4">
+            <div className="flex gap-4 justify-around flex-col">
               <button
                 className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-md w-full text-center h-full"
                 onClick={handleClearMessage}
               >
                 Clear Message
               </button>
+              <div className="flex border-b border-slate-500 mx-2"></div>
               <button
                 className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md w-full text-center h-full"
                 onClick={() => setReplyButtonVisible(!replyButtonVisible)}
@@ -354,20 +447,29 @@ const ChatPage: React.FC = () => {
               </button>
               <button
                 className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md w-full text-center h-full"
+                onClick={() => setEmojiButtonVisible(!emojiButtonVisible)}
+              >
+                {emojiButtonVisible
+                  ? "Hide Emoji in Message"
+                  : "Show Emoji in Message"}
+              </button>
+              <div className="flex border-b border-slate-500 mx-2"></div>
+              <button
+                className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md w-full text-center h-full"
                 onClick={saveAsPng}
               >
                 Save PNG
               </button>
             </div>
 
-            <div className="flex space-y-2 space-x-0 lg:space-y-0 lg:space-x-4 justify-center flex-col lg:flex-row">
+            <div className="flex gap-4 flex-col lg:flex-row">
               <button
-                className="lg:px-4 lg:py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center h-full"
+                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center"
                 onClick={handleExport}
               >
                 Export JSON
               </button>
-              <label className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center h-full cursor-pointer">
+              <label className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center">
                 Import JSON
                 <input
                   type="file"
@@ -378,99 +480,13 @@ const ChatPage: React.FC = () => {
               </label>
             </div>
           </div>
-
-          <div className="flex space-x-4">
-            <div className="flex-1 bg-gray-800 p-4 rounded-lg">
-              <button
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4"
-                onClick={() => setIconGroupVisible(!iconGroupVisible)}
-              >
-                {iconGroupVisible ? "Hide Icons" : "Show Icons"}
-              </button>
-              {iconGroupVisible && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto scrollbar-minimal">
-                  {icons.map((icon) => (
-                    <button
-                      key={icon.id}
-                      onClick={() => {
-                        setSelectedIcon(icon);
-                        setUnsavedChanges(true);
-                      }}
-                      className={`p-1 rounded-full transition-all ${
-                        selectedIcon?.id === icon.id
-                          ? "ring-2 ring-blue-500 transform scale-105"
-                          : "hover:ring-1 hover:ring-gray-400"
-                      }`}
-                    >
-                      <img
-                        src={icon.src}
-                        alt={icon.name}
-                        className="w-12 h-12 rounded-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            getCharacterIconUrl("default");
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex-1 bg-gray-800 p-4 rounded-lg">
-              <button
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4"
-                onClick={() => setStampGroupVisible(!stampGroupVisible)}
-              >
-                {stampGroupVisible ? "Hide Stamps" : "Show Stamps"}
-              </button>
-              {stampGroupVisible && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto scrollbar-minimal">
-                  {stamps.map((stamp) => (
-                    <button
-                      key={stamp.id}
-                      onClick={() => {
-                        handleStampClick(stamp);
-                        handleSendMessage(true);
-                      }}
-                      className={`p-1 rounded-md transition-all ${
-                        selectedStamp?.id === stamp.id
-                          ? "ring-2 ring-blue-500 transform scale-105"
-                          : "hover:ring-1 hover:ring-gray-400"
-                      }`}
-                    >
-                      <img
-                        src={stamp.src}
-                        alt={`${stamp.character} ${stamp.expression}`}
-                        className="w-12 h-12 object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getStampUrl(
-                            "default",
-                            "error"
-                          );
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="relative">
-            <button
-              className="fixed bottom-20 left-8 z-20 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-md items-center flex gap-4"
-              onClick={() => setShowCallLogModal(true)}
-            >
-              <CallIcon color={"white"} size={24} />
-              <span className="hidden lg:block">Call Logs</span>
-            </button>
-          </div>
         </section>
 
         {/* Main content - Chat area */}
         <section className="lg:col-span-2 overflow-y-auto no-scrollbar">
           <div
             id="idolyMessage"
-            className={`bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[19rem] scrollbar-minimal z-[9999] bg-[url('/assets/chat-bg.png')] bg-repeat bg-blend-multiply bg-cover`}
+            className={`bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[22rem] scrollbar-minimal z-[9999] bg-[url('/assets/chat-bg.png')] bg-repeat bg-blend-multiply bg-cover`}
           >
             <h2>
               <TextareaAutosize
@@ -563,7 +579,7 @@ const ChatPage: React.FC = () => {
                         )}
 
                         <div
-                          className={`flex justify-start px-3 py-2 mt-2 ${bubbleClass} ${
+                          className={`relative flex justify-start px-3 py-2 mt-2 ${bubbleClass} ${
                             msg.position === "left"
                               ? isFirst
                                 ? "rounded-br-lg rounded-t-lg"
@@ -575,9 +591,11 @@ const ChatPage: React.FC = () => {
                               : isMiddle
                               ? "text-white rounded-l-lg"
                               : "text-white rounded-tl-lg rounded-b-lg"
+                          } ${
+                            msg.reactions ? "mb-2" : ""
                           } max-w-[14rem] break-words`}
                         >
-                          <div className={``}>
+                          <div className={`relative`}>
                             {msg.isCall ? (
                               <div className="flex flex-col items-center text-white px-3 py-2">
                                 <CallIcon
@@ -603,11 +621,64 @@ const ChatPage: React.FC = () => {
                               />
                             )}
                           </div>
+
+                          {/* Menampilkan reactions yang sudah ada */}
+                          {msg.reactions &&
+                            Object.entries(msg.reactions).map(
+                              ([emoji, users]) => (
+                                <div
+                                  key={emoji}
+                                  className="absolute -bottom-2 left-0 bg-gray-600 rounded-full px-2 py-0.5 text-xs flex items-center cursor-pointer"
+                                  title={users.join(", ")}
+                                  onClick={() =>
+                                    handleRemoveReaction(msg.id, emoji)
+                                  }
+                                >
+                                  <span>{emoji}</span>
+                                  {users.length > 1 && (
+                                    <span className="ml-1">{users.length}</span>
+                                  )}
+                                </div>
+                              )
+                            )}
                         </div>
                       </div>
                     </section>
 
                     <div className="flex flex-col -translate-x-1">
+                      {emojiButtonVisible && (
+                        <div className="flex items-center mt-1 space-x-1">
+                          {/* Tombol untuk menambahkan reaction */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowReactionPicker(
+                                showReactionPicker === msg.id ? null : msg.id
+                              );
+                            }}
+                            className="text-gray-400 hover:text-gray-300 text-xs"
+                          >
+                            <Smile size={14} />
+                          </button>
+
+                          {/* Reaction picker */}
+                          {showReactionPicker === msg.id && (
+                            <div className="absolute top-full left-0">
+                              <EmojiPicker
+                                onEmojiClick={(emojiData) =>
+                                  handleAddReaction(msg.id, emojiData)
+                                }
+                                width={300}
+                                height={350}
+                                previewConfig={{ showPreview: false }}
+                                searchDisabled
+                                skinTonesDisabled
+                                reactionsDefaultOpen
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {deleteButtonVisible && (
                         <button
                           onClick={() => handleDeleteMessage(msg.id)}
@@ -663,8 +734,35 @@ const ChatPage: React.FC = () => {
                 }}
                 placeholder="Type a message... Use *italic*, **bold**, or __underline__ syntax."
                 className="flex-1 p-2 rounded border border-gray-600 bg-gray-700 text-white"
-                rows={3}
+                rows={1}
               />
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(true)}
+                className="right-2 bottom-2 text-gray-400 hover:text-white"
+              >
+                <Smile size={20} />
+              </button>
+              {showEmojiPicker && (
+                <div
+                  ref={emojiRef}
+                  className="absolute bottom-20 right-12 z-50"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker(false)}
+                    className="right-2 bottom-2 text-gray-400 hover:text-white"
+                  >
+                    ×
+                  </button>
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiClick}
+                    width={300}
+                    height={350}
+                    previewConfig={{ showPreview: false }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex justify-around">
@@ -711,6 +809,95 @@ const ChatPage: React.FC = () => {
               className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-md"
             >
               Send Message
+            </button>
+          </div>
+        </section>
+
+        {/* Right sidebar - Controls */}
+        <section className="flex">
+          <div className="flex gap-4 flex-col w-full">
+            <div className="flex-1 bg-gray-800 p-4 rounded-lg">
+              <button
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4"
+                onClick={() => setIconGroupVisible(!iconGroupVisible)}
+              >
+                {iconGroupVisible ? "Hide Icons" : "Show Icons"}
+              </button>
+              {iconGroupVisible && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-44 overflow-y-auto scrollbar-minimal">
+                  {icons.map((icon) => (
+                    <button
+                      key={icon.id}
+                      onClick={() => {
+                        setSelectedIcon(icon);
+                        setUnsavedChanges(true);
+                      }}
+                      className={`p-1 rounded-full transition-all ${
+                        selectedIcon?.id === icon.id
+                          ? "ring-2 ring-blue-500 transform scale-105"
+                          : "hover:ring-1 hover:ring-gray-400"
+                      }`}
+                    >
+                      <img
+                        src={icon.src}
+                        alt={icon.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            getCharacterIconUrl("default");
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 bg-gray-800 p-4 rounded-lg">
+              <button
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4"
+                onClick={() => setStampGroupVisible(!stampGroupVisible)}
+              >
+                {stampGroupVisible ? "Hide Stamps" : "Show Stamps"}
+              </button>
+              {stampGroupVisible && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-44 overflow-y-auto scrollbar-minimal">
+                  {stamps.map((stamp) => (
+                    <button
+                      key={stamp.id}
+                      onClick={() => {
+                        handleStampClick(stamp);
+                        handleSendMessage(true);
+                      }}
+                      className={`p-1 rounded-md transition-all ${
+                        selectedStamp?.id === stamp.id
+                          ? "ring-2 ring-blue-500 transform scale-105"
+                          : "hover:ring-1 hover:ring-gray-400"
+                      }`}
+                    >
+                      <img
+                        src={stamp.src}
+                        alt={`${stamp.character} ${stamp.expression}`}
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = getStampUrl(
+                            "default",
+                            "error"
+                          );
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="relative">
+            <button
+              className="fixed bottom-20 left-8 z-20 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-md items-center flex gap-4"
+              onClick={() => setShowCallLogModal(true)}
+            >
+              <CallIcon color={"white"} size={24} />
+              <span className="hidden lg:block">Call Logs</span>
             </button>
           </div>
         </section>

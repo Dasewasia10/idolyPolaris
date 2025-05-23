@@ -149,3 +149,13 @@
 .animate-bounce-left {
   animation: bounce-left 1s infinite;
 }
+
+/* Tambahkan di file CSS Anda */
+.reaction-picker-container {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 100;
+}
+
+/* Atau gunakan Tailwind seperti di contoh kode */

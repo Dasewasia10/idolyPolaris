@@ -329,7 +329,7 @@ const IdolListPage: React.FC = () => {
           {selectedIdol && (
             <section className="relative flex flex-col items-center">
               {!isMobile && (
-                <div className="absolute w-20 h-20 p-2 flex flex-row gap-2 top-12 left-40 transition-all duration-500 ease-out">
+                <div className="absolute w-20 h-20 p-2 flex flex-row gap-2 top-12 left-40 transition-all duration-500 ease-out z-20">
                   <img
                     src={getGiftItemImageUrl(selectedIdol.name)}
                     alt="Give 40pt"
@@ -780,10 +780,10 @@ const IdolListPage: React.FC = () => {
                     {["description", "profile", "gifts"].map((tab) => (
                       <button
                         key={tab}
-                        className={`px-4 py-2 font-semibold capitalize ${
+                        className={`px-4 py-2 font-semibold capitalize w-fit ${
                           activeTab === tab
                             ? "border-b-4 border-blue-500 text-blue-600"
-                            : "text-gray-600"
+                            : "text-gray-600 truncate"
                         }`}
                         onClick={() =>
                           setActiveTab(
