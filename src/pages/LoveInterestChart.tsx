@@ -103,7 +103,7 @@ const LoveInterestChart: React.FC = () => {
     };
 
     try {
-      element.style.height = "auto";
+      element.style.height = "full";
       element.style.overflow = "visible";
 
       // Gunakan dom-to-image
@@ -255,7 +255,7 @@ const LoveInterestChart: React.FC = () => {
       {/* Chart Container */}
       <div
         id="idolyChart"
-        className="z-20 h-96 w-full lg:w-1/2 rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl m-10"
+        className="z-20 h-96 w-full lg:w-1/2 rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl translate-x-0 lg:-translate-x-20"
       >
         {/* Title */}
         <div className="absolute left-1/2 top-0 -translate-x-1/2 transform rounded-full bg-white/80 px-6 py-2 text-center text-lg font-bold shadow-md backdrop-blur-sm">
