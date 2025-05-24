@@ -20,7 +20,7 @@ const BirthdayReminder: React.FC = () => {
   const [progress, setProgress] = useState(100);
   const animationRef = useRef<number>();
   const startTimeRef = useRef<number>(Date.now());
-  const duration = 10000; // 10 detik untuk animasi progress bar
+  const duration = 5000; // 10 detik untuk animasi progress bar
 
   // Fetch data karakter
   useEffect(() => {
@@ -46,7 +46,7 @@ const BirthdayReminder: React.FC = () => {
               (1000 * 60 * 60 * 24)
           );
 
-          return diffInDays >= -1 && diffInDays <= 28;
+          return diffInDays >= -1 && diffInDays <= 8;
         });
 
         setUpcomingBirthdays(upcoming);
@@ -97,7 +97,7 @@ const BirthdayReminder: React.FC = () => {
   useEffect(() => {
     if (!showReminder || upcomingBirthdays.length === 0) return;
 
-    const duration = 10000; // 10 detik
+    const duration = 2000; // 10 detik
     const startTime = Date.now();
     let animationFrameId: number;
 
