@@ -133,11 +133,33 @@ const KTPManager: React.FC = () => {
     }
   };
 
+  // Sebelum mengambil screenshot, konversi blob URL ke base64
+  const convertBlobToBase64 = async (blobUrl: string) => {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  };
+
   const saveAsPng = async () => {
     const element = document.getElementById("AipuraKtp");
     if (!element) {
       console.error("Element not found");
       return;
+    }
+
+    if (file && file.startsWith("blob:")) {
+      const base64 = await convertBlobToBase64(file);
+      const profileImg = element.querySelector(
+        "#profile-img"
+      ) as HTMLImageElement;
+      if (profileImg) {
+        profileImg.src = base64;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
     }
 
     // Nonaktifkan background pattern sementara
