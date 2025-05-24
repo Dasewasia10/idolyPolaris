@@ -439,21 +439,18 @@ const CardDesign: React.FC = () => {
     cosuIndex: number
   ) => {
     // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedChara = chara.toLowerCase();
+    const formattedInitial = initial.toLocaleString("en-US", {
+      minimumIntegerDigits: 2,
+      useGrouping: false,
+    });
     const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+    const formattedCosuIndex = cosuIndex.toLocaleString("en-US", {
+      minimumIntegerDigits: 2,
+      useGrouping: false,
+    });
 
-    return `https://www.diveidolypapi.my.id/api/img/card/vertical/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
+    return `https://api.diveidolypapi.my.id/verticalImage/vertical-${formattedChara}-${formattedInitial}-${formattedCosuName}-${formattedCosuIndex}.png`;
   };
 
   const getCardVerticalBUrl = (
@@ -511,21 +508,18 @@ const CardDesign: React.FC = () => {
     cosuIndex: number
   ) => {
     // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
+    const formattedChara = chara.toLowerCase();
+    const formattedInitial = initial.toLocaleString("en-US", {
+      minimumIntegerDigits: 2,
+      useGrouping: false,
+    });
     const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+    const formattedCosuIndex = cosuIndex.toLocaleString("en-US", {
+      minimumIntegerDigits: 2,
+      useGrouping: false,
+    });
 
-    return `https://www.diveidolypapi.my.id/api/img/card/source/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
+    return `https://api.diveidolypapi.my.id/sourceImage/source-${formattedChara}-${formattedInitial}-${formattedCosuName}-${formattedCosuIndex}-full.webp`;
   };
 
   const getCardSourceEUrl = (
