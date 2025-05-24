@@ -17,6 +17,7 @@ import BdayCalendar from "./pages/BdayCalendar";
 import CardOverviewPage from "./pages/CardOverviewPage";
 import CardComparison from "./pages/CardComparison";
 import ChatPage from "./pages/Chat";
+import CharacterStatsPage from "./pages/CharacterStatPage";
 
 const MainLayout = () => {
   return (
@@ -61,6 +62,7 @@ const App: React.FC = () => {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/loveInterestChart" element={<LoveInterestChart />} />
             <Route path="/ktp" element={<KTPManager />} />
+            <Route path="/stat" element={<CharacterStatsPage />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}

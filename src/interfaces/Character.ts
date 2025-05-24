@@ -7,6 +7,7 @@ export interface Character {
   introduction?: string[];
   japaneseIntroduction?: string[];
   birthdayDate: string;
+  age: number;
   isCenter?: boolean;
   color?: string;
   school?: string;

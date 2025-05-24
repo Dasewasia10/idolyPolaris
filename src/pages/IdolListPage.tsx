@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import QnAModal from "../components/QnAModal";
 import { Character } from "../interfaces/Character";
 import {
@@ -28,6 +29,7 @@ const allowedGroups = [
 ];
 
 const IdolListPage: React.FC = () => {
+  const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -198,6 +200,11 @@ const IdolListPage: React.FC = () => {
     setSelectedGroupIndex(newIndex);
     // Auto-select first member of new group
     setSelectedIdol(sortedGroups[groupNames[newIndex]][0]);
+  };
+
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
   };
 
   const isColorDark = (color: string) => {
@@ -400,6 +407,12 @@ const IdolListPage: React.FC = () => {
                         <span className="font-semibold px-2">QnA</span>
                       </button>
                     )}
+                    <button
+                      onClick={() => handleNavigation("/stat")}
+                      className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
+                    >
+                      <span className="font-semibold px-2">Idol Stat</span>
+                    </button>
                     <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
                       <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
                         <img
@@ -411,6 +424,18 @@ const IdolListPage: React.FC = () => {
                         />
                       </div>
                       <span className="font-semibold px-2">Gallery</span>
+                    </button>
+                    <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
+                      <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                        <img
+                          src={`${import.meta.env.BASE_URL}assets/lock-16.png`}
+                          onContextMenu={(e) => e.preventDefault()}
+                          draggable="false"
+                          onDragStart={(e) => e.preventDefault()}
+                          alt="locked"
+                        />
+                      </div>
+                      <span className="font-semibold px-2">Trivia</span>
                     </button>
                   </div>
                 )}
@@ -863,6 +888,14 @@ const IdolListPage: React.FC = () => {
                               <span className="font-semibold px-2">QnA</span>
                             </button>
                           )}
+                          <button
+                            onClick={() => openQnA(selectedIdol)}
+                            className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
+                          >
+                            <span className="font-semibold px-2">
+                              Idol Stat
+                            </span>
+                          </button>
                           <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
                             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
                               <img
@@ -876,6 +909,20 @@ const IdolListPage: React.FC = () => {
                               />
                             </div>
                             <span className="font-semibold px-2">Gallery</span>
+                          </button>
+                          <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
+                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                              <img
+                                src={`${
+                                  import.meta.env.BASE_URL
+                                }assets/lock-16.png`}
+                                onContextMenu={(e) => e.preventDefault()}
+                                draggable="false"
+                                onDragStart={(e) => e.preventDefault()}
+                                alt="locked"
+                              />
+                            </div>
+                            <span className="font-semibold px-2">Trivia</span>
                           </button>
                         </div>
                       </div>
