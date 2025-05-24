@@ -79,7 +79,7 @@ const KTPManager: React.FC = () => {
 
   const [activeAgency, setActiveAgency] = useState(agencies[0].key);
 
-  const [file, setFile] = useState<string | undefined>(undefined);
+  const [profileBase64, setProfileBase64] = useState<string | undefined>();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,21 +126,19 @@ const KTPManager: React.FC = () => {
     return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.files);
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(URL.createObjectURL(e.target.files[0]));
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const base64 = await convertFileToBase64(file);
+      setProfileBase64(base64);
     }
   };
 
-  // Sebelum mengambil screenshot, konversi blob URL ke base64
-  const convertBlobToBase64 = async (blobUrl: string) => {
-    const response = await fetch(blobUrl);
-    const blob = await response.blob();
-    return new Promise<string>((resolve) => {
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(blob);
+      reader.readAsDataURL(file);
     });
   };
 
@@ -149,17 +147,6 @@ const KTPManager: React.FC = () => {
     if (!element) {
       console.error("Element not found");
       return;
-    }
-
-    if (file && file.startsWith("blob:")) {
-      const base64 = await convertBlobToBase64(file);
-      const profileImg = element.querySelector(
-        "#profile-img"
-      ) as HTMLImageElement;
-      if (profileImg) {
-        profileImg.src = base64;
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
     }
 
     // Nonaktifkan background pattern sementara
@@ -424,7 +411,7 @@ const KTPManager: React.FC = () => {
             <IDCard
               title={title}
               group={selectedIdolGroup}
-              profilePic={file}
+              profilePic={profileBase64}
               inputText={inputText}
               setInputText={setInputText}
               setUnsavedChanges={setUnsavedChanges}
