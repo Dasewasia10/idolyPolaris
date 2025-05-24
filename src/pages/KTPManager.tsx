@@ -140,16 +140,26 @@ const KTPManager: React.FC = () => {
       return;
     }
 
+    // Nonaktifkan background pattern sementara
+    const bgPatterns = element.getElementsByClassName("bg-pattern");
+    Array.from(bgPatterns).forEach((el) => {
+      (el as HTMLElement).style.display = "none";
+    });
+
     // Pastikan semua gambar sudah dimuat
+    const images = Array.from(element.getElementsByTagName("img"));
     await Promise.all(
-      Array.from(element.getElementsByTagName("img")).map((img) => {
+      images.map((img) => {
         if (img.complete) return Promise.resolve();
         return new Promise((resolve) => {
           img.onload = resolve;
-          img.onerror = resolve; // Lanjutkan meskipun ada error
+          img.onerror = resolve;
         });
       })
     );
+
+    // Tambahkan delay untuk memastikan render
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     const originalStyle = {
       height: element.style.height,
@@ -165,17 +175,15 @@ const KTPManager: React.FC = () => {
       // Gunakan dom-to-image
       const blob = await domtoimage.toBlob(element, {
         quality: 1,
-        cacheBust: true,
+        cacheBust: false, // Nonaktifkan cache busting untuk blob URL
         style: {
           transform: "none", // Handle transform issues
         },
         filter: (node) => {
-          // Skip jika node adalah gambar error
-          if (
-            (node as HTMLElement).tagName === "IMG" &&
-            !(node as HTMLImageElement).complete
-          )
+          // Skip elemen yang tidak perlu
+          if ((node as HTMLElement).classList?.contains("bg-pattern")) {
             return false;
+          }
           return true;
         },
         imagePlaceholder:
@@ -198,6 +206,10 @@ const KTPManager: React.FC = () => {
     } finally {
       element.style.height = originalStyle.height;
       element.style.overflow = originalStyle.overflow;
+      // Aktifkan kembali background pattern
+      Array.from(bgPatterns).forEach((el) => {
+        (el as HTMLElement).style.display = "";
+      });
     }
   };
 

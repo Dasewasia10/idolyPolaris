@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 
 interface IDCardProps {
@@ -24,7 +24,6 @@ const IDCard: React.FC<IDCardProps> = ({
   name,
   selectedIcon,
 }) => {
-  const profileImgRef = useRef<HTMLImageElement>(null);
   const groupOfIdol = [
     {
       key: "tsukisto",
@@ -78,17 +77,28 @@ const IDCard: React.FC<IDCardProps> = ({
       {/* Header Section */}
       <div className="relative h-32 bg-gradient-to-r from-blue-700/70 to-purple-700/70 flex items-center justify-center p-6">
         <div className="absolute -bottom-6 left-6 w-24 h-24 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
-          <img
-            ref={profileImgRef}
-            src={profilePic || `${getPlaceholderImageUrl("square")}`}
-            alt="Profile"
-            className="w-full h-full object-cover z-20"
-            onLoad={() => {
-              // Force re-render jika perlu
-              console.log(profilePic);
-              if (profilePic) URL.revokeObjectURL(profilePic);
-            }}
-          />
+          {profilePic ? (
+            <img
+              src={profilePic}
+              alt="Profile"
+              className="w-full h-full object-cover"
+              crossOrigin="anonymous"
+              onLoad={(e) => {
+                const img = e.target as HTMLImageElement;
+                if (img.src.startsWith("blob:")) {
+                  // Simpan blob URL sementara
+                  const blobUrl = img.src;
+                  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                }
+              }}
+            />
+          ) : (
+            <img
+              src={`${getPlaceholderImageUrl("square")}`}
+              alt="Default Profile"
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
         <div className="absolute -bottom-8 left-24 w-8 h-8">
           <img
