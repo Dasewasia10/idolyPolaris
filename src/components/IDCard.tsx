@@ -82,10 +82,10 @@ const IDCard: React.FC<IDCardProps> = ({
             ref={profileImgRef}
             src={profilePic || `${getPlaceholderImageUrl("square")}`}
             alt="Profile"
-            crossOrigin="anonymous"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover z-20"
             onLoad={() => {
               // Force re-render jika perlu
+              console.log(profilePic);
               if (profilePic) URL.revokeObjectURL(profilePic);
             }}
           />
