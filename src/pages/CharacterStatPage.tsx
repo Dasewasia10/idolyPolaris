@@ -268,7 +268,7 @@ const CharacterComparisonPage: React.FC = () => {
                 <div className="flex-1 lg:mt-0 mt-4">
                   <div className="w-full bg-gray-200 rounded-full h-6">
                     <div
-                      className={`${getColor()} h-6 rounded-full flex items-center justify-end`}
+                      className={`${getColor()} h-6 rounded-full flex items-center justify-end transition-all duration-300 ease-in-out`}
                       style={{ width: `${percentage}%` }}
                     >
                       <span className="text-white text-xs pr-2">{value}</span>

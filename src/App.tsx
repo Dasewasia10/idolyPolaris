@@ -7,7 +7,7 @@ import { Outlet } from "react-router-dom";
 // // import BookReader from "./pages/BookReader";
 import KTPManager from "./pages/KTPManager";
 import LoveInterestChart from "./pages/LoveInterestChart";
-// import CardDesign from "./pages/CardDesign";
+
 import Lyrics from "./pages/Lyrics";
 import MainMenu from "./pages/MainMenu";
 import IdolListPage from "./pages/IdolListPage";
@@ -18,6 +18,7 @@ import CardOverviewPage from "./pages/CardOverviewPage";
 import CardComparison from "./pages/CardComparison";
 import ChatPage from "./pages/Chat";
 import CharacterStatsPage from "./pages/CharacterStatPage";
+import CardDesign from "./pages/CardDesign";
 
 const MainLayout = () => {
   return (
@@ -63,11 +64,10 @@ const App: React.FC = () => {
             <Route path="/loveInterestChart" element={<LoveInterestChart />} />
             <Route path="/ktp" element={<KTPManager />} />
             <Route path="/stat" element={<CharacterStatsPage />} />
+            <Route path="/cardDesign" element={<CardDesign />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}
-
-          {/* <Route path="/cardDesign" element={<CardDesign />} /> */}
 
           {/* <Route path="/test" element={<MainMenuTest />} /> */}
         </Routes>
