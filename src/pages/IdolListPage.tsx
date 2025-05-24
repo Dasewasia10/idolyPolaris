@@ -202,7 +202,6 @@ const IdolListPage: React.FC = () => {
     setSelectedIdol(sortedGroups[groupNames[newIndex]][0]);
   };
 
-  
   const handleNavigation = (path: string) => {
     navigate(path);
   };
@@ -889,7 +888,7 @@ const IdolListPage: React.FC = () => {
                             </button>
                           )}
                           <button
-                            onClick={() => openQnA(selectedIdol)}
+                            onClick={() => handleNavigation("/stat")}
                             className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
                           >
                             <span className="font-semibold px-2">
