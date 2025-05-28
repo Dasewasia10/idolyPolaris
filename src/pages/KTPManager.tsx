@@ -13,7 +13,7 @@ const API_BASE_URL = "https://diveidolypapi.my.id/api";
 const KTPManager: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
   const [title, setTitle] = useState<string>("Hoshimi Production's Manager");
-  const [name, setName] = useState<string>("Nama / Nickname");
+  const [name, setName] = useState<string>("Name / Nickname");
   const [selectedIcon, setSelectedIcon] = useState<Icon[]>([]);
   const [icons, setIcons] = useState<Icon[]>([]);
   const [selectedIdolGroup, setSelectedIdolGroup] =
@@ -357,7 +357,7 @@ const KTPManager: React.FC = () => {
           </div>
           <div className="bg-slate-900 p-2">
             <h2 className="sticky flex text-center w-full items-center justify-center font-bold text-white">
-              <span>Pilih group idol-mu!</span>
+              <span>Choose your idol group</span>
             </h2>
             <div className="flex overflow-auto w-full flex-wrap justify-around p-2 gap-2">
               {groupOfIdol.map((group) => (
@@ -382,7 +382,7 @@ const KTPManager: React.FC = () => {
           </div>
           <div className="bg-slate-900 p-2">
             <h2 className="sticky flex text-center w-full items-center justify-center font-bold text-white">
-              <span>Pilih agensi-mu!</span>
+              <span>Choose your agency</span>
             </h2>
             <div className="flex w-full p-4 gap-2">
               {agencies.map((agency) => (
