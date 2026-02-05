@@ -28,8 +28,8 @@ const MainLayout = () => {
       <MainMenu />
       <div className="flex-grow px-4 mb-0 lg:mb-10 xl:py-3 z-10 rounded-lg">
         <Outlet /> {/* Konten utama akan mengambil sisa space yang tersedia */}
-        <MaintenanceNotice />
       </div>
+      <MaintenanceNotice />
       <footer className="fixed bottom-0 left-0 right-0 bg-neutral-100 dark:bg-neutral-900 py-1 mt-auto z-10">
         <div className="container mx-auto px-4 text-center flex flex-col lg:flex-row items-center lg:justify-around xl:flex-col">
           <p className="text-neutral-600 dark:text-neutral-400 text-sm">
