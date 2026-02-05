@@ -146,6 +146,28 @@ const CharacterCalendar: React.FC = () => {
     <div className="flex gap-2 lg:gap-6 z-10 w-full mx-auto p-4 bg-white rounded-lg shadow-md max-w-6xl max-h-[90vh] relative overflow-hidden flex-col lg:flex-row">
       {/* Background & Decoration (Sama seperti sebelumnya) */}
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]" />
+
+      {/* Background dengan pola dots */}
+      <div
+        className="absolute w-full h-[36rem] clip-trapezoid-outer 
+          bg-[radial-gradient(circle_at_center,_var(--dot-color)_var(--dot-size),_transparent_var(--dot-size))] 
+          [background-size:var(--spacing)_var(--spacing)] 
+          [--dot-color:#E0E1EC] 
+          [--dot-size:3px] [--spacing:12px]"
+      />
+
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white" />
+
+      {/* Pinggir kiri */}
+      <div className="absolute inset-0 bottom-0 left-0 w-8 h-full bg-blue-400" />
+
+      {/* Segitiga kanan atas */}
+      <div className="absolute top-0 right-0 w-24 h-24">
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <polygon points="100,0 100,100 0,0" className="fill-blue-400" />
+        </svg>
+      </div>
       
       <div className="flex flex-col lg:flex-row gap-4 w-full overflow-y-auto pr-2">
         <section className="flex flex-col flex-[3] z-10">
