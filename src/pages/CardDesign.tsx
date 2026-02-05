@@ -15,6 +15,7 @@ import {
   getAttributeImageUrl,
   getPlaceholderImageUrl,
 } from "../utils/imageUtils";
+import MaintenanceNotice from "../components/maintenanceNotice";
 
 interface CardWithSourceName extends Card {
   _sourceName: string;
@@ -1063,6 +1064,7 @@ const CardDesign: React.FC = () => {
           onClose={() => setToastMessage("")}
         />
       )}
+      <MaintenanceNotice />
     </div>
   );
 };
