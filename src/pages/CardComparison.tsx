@@ -13,7 +13,6 @@ import {
   getAttributeImageUrl,
   getPlaceholderImageUrl,
 } from "../utils/imageUtils";
-import MaintenanceNotice from "../components/maintenanceNotice";
 
 interface CardWithSourceName extends Card {
   _sourceName: string;
@@ -1018,8 +1017,6 @@ const CardComparison: React.FC = () => {
           </div>
         </div>
       )}
-      
-    <MaintenanceNotice />
     </div>
 
   );
