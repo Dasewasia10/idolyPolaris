@@ -22,12 +22,12 @@ const MainMenu: React.FC = () => {
   const playgroundFeatures = [
     { name: "IdolyChat", path: "/chat" },
     { name: "Love Interest Chart", path: "/loveInterestChart" },
-    { name: "KTP Manager", path: "/ktp" },
   ];
 
   const upcomingFeatures = [
     { name: "Book Reader", path: "/bookreader" },
     { name: "Card Design", path: "/cardDesign" },
+    { name: "KTP Manager", path: "/ktp" },
   ];
 
   const handleNavigation = (path: string) => {
@@ -38,7 +38,7 @@ const MainMenu: React.FC = () => {
   return (
     <div className="flex flex-col bg-slate-600 items-center">
       {/* Desktop Navigation */}
-      <div className="bg-slate-800 p-4 flex gap-2 justify-between z-10 fixed top-0 w-full z-20 hidden lg:flex">
+      <div className="bg-slate-800 p-4 flex gap-2 justify-between z-10 fixed top-0 w-full lg:flex">
         {/* Logo Home */}
         <button
           onClick={() => navigate("/")}
