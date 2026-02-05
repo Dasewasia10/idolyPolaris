@@ -38,7 +38,7 @@ const MainMenu: React.FC = () => {
   return (
     <div className="flex flex-col bg-slate-600 items-center">
       {/* Desktop Navigation */}
-      <div className="bg-slate-800 p-4 flex gap-2 justify-between z-10 fixed top-0 w-full lg:flex">
+      <div className="bg-slate-800 p-4 flex gap-2 justify-between z-20 fixed top-0 w-full lg:flex">
         {/* Logo Home */}
         <button
           onClick={() => navigate("/")}
