@@ -560,6 +560,9 @@ const IdolListPage: React.FC = () => {
                             className="select-none"
                           >
                             {selectedIdol.name}
+                            <div className="text-xs mt-1">
+                              #{selectedIdol.color}
+                            </div>
                           </div>
                         </div>
                         <div className="col-start-7 col-span-2 text-black rounded-lg font-semibold p-4 font-bold">
@@ -674,6 +677,9 @@ const IdolListPage: React.FC = () => {
                             className="select-none"
                           >
                             {selectedIdol.name}
+                            <div className="text-xs mt-1">
+                              #{selectedIdol.color}
+                            </div>
                           </div>
                         </div>
                       </div>
