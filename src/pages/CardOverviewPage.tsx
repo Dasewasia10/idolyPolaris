@@ -807,7 +807,7 @@ const CardOverview: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                {slot.category == "Evolution" && (
+                {slot.hasAwakening && (
                   <>
                     <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
                       <p className="text-white">Evolution Icon</p>
@@ -840,7 +840,7 @@ const CardOverview: React.FC = () => {
                     </div>
                   </>
                 )}
-                {slot.category == "Evolution" && (
+                {slot.hasAwakening && (
                   <>
                     <div className="flex flex-col gap-2 rounded border-2 border-white p-4 lg:block hidden">
                       <p className="text-white">Evolution Image</p>
@@ -869,7 +869,7 @@ const CardOverview: React.FC = () => {
                         {showSource ? "Hide Image" : "Show Image"}
                       </span>
                     </button>
-                    {slot.category == "Evolution" && (
+                    {slot.hasAwakening && (
                       <button
                         onClick={() => {
                           setShowSourceE(!showSourceE);
@@ -888,7 +888,7 @@ const CardOverview: React.FC = () => {
               </div>
             </section>
 
-            {showSource && (
+            {showSource && slot.initial > 2 && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
                   src={getCardImageUrl(slot, "full", false)}
@@ -903,7 +903,7 @@ const CardOverview: React.FC = () => {
                 />
               </div>
             )}
-            {showSourceE && (
+            {showSourceE && slot.hasAwakening && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
                   src={getCardImageUrl(slot, "full", true)}
@@ -1204,12 +1204,30 @@ const CardOverview: React.FC = () => {
                 )}
 
                 <section className="text-md flex lg:mt-2 lg:items-center gap-2 lg:flex-row flex-col">
-                  <h3 className="text-xl font-bold">Yell/Cheer :</h3>
-                  <div className="p-2 flex flex-col border rounded">
-                    <h4 className="font-bold">
-                      {slot.yell?.name?.[primaryLanguage]}
-                    </h4>
-                    <p>{slot.yell?.description?.[primaryLanguage]}</p>
+                  <h3 className="text-xl font-bold min-w-fit">Yell/Cheer :</h3>
+                  
+                  <div className="flex flex-row gap-3 p-2 border rounded w-full items-center bg-gray-50">
+                    {/* ICON YELL */}
+                    <div className="flex-shrink-0">
+                      <img
+                        src={slot.yell?.source?.initialImage || getPlaceholderImageUrl("square")}
+                        alt="Yell Icon"
+                        className="h-14 w-14 lg:h-16 lg:w-16 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.src = getPlaceholderImageUrl("square");
+                        }}
+                      />
+                    </div>
+
+                    {/* TEXT YELL */}
+                    <div className="flex flex-col">
+                      <h4 className="font-bold text-lg">
+                        {slot.yell?.name?.[primaryLanguage]}
+                      </h4>
+                      <p className="text-sm text-gray-700">
+                        {slot.yell?.description?.[primaryLanguage]}
+                      </p>
+                    </div>
                   </div>
                 </section>
               </div>
