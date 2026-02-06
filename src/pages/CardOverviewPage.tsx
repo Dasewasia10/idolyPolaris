@@ -460,6 +460,12 @@ const CardOverview: React.FC = () => {
     };
     setSlot(selectedCard);
     setIsOpen(true);
+
+    // 3. RESET SEMUA TOGGLE (PENTING!)
+    setShowIconB(false); // Reset Trained Icon (jika ada)
+    setShowIconE(false); // Reset Evolved Icon
+    setShowSource(false); // Reset Full Image Base (Mobile)
+    setShowSourceE(false); // Reset Full Image Evolved
   };
 
   // Ambil daftar group yang unik dari data karakter
@@ -903,17 +909,21 @@ const CardOverview: React.FC = () => {
                 />
               </div>
             )}
-            {showSourceE && slot.hasAwakening && (
+            {/* Modal Full Image (Mobile/Desktop Popup) */}
+            {/* Logika: Jika showSourceE aktif, tampilkan evolved. Jika tidak, tampilkan base (jika showSource aktif) */}
+
+            {(showSource || showSourceE) && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
-                  src={getCardImageUrl(slot, "full", true)}
+                  src={getCardImageUrl(
+                    slot,
+                    "full",
+                    showSourceE, // Jika true -> ambil gambar evolved, jika false -> ambil base
+                  )}
                   alt={`Source ${slot.initialTitle}`}
                   className="max-w-full h-auto rounded-lg border-2 border-white"
                   onError={(e) => {
-                    e.currentTarget.src = `${
-                      import.meta.env.BASE_URL
-                    }assets/default_image.png`;
-                    e.currentTarget.alt = "Image not available";
+                    e.currentTarget.style.display = "none";
                   }}
                 />
               </div>
@@ -923,12 +933,7 @@ const CardOverview: React.FC = () => {
               {/* HAPUS kondisi slot.initial < 5 di sini agar *5 juga muncul */}
               <div className="sticky top-0 z-0 hidden lg:block">
                 <img
-                  src={getCardImageUrl(
-                    slot,
-                    "full",
-                    // Logika Toggle: Tampilkan Evolved jika tombol aktif DAN punya awakening
-                    showSourceE && (slot.hasAwakening ?? false),
-                  )}
+                  src={getCardImageUrl(slot, "full", showSourceE)}
                   alt={`Card ${slot.initialTitle}`}
                   // Style default
                   className="h-full w-auto rounded bg-white object-cover p-1"
@@ -1016,12 +1021,7 @@ const CardOverview: React.FC = () => {
                       <img
                         // UPDATE DISINI: Logika Icon (Thumb)
                         // showIconB (Trained) atau showIconE (Evolved) memicu gambar index 2
-                        src={getCardImageUrl(
-                          slot,
-                          "thumb",
-                          (showIconB && slot.initial !== 5) ||
-                            (showIconE && slot.category === "Evolution"),
-                        )}
+                        src={getCardImageUrl(slot, "thumb", showIconE)}
                         onError={(e) => {
                           e.currentTarget.src = `${
                             import.meta.env.BASE_URL
