@@ -333,31 +333,30 @@ const CardComparison: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen, isOpen]);
+  
+  const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
 
-  const getCardIconUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/thumb/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
+  const getCardImageUrl = (
+  assetId: string,
+  type: "thumb",
+  isEvolved: boolean = false
+) => {
+  // Konfigurasi folder dan ekstensi berdasarkan tipe
+  const config = {
+    thumb: { folder: "cardThumb", ext: "png" },
   };
 
+  const { folder, ext } = config[type];
+
+  // Logika Index: 
+  // 1 = Normal (Pre-bloom)
+  // 2 = Evolved (Post-bloom)
+  // Catatan: Jika thumb di R2 kamu benar-benar mulai dari 0, ubah '1' menjadi '0' di baris bawah.
+  // Tapi standar Idoly Pride biasanya 1 dan 2.
+  const index = isEvolved ? 2 : 1; 
+
+  return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
+};
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -528,12 +527,9 @@ const CardComparison: React.FC = () => {
                         {/* Menampilkan gambar berdasarkan slot1.uniqueId */}
                         {slot1 && uniqueId && (
                           <img
-                            src={getCardIconUrl(
-                              slot1._sourceName,
-                              slot1.initial,
-                              slot1.costumeTheme,
-                              slot1.costumeIndex
-                            )}
+                            src={getCardImageUrl(
+                            slot1.initialTitle, "thumb"
+                          )}
                             onError={(e) => {
                               e.currentTarget.src = `${
                                 import.meta.env.BASE_URL
@@ -774,12 +770,9 @@ const CardComparison: React.FC = () => {
                         {/* Menampilkan gambar berdasarkan slot1.uniqueId */}
                         {slot2 && uniqueId && (
                           <img
-                            src={getCardIconUrl(
-                              slot2._sourceName,
-                              slot2.initial,
-                              slot2.costumeTheme,
-                              slot2.costumeIndex
-                            )}
+                            src={getCardImageUrl(
+                            slot2.initialTitle, "thumb"
+                          )}
                             onError={(e) => {
                               e.currentTarget.src = `${
                                 import.meta.env.BASE_URL

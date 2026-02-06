@@ -40,29 +40,29 @@ const CardList: React.FC<CardListProps> = ({
     fetchCharacters();
   }, []);
 
-  const getCardVerticalUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
+  const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
 
-    return `https://www.diveidolypapi.my.id/api/img/card/vertical/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
+  const getCardImageUrl = (
+  assetId: string,
+  type: "upper",
+  isEvolved: boolean = false
+) => {
+  // Konfigurasi folder dan ekstensi berdasarkan tipe
+  const config = {
+    upper: { folder: "cardUpper", ext: "png" },
   };
+
+  const { folder, ext } = config[type];
+
+  // Logika Index: 
+  // 1 = Normal (Pre-bloom)
+  // 2 = Evolved (Post-bloom)
+  // Catatan: Jika thumb di R2 kamu benar-benar mulai dari 0, ubah '1' menjadi '0' di baris bawah.
+  // Tapi standar Idoly Pride biasanya 1 dan 2.
+  const index = isEvolved ? 2 : 1; 
+
+  return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
+};
 
   const getColorByCardAttribute = (cardAttribute: string): string => {
     switch (cardAttribute) {
@@ -148,12 +148,10 @@ const CardList: React.FC<CardListProps> = ({
                       />
                     )}
                     <img
-                      src={getCardVerticalUrl(
-                        card._sourceName,
-                        card.initial,
-                        card.costumeTheme,
-                        card.costumeIndex
-                      )}
+                      src={getCardImageUrl(
+                          card.initialTitle, 
+                          "upper"
+                        )}
                       onError={(e) => {
                         e.currentTarget.src = `${
                           import.meta.env.BASE_URL

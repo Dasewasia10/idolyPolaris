@@ -389,6 +389,32 @@ const CardOverview: React.FC = () => {
     };
   }, [isMenuOpen, isOpen, isSourceImageOpen]);
 
+  const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
+
+  const getCardImageUrl = (
+  assetId: string,
+  type: "full" | "thumb" | "upper",
+  isEvolved: boolean = false
+) => {
+  // Konfigurasi folder dan ekstensi berdasarkan tipe
+  const config = {
+    full: { folder: "cardFull", ext: "webp" },
+    thumb: { folder: "cardThumb", ext: "png" },
+    upper: { folder: "cardUpper", ext: "png" },
+  };
+
+  const { folder, ext } = config[type];
+
+  // Logika Index: 
+  // 1 = Normal (Pre-bloom)
+  // 2 = Evolved (Post-bloom)
+  // Catatan: Jika thumb di R2 kamu benar-benar mulai dari 0, ubah '1' menjadi '0' di baris bawah.
+  // Tapi standar Idoly Pride biasanya 1 dan 2.
+  const index = isEvolved ? 2 : 1; 
+
+  return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
+};
+
   const getCardCosuUrl = (
     chara: string,
     cosuName: string,
@@ -399,126 +425,6 @@ const CardOverview: React.FC = () => {
 
     return `https://www.diveidolypapi.my.id/api/img/card/cosu/${encodeURIComponent(
       chara.toLowerCase()
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardIconUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/thumb/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardIconBUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/thumbB/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardIconEUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/thumbE/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardSourceUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/source/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
-  };
-
-  const getCardSourceEUrl = (
-    chara: string,
-    initial: number,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/sourceE/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(
-      initial.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
     )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
       cosuIndex.toLocaleString("en-US", {
         minimumIntegerDigits: 2,
@@ -979,13 +885,8 @@ const CardOverview: React.FC = () => {
             {showSource && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
-                  src={getCardSourceUrl(
-                    slot._sourceName,
-                    slot.initial,
-                    slot.costumeTheme,
-                    slot.costumeIndex
-                  )}
-                  alt={`Source ${slot._sourceName}`}
+                  src={getCardImageUrl(slot.initialTitle, "full", false)}
+                  alt={`Source ${slot.initialTitle}`}
                   className="max-w-full h-auto rounded-lg border-2 border-white"
                   onError={(e) => {
                     e.currentTarget.src = `${
@@ -999,13 +900,8 @@ const CardOverview: React.FC = () => {
             {showSourceE && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
-                  src={getCardSourceEUrl(
-                    slot._sourceName,
-                    slot.initial,
-                    slot.costumeTheme,
-                    slot.costumeIndex
-                  )}
-                  alt={`Source ${slot._sourceName}`}
+                  src={getCardImageUrl(slot.initialTitle, "full", true)}
+                  alt={`Source ${slot.initialTitle}`}
                   className="max-w-full h-auto rounded-lg border-2 border-white"
                   onError={(e) => {
                     e.currentTarget.src = `${
@@ -1020,28 +916,19 @@ const CardOverview: React.FC = () => {
               {/* Gambar fixed (diam) */}
               <div className="sticky top-0 z-0 hidden lg:block">
                 <img
-                  src={
-                    showSourceE && slot.category === "Evolution"
-                      ? getCardSourceEUrl(
-                          slot._sourceName,
-                          slot.initial,
-                          slot.costumeTheme,
-                          slot.costumeIndex
-                        )
-                      : getCardSourceUrl(
-                          slot._sourceName,
-                          slot.initial,
-                          slot.costumeTheme,
-                          slot.costumeIndex
-                        ) || getPlaceholderImageUrl("square")
-                  }
+                  // UPDATE DISINI: Logika toggle Normal/Evolved
+                  src={getCardImageUrl(
+                    slot.initialTitle, 
+                    "full", 
+                    showSourceE && slot.category === "Evolution" // Cek flag evolved
+                  )}
                   onError={(e) => {
                     e.currentTarget.src = `${
                       import.meta.env.BASE_URL
                     }assets/default_image.png`;
                     e.currentTarget.alt = "Image not available";
                   }}
-                  alt={`Card ${slot._sourceName}`}
+                  alt={`Card ${slot.initialTitle}`}
                   className="h-full w-auto rounded bg-white object-cover p-1"
                 />
               </div>
@@ -1123,28 +1010,13 @@ const CardOverview: React.FC = () => {
                   <div className="relative h-60 w-full items-center rounded lg:w-96">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <img
-                        src={
-                          showIconB && slot.initial !== 5
-                            ? getCardIconBUrl(
-                                slot._sourceName,
-                                slot.initial,
-                                slot.costumeTheme,
-                                slot.costumeIndex
-                              )
-                            : showIconE && slot.category === "Evolution"
-                            ? getCardIconEUrl(
-                                slot._sourceName,
-                                slot.initial,
-                                slot.costumeTheme,
-                                slot.costumeIndex
-                              )
-                            : getCardIconUrl(
-                                slot._sourceName,
-                                slot.initial,
-                                slot.costumeTheme,
-                                slot.costumeIndex
-                              ) || getPlaceholderImageUrl("square")
-                        }
+                        // UPDATE DISINI: Logika Icon (Thumb)
+                        // showIconB (Trained) atau showIconE (Evolved) memicu gambar index 2
+                        src={getCardImageUrl(
+                          slot.initialTitle, 
+                          "thumb", 
+                          (showIconB && slot.initial !== 5) || (showIconE && slot.category === "Evolution")
+                        )}
                         onError={(e) => {
                           e.currentTarget.src = `${
                             import.meta.env.BASE_URL
@@ -1153,7 +1025,7 @@ const CardOverview: React.FC = () => {
                         }}
                         alt={`Card ${slot.initialTitle}`}
                         className="h-full w-auto rounded-lg object-cover outline outline-offset-4 lg:relative lg:h-auto lg:object-none"
-                      />
+                    />
                     </div>
                   </div>
                 </section>
