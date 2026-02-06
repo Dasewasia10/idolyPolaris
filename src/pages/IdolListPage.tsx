@@ -160,6 +160,16 @@ const IdolListPage: React.FC = () => {
     fetchData();
   }, []);
 
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Idol Database";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   const openQnA = (idol: Character) => {
     setSelectedIdol(idol);
     setShowQnA(true);

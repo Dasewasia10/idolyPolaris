@@ -51,6 +51,16 @@ const CharacterComparisonPage: React.FC = () => {
     fetchData();
   }, []);
 
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Idol Stat Comparison";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   const getCharacterIconUrl = (characterName: string) => {
     const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
     return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;

@@ -63,6 +63,16 @@ const CharacterCalendar: React.FC = () => {
     fetchCharacters();
   }, []);
 
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Birthday Calendar";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   const getBirthdayCharacters = (day: number, month: number) => {
     return characters.filter((char) => {
       const bdayDate = parseISO(char.birthdayDate);

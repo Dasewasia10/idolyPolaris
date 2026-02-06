@@ -98,6 +98,16 @@ const Lyrics: React.FC = () => {
     fetchData();
   }, []);
 
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Idoly Lyrics";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   const generateIds = (data: any[]) =>
     data.map((item, index) => ({ ...item, id: index + 1 }));
 

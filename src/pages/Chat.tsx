@@ -114,6 +114,16 @@ const ChatPage: React.FC = () => {
     fetchData();
   }, []);
 
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Idoly Chat";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   const stampRef = useRef<Stamp | null>(null);
   const handleStampClick = (stamp: Stamp) => {
     stampRef.current = stamp;

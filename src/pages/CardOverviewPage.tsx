@@ -162,6 +162,15 @@ const CardOverview: React.FC = () => {
     fetchData();
   }, []);
 
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Card Overview";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   const sources = useMemo(
     () => processCardSources(cardSources, characters),
     [cardSources, characters]

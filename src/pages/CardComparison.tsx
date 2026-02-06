@@ -144,6 +144,16 @@ const CardComparison: React.FC = () => {
     fetchData();
   }, []);
 
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Card Comparison";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   const sources = useMemo(
     () => processCardSources(cardSources, idols),
     [cardSources, idols]

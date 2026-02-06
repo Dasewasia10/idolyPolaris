@@ -78,6 +78,16 @@ const CompassChart: React.FC = () => {
     fetchData();
   }, []);
 
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Compass Chart";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (isPositionChanged) {
