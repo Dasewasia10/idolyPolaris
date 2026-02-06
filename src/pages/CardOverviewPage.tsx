@@ -31,7 +31,7 @@ const generateCardId = (card: Card): string => {
 const matchWithCharacters = (cardSources: Source[], characters: any[]) =>
   cardSources.map((source) => {
     const matched = characters.find(
-      (char) => char.name.toLowerCase() === source.name.toLowerCase()
+      (char) => char.name.toLowerCase() === source.name.toLowerCase(),
     );
     return {
       key: source.name,
@@ -94,14 +94,14 @@ const processCardSources = (cardSources: Source[], characters: any[]) => {
                 indo: "",
               },
               // TAMBAHKAN INI SECARA EKSPLISIT AGAR AMAN
-              source: item.yell.source, 
+              source: item.yell.source,
             }
           : undefined,
         battleCommentary: item.battleCommentary,
         explanation: item.explanation,
       })),
     })),
-    characters
+    characters,
   );
 };
 
@@ -175,7 +175,7 @@ const CardOverview: React.FC = () => {
 
   const sources = useMemo(
     () => processCardSources(cardSources, characters),
-    [cardSources, characters]
+    [cardSources, characters],
   ); // ✅ Sekarang hanya dihitung ulang saat `cardSources` atau `characters` berubah
 
   const [cards, setCards] = useState<Card[]>([]);
@@ -191,7 +191,7 @@ const CardOverview: React.FC = () => {
                 sourceName: source.name,
               }))
             : [];
-        })
+        }),
       );
     }
   }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
@@ -201,7 +201,7 @@ const CardOverview: React.FC = () => {
     return cards.filter((card) => {
       // Ambil karakter yang sesuai dengan _sourceName
       const character = characters.find(
-        (char) => char.name.toLowerCase() === card._sourceName.toLowerCase()
+        (char) => char.name.toLowerCase() === card._sourceName.toLowerCase(),
       );
 
       // Cek apakah kartu termasuk dalam group yang dipilih
@@ -235,7 +235,7 @@ const CardOverview: React.FC = () => {
       .filter((card) => {
         // Ambil sourceName dari sources berdasarkan initialTitle
         const source = sources.find((source) =>
-          source.data.some((c: Card) => c.initialTitle === card.initialTitle)
+          source.data.some((c: Card) => c.initialTitle === card.initialTitle),
         );
 
         const sourceName = source?.name || "Unknown Source";
@@ -243,7 +243,7 @@ const CardOverview: React.FC = () => {
         // Cari karakter berdasarkan sourceName yang sudah ditemukan
         const character = characters.find(
           (char) =>
-            sourceName && char.name.toLowerCase() === sourceName.toLowerCase()
+            sourceName && char.name.toLowerCase() === sourceName.toLowerCase(),
         );
 
         const nameMatches = character
@@ -281,7 +281,7 @@ const CardOverview: React.FC = () => {
       .map((card) => {
         // Ambil kembali sourceName agar bisa dipakai di _sourceName
         const source = sources.find((source) =>
-          source.data.some((c: Card) => c.initialTitle === card.initialTitle)
+          source.data.some((c: Card) => c.initialTitle === card.initialTitle),
         );
 
         return {
@@ -318,7 +318,7 @@ const CardOverview: React.FC = () => {
           source.data.map((item) => ({
             ...item,
             sourceName: source.name,
-          }))
+          })),
         );
         setCards(data);
       } catch (error) {
@@ -337,7 +337,7 @@ const CardOverview: React.FC = () => {
         t.title?.[primaryLanguage] ||
         t.description?.[primaryLanguage] ||
         t.battleCommentary?.[primaryLanguage] ||
-        t.explanation?.[primaryLanguage]
+        t.explanation?.[primaryLanguage],
     );
 
     setSlot((prevSlot) =>
@@ -348,7 +348,7 @@ const CardOverview: React.FC = () => {
               filteredCardTranslations.find((t) => t.title?.[primaryLanguage])
                 ?.title?.[primaryLanguage] || "----",
           }
-        : null
+        : null,
     );
   }, [primaryLanguage, cards]);
 
@@ -373,7 +373,7 @@ const CardOverview: React.FC = () => {
       if (
         (sourceImageRef.current as unknown as HTMLElement) &&
         !(sourceImageRef.current as unknown as HTMLElement).contains(
-          event.target
+          event.target,
         )
       ) {
         setSourceImageIsOpen(false);
@@ -396,7 +396,7 @@ const CardOverview: React.FC = () => {
   const getCardImageUrl = (
     card: { initialTitle: string; initial: number; hasAwakening?: boolean },
     type: "full" | "thumb" | "upper",
-    isEvolved: boolean = false
+    isEvolved: boolean = false,
   ) => {
     const assetId = card.initialTitle; // Asumsi initialTitle = assetId (misal: ai-02-eve-00)
     const rarity = card.initial;
@@ -600,7 +600,7 @@ const CardOverview: React.FC = () => {
                     value={selectedGroup}
                     onChange={(selected) =>
                       setSelectedGroup(
-                        selected as { value: string; label: string }[]
+                        selected as { value: string; label: string }[],
                       )
                     }
                     className="mt-2"
@@ -618,7 +618,7 @@ const CardOverview: React.FC = () => {
                     value={selectedSourceName}
                     onChange={(selected) =>
                       setSelectedSourceName(
-                        selected as { value: string; label: string }[]
+                        selected as { value: string; label: string }[],
                       )
                     }
                     className="mt-2"
@@ -922,24 +922,26 @@ const CardOverview: React.FC = () => {
             )}
             <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative mb-36 lg:mb-0">
               {/* Gambar fixed (diam) */}
-              <div className="sticky top-0 z-0 hidden lg:block">
-                <img
-                  // UPDATE DISINI: Logika toggle Normal/Evolved
-                  src={getCardImageUrl(
-                    slot, 
-                    "full", 
-                    showSourceE && (slot.hasAwakening ?? false)
-                  )}
-                  onError={(e) => {
-                    e.currentTarget.src = `${
-                      import.meta.env.BASE_URL
-                    }assets/default_image.png`;
-                    e.currentTarget.alt = "Image not available";
-                  }}
-                  alt={`Card ${slot.initialTitle}`}
-                  className="h-full w-auto rounded bg-white object-cover p-1"
-                />
-              </div>
+              {slot.hasAwakening && (
+                <div className="sticky top-0 z-0 hidden lg:block">
+                  <img
+                    // UPDATE DISINI: Logika toggle Normal/Evolved
+                    src={getCardImageUrl(
+                      slot,
+                      "full",
+                      showSourceE && (slot.hasAwakening ?? false),
+                    )}
+                    onError={(e) => {
+                      e.currentTarget.src = `${
+                        import.meta.env.BASE_URL
+                      }assets/default_image.png`;
+                      e.currentTarget.alt = "Image not available";
+                    }}
+                    alt={`Card ${slot.initialTitle}`}
+                    className="h-full w-auto rounded bg-white object-cover p-1"
+                  />
+                </div>
+              )}
               {/* Pita Scroll - hanya tampil di desktop */}
               <div
                 className="sticky bottom-0 z-10 hidden lg:flex justify-center py-2 -translate-y-16 lg:translate-y-0"
@@ -1000,7 +1002,7 @@ const CardOverview: React.FC = () => {
                                 import.meta.env.BASE_URL
                               }assets/default_image.png`;
                               e.currentTarget.alt = "Image not available";
-                          }}
+                            }}
                           />
                         )}
                       </div>
@@ -1012,9 +1014,10 @@ const CardOverview: React.FC = () => {
                         // UPDATE DISINI: Logika Icon (Thumb)
                         // showIconB (Trained) atau showIconE (Evolved) memicu gambar index 2
                         src={getCardImageUrl(
-                          slot, 
-                          "thumb", 
-                          (showIconB && slot.initial !== 5) || (showIconE && slot.category === "Evolution")
+                          slot,
+                          "thumb",
+                          (showIconB && slot.initial !== 5) ||
+                            (showIconE && slot.category === "Evolution"),
                         )}
                         onError={(e) => {
                           e.currentTarget.src = `${
@@ -1024,7 +1027,7 @@ const CardOverview: React.FC = () => {
                         }}
                         alt={`Card ${slot.initialTitle}`}
                         className="h-full w-auto rounded-lg object-cover outline outline-offset-4 lg:relative lg:h-auto lg:object-none"
-                    />
+                      />
                     </div>
                   </div>
                 </section>
@@ -1125,8 +1128,8 @@ const CardOverview: React.FC = () => {
                             {skill?.ct === 1
                               ? "Just Once"
                               : skill?.ct === 0
-                              ? "NaN"
-                              : skill?.ct}
+                                ? "NaN"
+                                : skill?.ct}
                           </li>
                         </ul>
                       </div>
@@ -1138,7 +1141,7 @@ const CardOverview: React.FC = () => {
                           {skill?.description?.[primaryLanguage]?.map(
                             (line, index) => (
                               <p key={index}>{line}</p>
-                            )
+                            ),
                           )}
                         </p>
                       </div>
@@ -1197,7 +1200,7 @@ const CardOverview: React.FC = () => {
                         </h4>
                         <p>
                           {slot.skillFour.description?.[primaryLanguage]?.join(
-                            " "
+                            " ",
                           )}
                         </p>
                       </div>
@@ -1207,16 +1210,20 @@ const CardOverview: React.FC = () => {
 
                 <section className="text-md flex lg:mt-2 lg:items-center gap-2 lg:flex-row flex-col">
                   <h3 className="text-xl font-bold min-w-fit">Yell/Cheer :</h3>
-                  
+
                   <div className="flex flex-row gap-3 p-2 border rounded w-full items-center bg-gray-800">
                     {/* ICON YELL */}
                     <div className="flex-shrink-0">
                       <img
-                        src={slot.yell?.source?.initialImage || getPlaceholderImageUrl("square")}
+                        src={
+                          slot.yell?.source?.initialImage ||
+                          getPlaceholderImageUrl("square")
+                        }
                         alt={`Yell Icon ${slot.initialTitle}`}
                         className="h-14 w-14 lg:h-16 lg:w-16 object-contain"
                         onError={(e) => {
-                          e.currentTarget.src = getPlaceholderImageUrl("square");
+                          e.currentTarget.src =
+                            getPlaceholderImageUrl("square");
                         }}
                       />
                     </div>
