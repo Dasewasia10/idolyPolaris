@@ -922,27 +922,32 @@ const CardOverview: React.FC = () => {
             )}
             <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative mb-36 lg:mb-0">
               {/* Gambar fixed (diam) */}
-              {slot.initial < 5 && (
-                <div className="sticky top-0 z-0 hidden lg:block">
-                  <img
-                    // UPDATE DISINI: Logika toggle Normal/Evolved
-                    src={getCardImageUrl(
-                      slot,
-                      "full",
-                      showSourceE && (slot.hasAwakening ?? false),
-                    )}
-                    onError={(e) => {
-                      e.currentTarget.src = `${
-                        import.meta.env.BASE_URL
-                      }assets/default_image.png`;
-                      e.currentTarget.alt = "Image not available";
-                    }}
-                    alt={`Card ${slot.initialTitle}`}
-                    className="h-full w-auto rounded bg-white object-cover p-1"
-                  />
-                </div>
-              )}
+              {/* HAPUS kondisi slot.initial < 5 di sini agar *5 juga muncul */}
+              <div className="sticky top-0 z-0 hidden lg:block">
+                <img
+                  src={getCardImageUrl(
+                    slot,
+                    "full",
+                    // Logika Toggle: Tampilkan Evolved jika tombol aktif DAN punya awakening
+                    showSourceE && (slot.hasAwakening ?? false),
+                  )}
+                  alt={`Card ${slot.initialTitle}`}
+                  // Style default
+                  className="h-full w-auto rounded bg-white object-cover p-1"
+                  // LOGIKA ERROR:
+                  // Jika gambar gagal dimuat (misal kartu *3 base yang tidak punya full art),
+                  // maka sembunyikan elemen ini agar tidak mengganggu layout.
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    // Opsional: Jika ingin menyembunyikan parent div-nya juga,
+                    // perlu manipulasi DOM atau state tambahan,
+                    // tapi display: none pada img biasanya sudah cukup rapi.
+                  }}
+                />
+              </div>
+
               {/* Pita Scroll - hanya tampil di desktop */}
+              {/* Bagian ini tetap sama */}
               <div
                 className="sticky bottom-0 z-10 hidden lg:flex justify-center py-2 -translate-y-16 lg:translate-y-0"
                 onClick={() => {
