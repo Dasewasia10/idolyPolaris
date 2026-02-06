@@ -816,7 +816,6 @@ const CardOverview: React.FC = () => {
                       <button
                         onClick={() => setShowIconE(!showIconE)}
                         className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={slot.category !== "Evolution"}
                       >
                         <span className="font-semibold opacity-100">
                           {showIconE ? "Evolution Icon" : "Initial Icon"}
@@ -849,7 +848,6 @@ const CardOverview: React.FC = () => {
                       <button
                         onClick={() => setShowSourceE(!showSourceE)}
                         className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={slot.category !== "Evolution"}
                       >
                         <span className="font-semibold opacity-100 text-black">
                           {showSourceE ? "Evolution Image" : "Initial Image"}
