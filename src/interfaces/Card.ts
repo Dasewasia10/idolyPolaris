@@ -1,5 +1,6 @@
 export interface Card {
   id?: number;
+  uniqueId?: string;
   initialTitle: string;
   title: {
     japanese?: string;
