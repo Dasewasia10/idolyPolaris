@@ -555,11 +555,9 @@ const IdolListPage: React.FC = () => {
                           <div
                             style={{
                               backgroundColor: `#${selectedIdol.color}`,
-                              color: `#${selectedIdol.color}`,
                             }}
                             className="select-none"
                           >
-                            {selectedIdol.name}
                             <div className="text-xs mt-1">
                               #{selectedIdol.color}
                             </div>
@@ -672,11 +670,9 @@ const IdolListPage: React.FC = () => {
                           <div
                             style={{
                               backgroundColor: `#${selectedIdol.color}`,
-                              color: `#${selectedIdol.color}`,
                             }}
                             className="select-none"
                           >
-                            {selectedIdol.name}
                             <div className="text-xs mt-1">
                               #{selectedIdol.color}
                             </div>
