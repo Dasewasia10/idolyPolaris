@@ -93,6 +93,8 @@ const processCardSources = (cardSources: Source[], characters: any[]) => {
                 global: "",
                 indo: "",
               },
+              // TAMBAHKAN INI SECARA EKSPLISIT AGAR AMAN
+              source: item.yell.source, 
             }
           : undefined,
         battleCommentary: item.battleCommentary,
@@ -888,7 +890,7 @@ const CardOverview: React.FC = () => {
               </div>
             </section>
 
-            {showSource && slot.initial > 2 && (
+            {showSource && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
                   src={getCardImageUrl(slot, "full", false)}
@@ -926,7 +928,7 @@ const CardOverview: React.FC = () => {
                   src={getCardImageUrl(
                     slot, 
                     "full", 
-                    showSourceE && slot.category === "Evolution" // Cek flag evolved
+                    showSourceE && (slot.hasAwakening ?? false)
                   )}
                   onError={(e) => {
                     e.currentTarget.src = `${
@@ -1154,7 +1156,7 @@ const CardOverview: React.FC = () => {
                               slot.skillFour.source?.initialImage ||
                               getPlaceholderImageUrl("square")
                             }
-                            alt="Skill Four Icon"
+                            alt={`Skill Four Icon ${slot.initialTitle}`}
                             className="h-20 w-20 rounded object-cover"
                           />
                         </div>
@@ -1206,12 +1208,12 @@ const CardOverview: React.FC = () => {
                 <section className="text-md flex lg:mt-2 lg:items-center gap-2 lg:flex-row flex-col">
                   <h3 className="text-xl font-bold min-w-fit">Yell/Cheer :</h3>
                   
-                  <div className="flex flex-row gap-3 p-2 border rounded w-full items-center bg-gray-50">
+                  <div className="flex flex-row gap-3 p-2 border rounded w-full items-center bg-gray-800">
                     {/* ICON YELL */}
                     <div className="flex-shrink-0">
                       <img
                         src={slot.yell?.source?.initialImage || getPlaceholderImageUrl("square")}
-                        alt="Yell Icon"
+                        alt={`Yell Icon ${slot.initialTitle}`}
                         className="h-14 w-14 lg:h-16 lg:w-16 object-contain"
                         onError={(e) => {
                           e.currentTarget.src = getPlaceholderImageUrl("square");
@@ -1220,11 +1222,11 @@ const CardOverview: React.FC = () => {
                     </div>
 
                     {/* TEXT YELL */}
-                    <div className="flex flex-col">
+                    <div className="flex flex-col text-gray-50">
                       <h4 className="font-bold text-lg">
                         {slot.yell?.name?.[primaryLanguage]}
                       </h4>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm">
                         {slot.yell?.description?.[primaryLanguage]}
                       </p>
                     </div>

@@ -112,7 +112,7 @@ export interface Card {
       initialImage: string;
       topRightImage?: string;
       bottomRightImage?: string;
-      color: string;
+      color?: string;
     };
   };
   yell?: {
@@ -130,7 +130,7 @@ export interface Card {
       initialImage: string;
       topRightImage?: string;
       bottomRightImage?: string;
-      color: string;
+      color?: string;
     };
   };
   battleCommentary?: {
