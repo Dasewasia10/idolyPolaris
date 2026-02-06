@@ -11,7 +11,7 @@ import { Icon } from "../interfaces/Icon";
 
 const API_BASE_URL = "https://diveidolypapi.my.id/api";
 
-const LoveInterestChart: React.FC = () => {
+const CompassChart: React.FC = () => {
   const draggableRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
 
   const [icons, setIcons] = useState<Icon[]>([]);
@@ -331,4 +331,4 @@ const LoveInterestChart: React.FC = () => {
   );
 };
 
-export default LoveInterestChart;
+export default CompassChart;

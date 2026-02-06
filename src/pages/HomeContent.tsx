@@ -7,7 +7,7 @@ const HomeContent = () => {
 
   const menuItems = [
     {
-      name: "Idol Detail",
+      name: "Idol Details",
       path: "/idolList",
       bgImage:
         "https://api.diveidolypapi.my.id/image3Character/source-suzu-05-premium-01-full.webp",
@@ -32,7 +32,7 @@ const HomeContent = () => {
       path: "/lyric",
       bgImage:
         "https://api.diveidolypapi.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
-      description: "Find song lyrics and translations",
+      description: "Find song lyrics and its translations",
     },
     {
       name: "Bday Calendar",
@@ -49,11 +49,11 @@ const HomeContent = () => {
       description: "Make your custom chat with your favorite idol",
     },
     {
-      name: "Love Interest Chart",
-      path: "/loveInterestChart",
+      name: "Compass Chart",
+      path: "/compassChart",
       bgImage:
         "https://api.diveidolypapi.my.id/sourceImage/source-chisa-05-pajama-00-full.webp",
-      description: "Make your custom chart, not limited to love only",
+      description: "A quadrant chart based on two opposing variables.",
     },
     // {
     //   name: "Manager ID",

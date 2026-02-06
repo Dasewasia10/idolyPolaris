@@ -21,7 +21,7 @@ const MainMenu: React.FC = () => {
 
   const playgroundFeatures = [
     { name: "IdolyChat", path: "/chat" },
-    { name: "Love Interest Chart", path: "/loveInterestChart" },
+    { name: "Compass Chart", path: "/compassChart" },
   ];
 
   const upcomingFeatures = [
