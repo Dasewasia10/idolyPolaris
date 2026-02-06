@@ -392,45 +392,51 @@ const CardOverview: React.FC = () => {
   const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
 
   const getCardImageUrl = (
-  assetId: string,
-  type: "full" | "thumb" | "upper",
-  isEvolved: boolean = false
-) => {
-  // Konfigurasi folder dan ekstensi berdasarkan tipe
-  const config = {
-    full: { folder: "cardFull", ext: "webp" },
-    thumb: { folder: "cardThumb", ext: "png" },
-    upper: { folder: "cardUpper", ext: "png" },
+    card: { initialTitle: string; initial: number; hasAwakening?: boolean },
+    type: "full" | "thumb" | "upper",
+    isEvolved: boolean = false
+  ) => {
+    const assetId = card.initialTitle; // Asumsi initialTitle = assetId (misal: ai-02-eve-00)
+    const rarity = card.initial;
+    const hasAwakening = card.hasAwakening ?? false;
+
+    // Konfigurasi folder dan ekstensi
+    // Full pakai .webp, sisanya .png
+    const config = {
+      full: { folder: "cardFull", ext: "webp" },
+      thumb: { folder: "cardThumb", ext: "png" },
+      upper: { folder: "cardUpper", ext: "png" },
+    };
+
+    const { folder, ext } = config[type];
+
+    let index = 1; // Default index
+
+    if (rarity < 5) {
+      // KASUS 1: Rarity Rendah (2, 3, 4)
+      // Base = 0, Evolved = 1
+      index = isEvolved ? 1 : 0;
+    } else if (rarity === 5 && hasAwakening) {
+      // KASUS 2: Rarity 5 Link/Awakening
+      // Base = 1, Evolved = 2
+      index = isEvolved ? 2 : 1;
+    } else {
+      // KASUS 3: Rarity 5 Biasa (Fes/Initial)
+      // Selalu 1, tidak ada evolved
+      index = 1;
+    }
+
+    return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
   };
 
-  const { folder, ext } = config[type];
+  const getCardCosuUrl = (card: any) => {
+    // Jika backend sudah menyediakan link costume (dari script sync-data.mjs), pakai itu.
+    if (card.images?.costume) {
+      return card.images.costume;
+    }
 
-  // Logika Index: 
-  // 1 = Normal (Pre-bloom)
-  // 2 = Evolved (Post-bloom)
-  // Catatan: Jika thumb di R2 kamu benar-benar mulai dari 0, ubah '1' menjadi '0' di baris bawah.
-  // Tapi standar Idoly Pride biasanya 1 dan 2.
-  const index = isEvolved ? 2 : 1; 
-
-  return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
-};
-
-  const getCardCosuUrl = (
-    chara: string,
-    cosuName: string,
-    cosuIndex: number
-  ) => {
-    // Ubah cosuName menjadi huruf kecil dan hilangkan spasi
-    const formattedCosuName = cosuName.toLowerCase().replace(/\s+/g, "");
-
-    return `https://www.diveidolypapi.my.id/api/img/card/cosu/${encodeURIComponent(
-      chara.toLowerCase()
-    )}/${encodeURIComponent(formattedCosuName)}/${encodeURIComponent(
-      cosuIndex.toLocaleString("en-US", {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })
-    )}`;
+    // Jika tidak ada, return gambar transparan atau placeholder
+    return `${import.meta.env.BASE_URL}assets/default_image.png`;
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -885,7 +891,7 @@ const CardOverview: React.FC = () => {
             {showSource && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
-                  src={getCardImageUrl(slot.initialTitle, "full", false)}
+                  src={getCardImageUrl(slot, "full", false)}
                   alt={`Source ${slot.initialTitle}`}
                   className="max-w-full h-auto rounded-lg border-2 border-white"
                   onError={(e) => {
@@ -900,7 +906,7 @@ const CardOverview: React.FC = () => {
             {showSourceE && (
               <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
-                  src={getCardImageUrl(slot.initialTitle, "full", true)}
+                  src={getCardImageUrl(slot, "full", true)}
                   alt={`Source ${slot.initialTitle}`}
                   className="max-w-full h-auto rounded-lg border-2 border-white"
                   onError={(e) => {
@@ -918,7 +924,7 @@ const CardOverview: React.FC = () => {
                 <img
                   // UPDATE DISINI: Logika toggle Normal/Evolved
                   src={getCardImageUrl(
-                    slot.initialTitle, 
+                    slot, 
                     "full", 
                     showSourceE && slot.category === "Evolution" // Cek flag evolved
                   )}
@@ -981,29 +987,20 @@ const CardOverview: React.FC = () => {
                         />
                       )}
                       <div id="costume-icon" className="">
-                        {slot.initial === 5 &&
-                          (() => {
-                            const uniqueId =
-                              (slot as Record<string, any>).uniqueId ||
-                              "Unknown";
-                            return (
-                              <img
-                                src={getCardCosuUrl(
-                                  slot._sourceName,
-                                  slot.costumeTheme,
-                                  slot.costumeIndex
-                                )}
-                                onError={(e) => {
-                                  e.currentTarget.src = `${
-                                    import.meta.env.BASE_URL
-                                  }assets/default_image.png`;
-                                  e.currentTarget.alt = "Image not available";
-                                }}
-                                alt={`Card ${uniqueId}`}
-                                className="h-auto w-10 rounded bg-white object-cover p-1 lg:w-20"
-                              />
-                            );
-                          })()}
+                        {slot.initial === 5 && (
+                          <img
+                            // Gunakan fungsi getCardCosuUrl yang baru
+                            src={getCardCosuUrl(slot)}
+                            alt={`Costume ${slot.uniqueId}`}
+                            className="h-auto w-10 rounded bg-white object-cover p-1 lg:w-20"
+                            onError={(e) => {
+                              e.currentTarget.src = `${
+                                import.meta.env.BASE_URL
+                              }assets/default_image.png`;
+                              e.currentTarget.alt = "Image not available";
+                          }}
+                          />
+                        )}
                       </div>
                     </div>
                   </section>
@@ -1013,7 +1010,7 @@ const CardOverview: React.FC = () => {
                         // UPDATE DISINI: Logika Icon (Thumb)
                         // showIconB (Trained) atau showIconE (Evolved) memicu gambar index 2
                         src={getCardImageUrl(
-                          slot.initialTitle, 
+                          slot, 
                           "thumb", 
                           (showIconB && slot.initial !== 5) || (showIconE && slot.category === "Evolution")
                         )}

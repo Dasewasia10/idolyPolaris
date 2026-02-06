@@ -43,26 +43,40 @@ const CardList: React.FC<CardListProps> = ({
   const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
 
   const getCardImageUrl = (
-  assetId: string,
-  type: "upper",
-  isEvolved: boolean = false
-) => {
-  // Konfigurasi folder dan ekstensi berdasarkan tipe
-  const config = {
-    upper: { folder: "cardUpper", ext: "png" },
+    card: { initialTitle: string; initial: number; hasAwakening?: boolean },
+    type: "upper",
+    isEvolved: boolean = false
+  ) => {
+    const assetId = card.initialTitle; // Asumsi initialTitle = assetId (misal: ai-02-eve-00)
+    const rarity = card.initial;
+    const hasAwakening = card.hasAwakening ?? false;
+
+    // Konfigurasi folder dan ekstensi
+    // Full pakai .webp, sisanya .png
+    const config = {
+      upper: { folder: "cardUpper", ext: "png" },
+    };
+
+    const { folder, ext } = config[type];
+
+    let index = 1; // Default index
+
+    if (rarity < 5) {
+      // KASUS 1: Rarity Rendah (2, 3, 4)
+      // Base = 0, Evolved = 1
+      index = isEvolved ? 1 : 0;
+    } else if (rarity === 5 && hasAwakening) {
+      // KASUS 2: Rarity 5 Link/Awakening
+      // Base = 1, Evolved = 2
+      index = isEvolved ? 2 : 1;
+    } else {
+      // KASUS 3: Rarity 5 Biasa (Fes/Initial)
+      // Selalu 1, tidak ada evolved
+      index = 1;
+    }
+
+    return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
   };
-
-  const { folder, ext } = config[type];
-
-  // Logika Index: 
-  // 1 = Normal (Pre-bloom)
-  // 2 = Evolved (Post-bloom)
-  // Catatan: Jika thumb di R2 kamu benar-benar mulai dari 0, ubah '1' menjadi '0' di baris bawah.
-  // Tapi standar Idoly Pride biasanya 1 dan 2.
-  const index = isEvolved ? 2 : 1; 
-
-  return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
-};
 
   const getColorByCardAttribute = (cardAttribute: string): string => {
     switch (cardAttribute) {
@@ -149,7 +163,7 @@ const CardList: React.FC<CardListProps> = ({
                     )}
                     <img
                       src={getCardImageUrl(
-                          card.initialTitle, 
+                          card, 
                           "upper"
                         )}
                       onError={(e) => {
