@@ -922,7 +922,7 @@ const CardOverview: React.FC = () => {
             )}
             <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative mb-36 lg:mb-0">
               {/* Gambar fixed (diam) */}
-              {slot.hasAwakening && (
+              {slot.initial < 5 && (
                 <div className="sticky top-0 z-0 hidden lg:block">
                   <img
                     // UPDATE DISINI: Logika toggle Normal/Evolved
