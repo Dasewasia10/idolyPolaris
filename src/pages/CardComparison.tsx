@@ -30,7 +30,7 @@ const generateCardId = (card: Card): string => {
 const matchWithCharacters = (cardSources: Source[], characters: any[]) =>
   cardSources.map((source) => {
     const matched = characters.find(
-      (char) => char.name.toLowerCase() === source.name.toLowerCase()
+      (char) => char.name.toLowerCase() === source.name.toLowerCase(),
     );
     return {
       key: source.name,
@@ -98,7 +98,7 @@ const processCardSources = (cardSources: Source[], idols: any[]) => {
         explanation: item.explanation,
       })),
     })),
-    idols
+    idols,
   );
 };
 
@@ -123,6 +123,17 @@ const CardComparison: React.FC = () => {
   const [idols, setIdols] = useState<Character[]>([]);
   const [cardSources, setCardSources] = useState<Source[]>([]);
 
+  const renderWithBr = (text: string | undefined) => {
+    if (!text) return null;
+    return text.split("\n").map((line, index, array) => (
+      <span key={index}>
+        {line}
+        {/* Jangan tambahkan <br> di baris terakhir */}
+        {index !== array.length - 1 && <br />}
+      </span>
+    ));
+  };
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -144,7 +155,6 @@ const CardComparison: React.FC = () => {
     fetchData();
   }, []);
 
-
   // Title Page Dynamic
   useEffect(() => {
     document.title = "Polaris Idoly | Card Comparison";
@@ -156,7 +166,7 @@ const CardComparison: React.FC = () => {
 
   const sources = useMemo(
     () => processCardSources(cardSources, idols),
-    [cardSources, idols]
+    [cardSources, idols],
   ); // ✅ Sekarang hanya dihitung ulang saat `cardSources` atau `characters` berubah
 
   const [cards, setCards] = useState<Card[]>([]);
@@ -166,8 +176,11 @@ const CardComparison: React.FC = () => {
     if (cards.length === 0) {
       setCards(
         sources.flatMap((source) =>
-          source.data.map((card: any) => ({ ...card, sourceName: source.name }))
-        )
+          source.data.map((card: any) => ({
+            ...card,
+            sourceName: source.name,
+          })),
+        ),
       );
     }
   }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
@@ -178,7 +191,7 @@ const CardComparison: React.FC = () => {
       .filter((card) => {
         // Ambil sourceName dari sources berdasarkan initialTitle
         const source = sources.find((source) =>
-          source.data.some((c: Card) => c.initialTitle === card.initialTitle)
+          source.data.some((c: Card) => c.initialTitle === card.initialTitle),
         );
 
         const sourceName = source?.name || "Unknown Source";
@@ -186,7 +199,7 @@ const CardComparison: React.FC = () => {
         // Cari karakter berdasarkan sourceName yang sudah ditemukan
         const character = idols.find(
           (char) =>
-            sourceName && char.name.toLowerCase() === sourceName.toLowerCase()
+            sourceName && char.name.toLowerCase() === sourceName.toLowerCase(),
         );
 
         const nameMatches = character
@@ -224,7 +237,7 @@ const CardComparison: React.FC = () => {
       .map((card) => {
         // Ambil kembali sourceName agar bisa dipakai di _sourceName
         const source = sources.find((source) =>
-          source.data.some((c: Card) => c.initialTitle === card.initialTitle)
+          source.data.some((c: Card) => c.initialTitle === card.initialTitle),
         );
 
         return {
@@ -248,14 +261,15 @@ const CardComparison: React.FC = () => {
           source.data.map((item) => ({
             ...item,
             sourceName: source.name,
-          }))
+          })),
         );
         setCards(data);
 
         if (cardTitle) {
           const selectedCard = data.find(
             (item) =>
-              item.initialTitle.toLowerCase().replace(/\s+/g, "-") === cardTitle
+              item.initialTitle.toLowerCase().replace(/\s+/g, "-") ===
+              cardTitle,
           );
           setSelectedCards(selectedCard ? [selectedCard] : []);
         } else {
@@ -277,7 +291,7 @@ const CardComparison: React.FC = () => {
         t.title?.[primaryLanguage] ||
         t.description?.[primaryLanguage] ||
         t.battleCommentary?.[primaryLanguage] ||
-        t.explanation?.[primaryLanguage]
+        t.explanation?.[primaryLanguage],
     );
 
     setSlot1((prevSlot1) =>
@@ -288,7 +302,7 @@ const CardComparison: React.FC = () => {
               filteredCardTranslations.find((t) => t.title?.[primaryLanguage])
                 ?.title?.[primaryLanguage] || "----",
           }
-        : null
+        : null,
     );
 
     setSlot2((prevSlot2) =>
@@ -299,7 +313,7 @@ const CardComparison: React.FC = () => {
               filteredCardTranslations.find((t) => t.title?.[primaryLanguage])
                 ?.title?.[primaryLanguage] || "----",
           }
-        : null
+        : null,
     );
   }, [primaryLanguage, cards]);
 
@@ -333,13 +347,13 @@ const CardComparison: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen, isOpen]);
-  
+
   const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
 
   const getCardImageUrl = (
     card: { initialTitle: string; initial: number; hasAwakening?: boolean },
     type: "thumb",
-    isEvolved: boolean = false
+    isEvolved: boolean = false,
   ) => {
     const assetId = card.initialTitle; // Asumsi initialTitle = assetId (misal: ai-02-eve-00)
     const rarity = card.initial;
@@ -541,9 +555,7 @@ const CardComparison: React.FC = () => {
                         {/* Menampilkan gambar berdasarkan slot1.uniqueId */}
                         {slot1 && uniqueId && (
                           <img
-                            src={getCardImageUrl(
-                            slot1, "thumb"
-                          )}
+                            src={getCardImageUrl(slot1, "thumb")}
                             onError={(e) => {
                               e.currentTarget.src = `${
                                 import.meta.env.BASE_URL
@@ -655,8 +667,8 @@ const CardComparison: React.FC = () => {
                               {skill?.ct === 1
                                 ? "Just Once"
                                 : skill?.ct === 0
-                                ? "NaN"
-                                : skill?.ct}
+                                  ? "NaN"
+                                  : skill?.ct}
                             </li>
                           </ul>
                         </div>
@@ -667,8 +679,8 @@ const CardComparison: React.FC = () => {
                           <p>
                             {skill?.description?.[primaryLanguage]?.map(
                               (line, index) => (
-                                <p key={index}>{line}</p>
-                              )
+                                <p key={index}>{renderWithBr(line)}</p>
+                              ),
                             )}
                           </p>
                         </div>
@@ -724,9 +736,23 @@ const CardComparison: React.FC = () => {
                           {slot1.skillFour.name?.[primaryLanguage]}
                         </h4>
                         <p>
-                          {slot1.skillFour.description?.[primaryLanguage]?.join(
-                            " "
-                          )}
+                          {Array.isArray(
+                            slot1.skillFour.description?.[primaryLanguage],
+                          )
+                            ? slot1.skillFour.description?.[
+                                primaryLanguage
+                              ].map((line, idx) => (
+                                <div key={idx}>{renderWithBr(line)}</div>
+                              ))
+                            : typeof slot1.skillFour.description?.[
+                                  primaryLanguage
+                                ] === "string"
+                              ? renderWithBr(
+                                  slot1.skillFour.description?.[
+                                    primaryLanguage
+                                  ] as string,
+                                )
+                              : null}
                         </p>
                       </div>
                     </section>
@@ -738,7 +764,11 @@ const CardComparison: React.FC = () => {
                       <h4 className="font-bold">
                         {slot1.yell?.name?.[primaryLanguage]}
                       </h4>
-                      <p>{slot1.yell?.description?.[primaryLanguage]}</p>
+                      <p>
+                        {renderWithBr(
+                          slot1.yell?.description?.[primaryLanguage] || "",
+                        )}
+                      </p>
                     </div>
                   </section>
                 </div>
@@ -784,9 +814,7 @@ const CardComparison: React.FC = () => {
                         {/* Menampilkan gambar berdasarkan slot1.uniqueId */}
                         {slot2 && uniqueId && (
                           <img
-                            src={getCardImageUrl(
-                            slot2, "thumb"
-                          )}
+                            src={getCardImageUrl(slot2, "thumb")}
                             onError={(e) => {
                               e.currentTarget.src = `${
                                 import.meta.env.BASE_URL
@@ -898,8 +926,8 @@ const CardComparison: React.FC = () => {
                               {skill?.ct === 1
                                 ? "Just Once"
                                 : skill?.ct === 0
-                                ? "NaN"
-                                : skill?.ct}
+                                  ? "NaN"
+                                  : skill?.ct}
                             </li>
                           </ul>
                         </div>
@@ -910,8 +938,8 @@ const CardComparison: React.FC = () => {
                           <p>
                             {skill?.description?.[primaryLanguage]?.map(
                               (line, index) => (
-                                <p key={index}>{line}</p>
-                              )
+                                <p key={index}>{renderWithBr(line)}</p>
+                              ),
                             )}
                           </p>
                         </div>
@@ -967,9 +995,23 @@ const CardComparison: React.FC = () => {
                           {slot2.skillFour.name?.[primaryLanguage]}
                         </h4>
                         <p>
-                          {slot2.skillFour.description?.[primaryLanguage]?.join(
-                            " "
-                          )}
+                          {Array.isArray(
+                            slot2.skillFour.description?.[primaryLanguage],
+                          )
+                            ? slot2.skillFour.description?.[
+                                primaryLanguage
+                              ].map((line, idx) => (
+                                <div key={idx}>{renderWithBr(line)}</div>
+                              ))
+                            : typeof slot2.skillFour.description?.[
+                                  primaryLanguage
+                                ] === "string"
+                              ? renderWithBr(
+                                  slot2.skillFour.description?.[
+                                    primaryLanguage
+                                  ] as string,
+                                )
+                              : null}
                         </p>
                       </div>
                     </section>
@@ -981,7 +1023,11 @@ const CardComparison: React.FC = () => {
                       <h4 className="font-bold">
                         {slot2.yell?.name?.[primaryLanguage]}
                       </h4>
-                      <p>{slot2.yell?.description?.[primaryLanguage]}</p>
+                      <p>
+                        {renderWithBr(
+                          slot2.yell?.description?.[primaryLanguage] || "",
+                        )}
+                      </p>
                     </div>
                   </section>
                 </div>
@@ -1035,7 +1081,6 @@ const CardComparison: React.FC = () => {
         </div>
       )}
     </div>
-
   );
 };
 

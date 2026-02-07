@@ -144,6 +144,18 @@ const CardOverview: React.FC = () => {
 
   const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
 
+  const renderWithBr = (text: string | string[] | undefined) => {
+    if (!text) return "No description available";
+    const textStr = Array.isArray(text) ? text.join("\n") : text;
+    return textStr.split("\n").map((line, index, array) => (
+      <span key={index}>
+        {line}
+        {/* Jangan tambahkan <br> di baris terakhir */}
+        {index !== array.length - 1 && <br />}
+      </span>
+    ));
+  };
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -986,10 +998,7 @@ const CardOverview: React.FC = () => {
                     </h3>
                     <div className="flex items-center justify-evenly">
                       <p className="text-center italic text-sm rounded border p-2 bg-gray-700 whitespace-pre-line">
-                        "
-                        {slot.description?.[primaryLanguage] ||
-                          "No description available"}
-                        "
+                        {renderWithBr(slot.description?.[primaryLanguage])}
                       </p>
                     </div>
                     <div>
@@ -1153,7 +1162,7 @@ const CardOverview: React.FC = () => {
                           {skill?.description?.[primaryLanguage]?.map(
                             (line, index) => (
                               <p className="whitespace-pre-line" key={index}>
-                                {line}
+                                {renderWithBr(line)}
                               </p>
                             ),
                           )}
@@ -1213,8 +1222,8 @@ const CardOverview: React.FC = () => {
                           {slot.skillFour.name?.[primaryLanguage]}
                         </h4>
                         <p className="whitespace-pre-line">
-                          {slot.skillFour.description?.[primaryLanguage]?.join(
-                            " ",
+                          {renderWithBr(
+                            slot.skillFour.description?.[primaryLanguage],
                           )}
                         </p>
                       </div>
@@ -1248,7 +1257,9 @@ const CardOverview: React.FC = () => {
                         {slot.yell?.name?.[primaryLanguage]}
                       </h4>
                       <p className="text-sm whitespace-pre-line">
-                        {slot.yell?.description?.[primaryLanguage]}
+                        {renderWithBr(
+                          slot.yell?.description?.[primaryLanguage],
+                        )}
                       </p>
                     </div>
                   </div>
