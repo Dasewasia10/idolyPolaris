@@ -985,10 +985,14 @@ const CardOverview: React.FC = () => {
                       {slot.title?.[primaryLanguage]}
                     </h3>
                     <div className="flex items-center justify-evenly">
-                      <p className="text-center italic text-sm rounded border p-2 bg-gray-700 whitespace-pre-wrap">
-                      "{slot.description?.[primaryLanguage] || "No description available"}"
+                      <p className="text-center italic text-sm rounded border p-2 bg-gray-700 whitespace-pre-line">
+                        "
+                        {slot.description?.[primaryLanguage] ||
+                          "No description available"}
+                        "
                       </p>
                     </div>
+                    <div>
                       {slot.type && (
                         <img
                           src={getCardTypeImageUrl(slot.type)}
@@ -1148,7 +1152,9 @@ const CardOverview: React.FC = () => {
                         <p>
                           {skill?.description?.[primaryLanguage]?.map(
                             (line, index) => (
-                              <p className="whitespace-pre-wrap" key={index}>{line}</p>
+                              <p className="whitespace-pre-line" key={index}>
+                                {line}
+                              </p>
                             ),
                           )}
                         </p>
@@ -1206,7 +1212,7 @@ const CardOverview: React.FC = () => {
                         <h4 className="font-bold">
                           {slot.skillFour.name?.[primaryLanguage]}
                         </h4>
-                        <p className="whitespace-pre-wrap">
+                        <p className="whitespace-pre-line">
                           {slot.skillFour.description?.[primaryLanguage]?.join(
                             " ",
                           )}
@@ -1241,7 +1247,7 @@ const CardOverview: React.FC = () => {
                       <h4 className="font-bold text-lg">
                         {slot.yell?.name?.[primaryLanguage]}
                       </h4>
-                      <p className="text-sm whitespace-pre-wrap">
+                      <p className="text-sm whitespace-pre-line">
                         {slot.yell?.description?.[primaryLanguage]}
                       </p>
                     </div>
