@@ -12,6 +12,11 @@ export interface Card {
     global?: Array<string>;
     indo?: Array<string>;
   };
+  message?: {
+    japanese?: Array<string>;
+    global?: Array<string>;
+    indo?: Array<string>;
+  };
   releaseDate: string;
   category: string;
   costumeTheme: string;
