@@ -1,83 +1,116 @@
-import React, { useRef, useState, useEffect } from "react";
-import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import axios from "axios";
-import domtoimage from "dom-to-image";
+import React, { useState, useEffect, useRef } from "react";
+import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
+import Draggable, { DraggableEventHandler } from "react-draggable";
+import axios from "axios";
+import { X, Download, Plus, Search, Trash2 } from "lucide-react"; // Pastikan install lucide-react atau ganti icon
 
-import Toast from "../components/Toast";
+// --- Interfaces ---
+interface Character {
+  name: string;
+  japaneseName: string;
+  color: string;
+  // Sesuaikan dengan response API kamu jika ada field lain
+}
 
-import { Character } from "../interfaces/Character";
-import { Icon } from "../interfaces/Icon";
+interface Icon {
+  id: number;
+  name: string;
+  src: string;
+  x: number;
+  y: number;
+}
 
-const API_BASE_URL = "https://diveidolypapi.my.id/api";
+interface AxisLabels {
+  top: string;
+  bottom: string;
+  left: string;
+  right: string;
+}
 
-const CompassChart: React.FC = () => {
-  const draggableRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
+// --- Sub-Component untuk Draggable Icon (PENTING untuk fix useRef error) ---
+interface DraggableIconProps {
+  icon: Icon;
+  onStop: (id: number, x: number, y: number) => void;
+  onRemove: (id: number) => void;
+}
 
-  const [icons, setIcons] = useState<Icon[]>([]);
-  const [positions, setPositions] = useState<{
-    [key: number]: { x: number; y: number };
-  }>({});
-  const [fileName, setFileName] = useState("");
-  const [unsavedChanges, setUnsavedChanges] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(true);
+const DraggableIcon: React.FC<DraggableIconProps> = ({
+  icon,
+  onStop,
+  onRemove,
+}) => {
+  const nodeRef = useRef<HTMLDivElement>(null);
 
-  const [title, setTitle] = useState("Title here");
-  const [top, setTop] = useState("Top");
-  const [bottom, setBottom] = useState("Bottom");
-  const [left, setLeft] = useState("Left");
-  const [right, setRight] = useState("Right");
-
-  const [highestZIndex, setHighestZIndex] = useState(1);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [isPositionChanged, setIsPositionChanged] = useState(false);
-
-  const getCharacterIconUrl = (characterName: string) => {
-    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
+  // Handler saat drag berhenti
+  const handleStop: DraggableEventHandler = (_e, data) => {
+    onStop(icon.id, data.x, data.y);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/characters`);
+  return (
+    <Draggable
+      nodeRef={nodeRef}
+      bounds="parent"
+      position={{ x: icon.x, y: icon.y }} // Controlled position
+      onStop={handleStop}
+    >
+      <div
+        ref={nodeRef}
+        className="absolute flex flex-col items-center group cursor-grab active:cursor-grabbing w-16 z-20"
+        // Style ini menempatkan titik (0,0) dragger di tengah container
+        style={{
+          top: "50%",
+          left: "50%",
+          marginLeft: "-2rem", // Setengah dari width (w-16 = 4rem)
+          marginTop: "-2rem", // Setengah dari height (asumsi icon tinggi ~4rem total)
+        }}
+      >
+        {/* Tombol Hapus (Muncul saat hover) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Mencegah drag saat klik hapus
+            onRemove(icon.id);
+          }}
+          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-30"
+          title="Remove"
+        >
+          <X size={12} />
+        </button>
 
-        // ✅ Filter hanya idol yang ada dalam grup tertentu
-        const allowedGroups = [
-          "Tsuki no Tempest",
-          "Sunny Peace",
-          "TRINITYAiLE",
-          "LizNoir",
-          "IIIX",
-          "Mana Nagase",
-        ];
+        {/* Gambar Icon */}
+        <img
+          src={icon.src}
+          alt={icon.name}
+          className="w-12 h-12 rounded-full border-2 border-white shadow-md pointer-events-none select-none"
+        />
 
-        const sortedCharacters = response.data
-          .filter((idol: { groupName: string }) =>
-            allowedGroups.includes(idol.groupName)
-          )
-          .sort((a: Character, b: Character) => a.name.localeCompare(b.name));
+        {/* Nama Karakter */}
+        <span className="mt-1 text-[10px] font-bold text-gray-700 bg-white/80 px-1 rounded shadow-sm whitespace-nowrap pointer-events-none select-none">
+          {icon.name}
+        </span>
+      </div>
+    </Draggable>
+  );
+};
 
-        const processedIcons = sortedCharacters.map(
-          (character: Character, index: number) => ({
-            id: index + 1,
-            name: character.name,
-            src: getCharacterIconUrl(character.name),
-          })
-        );
+// --- Main Component ---
+const CompassChart: React.FC = () => {
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [activeIcons, setActiveIcons] = useState<Icon[]>([]);
 
-        setIcons(processedIcons);
+  const [title, setTitle] = useState("Title here");
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  // State Label 4 Arah
+  const [labels, setLabels] = useState<AxisLabels>({
+    top: "Energetic",
+    bottom: "Calm",
+    left: "Introvert",
+    right: "Extrovert",
+  });
 
-    fetchData();
-  }, []);
-
+  const [showIconSelector, setShowIconSelector] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const chartRef = useRef<HTMLDivElement>(null);
 
   // Title Page Dynamic
   useEffect(() => {
@@ -88,254 +121,300 @@ const CompassChart: React.FC = () => {
     };
   }, []);
 
+  // Fetch Data
   useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (isPositionChanged) {
-        event.preventDefault();
-        event.returnValue = ""; // Standar untuk beberapa browser
+    const fetchCharacters = async () => {
+      try {
+        const response = await axios.get(
+          "https://diveidolypapi.my.id/api/characters",
+        );
+        // Sort karakter berdasarkan nama
+        const sorted = response.data.sort((a: Character, b: Character) =>
+          a.name.localeCompare(b.name),
+        );
+        setCharacters(sorted);
+      } catch (error) {
+        console.error("Error fetching characters:", error);
       }
     };
+    fetchCharacters();
+  }, []);
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+  const getCharacterIconUrl = (characterName: string) => {
+    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
+    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
+  };
 
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+  // Handlers
+  const handleIconDrag = (id: number, x: number, y: number) => {
+    setActiveIcons((prev) =>
+      prev.map((icon) => (icon.id === id ? { ...icon, x, y } : icon)),
+    );
+  };
+
+  const addIconToChart = (character: Character) => {
+    const newIcon: Icon = {
+      id: Date.now(), // Unique ID
+      name: character.name,
+      src: getCharacterIconUrl(character.name),
+      x: 0, // Mulai di tengah (0,0)
+      y: 0,
     };
-  }, [isPositionChanged]);
+    setActiveIcons((prev) => [...prev, newIcon]);
+    setShowIconSelector(false); // Opsional: tutup modal setelah pilih
+  };
 
-  const handleScreenshot = async () => {
-    const element = document.getElementById("idolyChart");
-    if (!element) return;
+  const removeIconFromChart = (id: number) => {
+    setActiveIcons((prev) => prev.filter((icon) => icon.id !== id));
+  };
 
-    const originalStyle = {
-      height: element.style.height,
-      overflow: element.style.overflow,
-    };
+  const handleLabelChange = (key: keyof AxisLabels, value: string) => {
+    setLabels((prev) => ({ ...prev, [key]: value }));
+  };
 
-    try {
-      element.style.height = "full";
-      element.style.overflow = "visible";
-
-      // Gunakan dom-to-image
-      const blob = await domtoimage.toBlob(element, {
-        quality: 1,
-        cacheBust: true,
-        style: {
-          transform: "none", // Handle transform issues
-        },
-        filter: (_node: any) => {
-          // Handle filter jika diperlukan
-          return true;
-        },
-        imagePlaceholder:
-          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", // Placeholder untuk gambar error
-      });
-
-      if (blob) {
-        saveAs(blob, `conversation_${title}.png`);
-        setToastMessage("Image saved successfully!");
-        setIsSuccess(true);
-        setUnsavedChanges(false);
+  const handleDownload = async () => {
+    if (chartRef.current) {
+      try {
+        const canvas = await html2canvas(chartRef.current, {
+          backgroundColor: "#ffffff", // Pastikan background putih
+          scale: 2, // Kualitas lebih tinggi
+        });
+        canvas.toBlob((blob) => {
+          if (blob) {
+            saveAs(blob, `compass_chart-${title}.png`);
+          }
+        });
+      } catch (error) {
+        console.error("Download failed:", error);
       }
-    } catch (error) {
-      console.error("Error:", error);
-      setToastMessage("Failed to save image");
-      setIsSuccess(false);
-    } finally {
-      element.style.height = originalStyle.height;
-      element.style.overflow = originalStyle.overflow;
     }
   };
 
-  const handleStop = (
-    _e: DraggableEvent,
-    data: DraggableData,
-    index: number
-  ) => {
-    setPositions((prev) => ({
-      ...prev,
-      [index]: { x: data.x, y: data.y },
-    }));
-    setIsPositionChanged(true);
-  };
-
-  // Before unload effect
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (unsavedChanges) {
-        event.preventDefault();
-        event.returnValue =
-          "You have unsaved changes. Are you sure you want to leave?";
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [unsavedChanges]);
-
-  const clickHandlerDraggable = (index: number) => {
-    setHighestZIndex((prev) => prev + 1);
-    setActiveIndex(index);
-  };
+  // Filter Search
+  const filteredCharacters = characters.filter((char) =>
+    char.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
-    <div className="relative lg:h-[38rem] w-full bg-gradient-to-br from-[#182cfc] to-[#6a11cb] overflow-hidden flex flex-col lg:flex-row items-center lg:justify-between gap-20">
-      {/* Customization Panel */}
-      <div className="z-30 w-80 lg:h-full rounded-xl lg:rounded-r-xl bg-gray-800/90 backdrop-blur-lg shadow-2xl transition-all duration-300 m-4 lg:m-0 justify-center flex">
-        <div className="p-4">
-          {/* Save Section */}
-          <div className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                File Name
-              </label>
-              <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-800 p-4 lg:p-8 font-sans text-gray-900">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* --- KOLOM KIRI: Controls & Labels --- */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-slate-300 p-6 rounded-xl shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Chart Settings
+            </h2>
+
+            {/* Axis Inputs */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                  Title
+                </label>
                 <input
                   type="text"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
-                  className="flex-1 rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                  placeholder="Enter file name"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 />
-                <button
-                  onClick={handleScreenshot}
-                  className="rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-2 font-medium text-white transition-all hover:from-pink-600 hover:to-rose-600 hover:shadow-lg"
-                >
-                  Save
-                </button>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                  Top Label (Y+)
+                </label>
+                <input
+                  type="text"
+                  value={labels.top}
+                  onChange={(e) => handleLabelChange("top", e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                  Bottom Label (Y-)
+                </label>
+                <input
+                  type="text"
+                  value={labels.bottom}
+                  onChange={(e) => handleLabelChange("bottom", e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                  Left Label (X-)
+                </label>
+                <input
+                  type="text"
+                  value={labels.left}
+                  onChange={(e) => handleLabelChange("left", e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                  Right Label (X+)
+                </label>
+                <input
+                  type="text"
+                  value={labels.right}
+                  onChange={(e) => handleLabelChange("right", e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
               </div>
             </div>
 
-            {/* Title Customization */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                Chart Title
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                placeholder="Enter title"
-              />
-            </div>
-
-            {/* Axis Labels */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                Axis Labels
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={top}
-                  onChange={(e) => setTop(e.target.value)}
-                  className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                  placeholder="Top"
-                />
-                <input
-                  type="text"
-                  value={bottom}
-                  onChange={(e) => setBottom(e.target.value)}
-                  className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                  placeholder="Bottom"
-                />
-                <input
-                  type="text"
-                  value={left}
-                  onChange={(e) => setLeft(e.target.value)}
-                  className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                  placeholder="Left"
-                />
-                <input
-                  type="text"
-                  value={right}
-                  onChange={(e) => setRight(e.target.value)}
-                  className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                  placeholder="Right"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart Container */}
-      <div
-        id="idolyChart"
-        className="z-20 h-96 w-full lg:w-1/2 rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl translate-x-0 lg:-translate-x-20"
-      >
-        {/* Title */}
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 transform rounded-full bg-white/80 px-6 py-2 text-center text-lg font-bold shadow-md backdrop-blur-sm z-10">
-          {title}
-        </div>
-
-        {/* Icons Grid */}
-        <div className="absolute left-0 top-0 flex flex-wrap gap-4 p-4 lg:w-[75%] z-20">
-          {icons.map((item, index) => (
-            <Draggable
-              key={index}
-              defaultPosition={positions[index] || { x: 0, y: 0 }}
-              onStop={(e, data) => handleStop(e, data, index)}
-              nodeRef={draggableRefs.current[index]}
-              onMouseDown={() => clickHandlerDraggable(index)}
-            >
-              <div
-                ref={draggableRefs.current[index]}
-                className={`transition-transform duration-200 ${
-                  activeIndex === index ? "scale-110" : "scale-100"
-                }`}
-                style={{
-                  zIndex: activeIndex === index ? highestZIndex : 1,
-                }}
+            {/* Actions */}
+            <div className="mt-8 flex flex-col gap-3">
+              <button
+                onClick={() => setShowIconSelector(true)}
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors"
               >
-                <img
-                  src={getCharacterIconUrl(item.name)}
-                  alt={`icon-${index}`}
-                  className="h-10 w-auto cursor-move rounded-full border-2 border-white shadow-md transition-all hover:border-blue-400 lg:h-14"
-                />
-              </div>
-            </Draggable>
-          ))}
+                <Plus size={18} /> Add Character
+              </button>
+
+              <button
+                onClick={handleDownload}
+                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium transition-colors"
+              >
+                <Download size={18} /> Download Chart
+              </button>
+
+              <button
+                onClick={() => setActiveIcons([])}
+                className="w-full flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg font-medium transition-colors"
+              >
+                <Trash2 size={18} /> Clear Chart
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Chart Axes and Labels */}
-        <div className="h-full w-full">
-          {/* Center Lines */}
-          <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 transform bg-gray-300"></div>
-          <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 transform bg-gray-300"></div>
+        {/* --- KOLOM KANAN: Chart Area --- */}
+        <div className="lg:col-span-2">
+          <div className="bg-white p-1 rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            {/* Chart Container 
+              - Ref dipasang di sini untuk capture html2canvas
+              - Relative positioning untuk Draggable items
+            */}
+            <div
+              ref={chartRef}
+              className="relative w-full aspect-square bg-white overflow-hidden"
+              style={{ minHeight: "500px" }}
+            >
+              {/* Grid Background (Optional Gimmick) */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-5"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
+                  backgroundSize: "20px 20px",
+                }}
+              />
 
-          {/* Axis Labels */}
-          <div className="absolute left-1/2 top-12 -translate-x-1/2 transform rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
-            {top}
+              {/* --- AXIS LINES --- */}
+              {/* Vertical Line */}
+              <div className="absolute top-8 bottom-8 left-1/2 w-0.5 bg-gray-300 transform -translate-x-1/2"></div>
+              {/* Horizontal Line */}
+              <div className="absolute left-8 right-8 top-1/2 h-0.5 bg-gray-300 transform -translate-y-1/2"></div>
+
+              {/* --- AXIS LABELS --- */}
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border">
+                {labels.top}
+              </div>
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border">
+                {labels.bottom}
+              </div>
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border -rotate-90 md:rotate-0 origin-center">
+                {labels.left}
+              </div>
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border rotate-90 md:rotate-0 origin-center">
+                {labels.right}
+              </div>
+
+              {/* --- DRAGGABLE ICONS --- */}
+              {activeIcons.map((icon) => (
+                <DraggableIcon
+                  key={icon.id}
+                  icon={icon}
+                  onStop={handleIconDrag}
+                  onRemove={removeIconFromChart}
+                />
+              ))}
+            </div>
           </div>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 transform rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
-            {bottom}
-          </div>
-          <div className="absolute left-2 top-1/2 -translate-y-1/2 transform -rotate-90 rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
-            {left}
-          </div>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 transform rotate-90 rounded-full bg-blue-500/90 px-4 py-1 text-sm font-semibold text-white shadow-md">
-            {right}
-          </div>
+          <p className="text-center text-gray-400 text-sm mt-4">
+            Drag icons to position them on the spectrum. Double click or hover
+            to remove.
+          </p>
         </div>
       </div>
 
-      {/* Logo */}
-      <img
-        src="https://raw.githubusercontent.com/765Pro-Hoshimi/IDOLY-PRIDE-Logo/5e7f4e7a6b7889a12e266f1be1306cd6b2178a65/Logo/idoly-pride-logo-full-white.svg"
-        alt="Idoly-Pride-Logo"
-        className="absolute left-0 top-1/2 h-24 w-auto opacity-90 lg:h-40"
-      />
+      {/* --- MODAL: Icon Selector --- */}
+      {showIconSelector && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
+            {/* Modal Header */}
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-bold">Select Character</h3>
+              <button
+                onClick={() => setShowIconSelector(false)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-      {toastMessage && (
-        <Toast
-          message={toastMessage}
-          isSuccess={isSuccess}
-          onClose={() => setToastMessage("")}
-        />
+            {/* Search Bar */}
+            <div className="p-4 border-b bg-gray-50">
+              <div className="relative">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="Search character..."
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Character Grid */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {filteredCharacters.length > 0 ? (
+                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
+                  {filteredCharacters.map((char) => (
+                    <button
+                      key={char.name}
+                      onClick={() => addIconToChart(char)}
+                      className="group flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-blue-50 transition-colors"
+                    >
+                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-transparent group-hover:border-blue-400 transition-all">
+                        <img
+                          src={getCharacterIconUrl(char.name)}
+                          alt={char.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs text-center font-medium text-gray-600 group-hover:text-blue-600 truncate w-full">
+                        {char.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-gray-400">
+                  No characters found.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
