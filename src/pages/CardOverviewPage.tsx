@@ -123,7 +123,26 @@ const CardOverview: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   type Language = "japanese" | "global" | "indo";
-  const [primaryLanguage, setPrimaryLanguage] = useState<Language>("global");
+  const [primaryLanguage, setPrimaryLanguage] = useState<Language>(() => {
+    // Cek apakah kode berjalan di browser
+    if (typeof window !== "undefined") {
+      const savedLang = localStorage.getItem("primaryLanguage");
+      // Pastikan nilai yang diambil valid sesuai tipe Language
+      if (
+        savedLang === "japanese" ||
+        savedLang === "global" ||
+        savedLang === "indo"
+      ) {
+        return savedLang;
+      }
+    }
+    return "global"; // Default jika tidak ada yang tersimpan
+  });
+
+  // TAMBAHKAN INI: Effect untuk menyimpan ke localStorage setiap kali bahasa berubah
+  useEffect(() => {
+    localStorage.setItem("primaryLanguage", primaryLanguage);
+  }, [primaryLanguage]);
 
   const [showIconB, setShowIconB] = useState<boolean>(false);
   const [showIconE, setShowIconE] = useState<boolean>(false);
@@ -143,7 +162,7 @@ const CardOverview: React.FC = () => {
   const [selectedAttribute, setSelectedAttribute] = useState<string[]>([]);
 
   const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
-
+  0;
   const renderWithBr = (text: string | string[] | undefined) => {
     if (!text) return "No description available";
     const textStr = Array.isArray(text) ? text.join("\n") : text;
@@ -992,46 +1011,49 @@ const CardOverview: React.FC = () => {
                 className="relative z-20 gap-4 flex flex-col rounded border bg-[#00246B] p-4 text-white shadow-sm"
               >
                 <section className="flex flex-col items-center justify-around gap-4 lg:mt-4 lg:flex-row">
-                  <section className="flex w-full flex-col justify-center gap-2 lg:gap-4">
+                  <section className="flex w-full flex-col justify-center gap-2 lg:gap-6">
                     <h3 className="w-full rounded bg-white text-center text-xl font-bold text-black lg:py-2 lg:text-2xl">
                       {slot.title?.[primaryLanguage]}
                     </h3>
-                    <div className="flex items-center justify-evenly">
+                    <div className="w-full items-center justify-evenly">
                       <p className="text-center italic text-sm rounded border p-2 bg-gray-700 whitespace-pre-line">
                         {renderWithBr(slot.description?.[primaryLanguage])}
                       </p>
                     </div>
-                    <div>
+                    <div className="flex justify-evenly items-center gap-4 lg:gap-8">
                       {slot.type && (
                         <img
                           src={getCardTypeImageUrl(slot.type)}
                           alt={slot.type}
-                          className="h-auto w-8 lg:w-12"
+                          className="h-16 w-auto"
                         />
                       )}
                       {slot.attribute && (
                         <img
                           src={getCardAttributeImageUrl(slot.attribute)}
                           alt={slot.attribute}
-                          className="h-auto w-8 scale-110 rounded-full bg-white object-cover lg:w-12"
+                          className="h-16 w-max rounded-full bg-white object-cover"
                         />
                       )}
-                      <div id="costume-icon" className="">
-                        {slot.initial === 5 && (
-                          <img
-                            // Gunakan fungsi getCardCosuUrl yang baru
-                            src={getCardCosuUrl(slot)}
-                            alt={`Costume ${slot.uniqueId}`}
-                            className="h-auto w-10 rounded bg-white object-cover p-1 lg:w-20"
-                            onError={(e) => {
-                              e.currentTarget.src = `${
-                                import.meta.env.BASE_URL
-                              }assets/default_image.png`;
-                              e.currentTarget.alt = "Image not available";
-                            }}
-                          />
-                        )}
-                      </div>
+                      {getCardCosuUrl(slot) !=
+                        `${import.meta.env.BASE_URL}assets/default_image.png` && (
+                        <div id="costume-icon" className="h-20 w-auto">
+                          {slot.initial === 5 && (
+                            <img
+                              // Gunakan fungsi getCardCosuUrl yang baru
+                              src={getCardCosuUrl(slot)}
+                              alt={`Costume ${slot.uniqueId}`}
+                              className="h-auto w-10 rounded bg-white object-cover p-1 lg:w-20"
+                              onError={(e) => {
+                                e.currentTarget.src = `${
+                                  import.meta.env.BASE_URL
+                                }assets/default_image.png`;
+                                e.currentTarget.alt = "Image not available";
+                              }}
+                            />
+                          )}
+                        </div>
+                      )}
                     </div>
                   </section>
                   <div className="relative h-60 w-full items-center rounded lg:w-96">
