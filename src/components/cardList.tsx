@@ -26,7 +26,7 @@ const CardList: React.FC<CardListProps> = ({
     const fetchCharacters = async () => {
       try {
         const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters"
+          "https://diveidolypapi.my.id/api/characters",
         );
         if (!response.ok) throw new Error("Failed to fetch characters");
 
@@ -45,7 +45,7 @@ const CardList: React.FC<CardListProps> = ({
   const getCardImageUrl = (
     card: { initialTitle: string; initial: number; hasAwakening?: boolean },
     type: "upper",
-    isEvolved: boolean = false
+    isEvolved: boolean = false,
   ) => {
     const assetId = card.initialTitle; // Asumsi initialTitle = assetId (misal: ai-02-eve-00)
     const rarity = card.initial;
@@ -101,7 +101,7 @@ const CardList: React.FC<CardListProps> = ({
     const normalizedSourceName = sourceName.trim().toLowerCase();
 
     const character = characters.find(
-      (char) => char.name.trim().toLowerCase() === normalizedSourceName
+      (char) => char.name.trim().toLowerCase() === normalizedSourceName,
     );
 
     // Jika tidak ditemukan, coba cari dengan partial match
@@ -109,7 +109,7 @@ const CardList: React.FC<CardListProps> = ({
       const partialMatch = characters.find(
         (char) =>
           normalizedSourceName.includes(char.name.trim().toLowerCase()) ||
-          char.name.trim().toLowerCase().includes(normalizedSourceName)
+          char.name.trim().toLowerCase().includes(normalizedSourceName),
       );
       return partialMatch?.color || "#ffffff"; // Default white jika tidak ditemukan
     }
@@ -122,83 +122,80 @@ const CardList: React.FC<CardListProps> = ({
       {cardAfterFilter.length === 0 ? (
         <p>No cards available</p>
       ) : (
-        [...cardAfterFilter]
-          .sort((a, b) => a.initialTitle.localeCompare(b.initialTitle)) // ✅ Urutkan berdasarkan initialTitle
-          .map((card, index) => {
-            const backgroundColor = card
-              ? getColorByCardAttribute(card.attribute)
-              : "ffffff";
-            const sourceName =
-              (card as Record<string, any>)._sourceName || "Unknown Idol";
-            const uniqueId =
-              (card as Record<string, any>).uniqueId || "Unknown";
+        // HAPUS .sort() di sini! Gunakan langsung cardAfterFilter yang sudah di-sort dari parent
+        cardAfterFilter.map((card) => {
+          const backgroundColor = card
+            ? getColorByCardAttribute(card.attribute)
+            : "ffffff";
+          const sourceName =
+            (card as Record<string, any>)._sourceName || "Unknown Idol";
 
-            // Dapatkan warna karakter
-            const characterColor = getCharacterColor(sourceName);
-            
-            return (
-              <div
-                key={index}
-                className="flex cursor-pointer gap-4 rounded-r-lg border shadow-lg transition-all duration-500 ease-out hover:shadow-2xl bg-white hover:bg-slate-300"
-                onClick={() => onSelectCard(card)}
-              >
-                <section className="relative inset-0 flex items-center gap-2 w-full">
-                  {/* Segitiga kanan bawah */}
-                  <div
-                    className="absolute bottom-0 right-0 w-0 h-0  border-l-[50px] border-l-transparent border-b-[50px] rounded-br-lg"
-                    style={{
-                      borderBottomColor: `#${characterColor}`,
-                    }}
-                  />
-                  <div className="relative h-full w-20 transition-all duration-300 ease-out">
-                    {card.type && (
-                      <img
-                        src={getCardTypeImageUrl2(card.type)}
-                        alt={card.type}
-                        className="absolute h-auto w-4 lg:w-6"
-                        style={{
-                          backgroundColor: `#${backgroundColor}`,
-                        }}
-                      />
-                    )}
+          // Gunakan uniqueId sebagai identitas unik
+          const uniqueId =
+            (card as Record<string, any>).uniqueId || card.initialTitle;
+
+          // Dapatkan warna karakter
+          const characterColor = getCharacterColor(sourceName);
+
+          return (
+            <div
+              // GUNAKAN uniqueId, jangan index!
+              key={uniqueId}
+              className="flex cursor-pointer gap-4 rounded-r-lg border shadow-lg transition-all duration-500 ease-out hover:shadow-2xl bg-white hover:bg-slate-300"
+              onClick={() => onSelectCard(card)}
+            >
+              <section className="relative inset-0 flex items-center gap-2 w-full">
+                {/* Segitiga kanan bawah */}
+                <div
+                  className="absolute bottom-0 right-0 w-0 h-0 border-l-[50px] border-l-transparent border-b-[50px] rounded-br-lg"
+                  style={{
+                    borderBottomColor: `#${characterColor}`,
+                  }}
+                />
+                <div className="relative h-full w-20 transition-all duration-300 ease-out">
+                  {card.type && (
                     <img
-                      src={getCardImageUrl(
-                          card, 
-                          "upper"
-                        )}
-                      onError={(e) => {
-                        e.currentTarget.src = `${
-                          import.meta.env.BASE_URL
-                        }assets/default_image.png`;
-                        e.currentTarget.alt = "Image not available";
+                      src={getCardTypeImageUrl2(card.type)}
+                      alt={card.type}
+                      className="absolute h-auto w-4 lg:w-6"
+                      style={{
+                        backgroundColor: `#${backgroundColor}`,
                       }}
-                      alt={`Card ${uniqueId}`}
-                      className="h-full w-20 object-cover transition-all duration-500 ease-out"
                     />
-                  </div>
-                  <div className="w-2/3">
-                    <h3 key={index} className="text-lg font-bold">
-                      {card.title?.[primaryLanguage]}
-                    </h3>
-                    <h4 className="text-sm font-semibold">{sourceName}</h4>
-                    <p className="text-xl">{generateStars(card.initial)}</p>
+                  )}
+                  <img
+                    src={getCardImageUrl(card, "upper")}
+                    onError={(e) => {
+                      e.currentTarget.src = `${import.meta.env.BASE_URL}assets/default_image.png`;
+                      e.currentTarget.alt = "Image not available";
+                    }}
+                    alt={`Card ${uniqueId}`}
+                    className="h-full w-20 object-cover transition-all duration-500 ease-out"
+                  />
+                </div>
+                <div className="w-2/3">
+                  <h3 className="text-lg font-bold">
+                    {card.title?.[primaryLanguage]}
+                  </h3>
+                  <h4 className="text-sm font-semibold">{sourceName}</h4>
+                  <p className="text-xl">{generateStars(card.initial)}</p>
 
-                    <p className="text-sm">
-                      {[
-                        card.skillOne,
-                        card.skillTwo,
-                        card.skillThree,
-                        card.skillFour,
-                      ]
-                        .filter(Boolean)
-                        .map((skill) => skill?.typeSkill?.replace(/,/g, " /"))
-                        .join(" / ")}
-                    </p>
-                  </div>
-                </section>
-              </div>
-            );
-          })
+                  <p className="text-sm">
+                    {[
+                      card.skillOne,
+                      card.skillTwo,
+                      card.skillThree,
+                      card.skillFour,
+                    ]
+                      .filter(Boolean)
+                      .map((skill) => skill?.typeSkill?.replace(/,/g, " /"))
+                      .join(" / ")}
+                  </p>
+                </div>
+              </section>
+            </div>
+          );
+        })
       )}
     </div>
   );

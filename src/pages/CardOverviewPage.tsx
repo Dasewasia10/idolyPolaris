@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useParams } from "react-router-dom";
+// import { useParams } from "react-router-dom";
 import { Source, Card } from "../interfaces/Card";
 import { Character } from "../interfaces/Character";
 import axios from "axios";
@@ -110,7 +110,7 @@ const CardOverview: React.FC = () => {
   const menuRef = useRef(null);
   const openRef = useRef(null);
   const sourceImageRef = useRef(null);
-  const { cardTitle } = useParams<{ cardTitle: string }>();
+  // const { cardTitle } = useParams<{ cardTitle: string }>();
 
   const [characters, setCharacters] = useState<Character[]>([]);
   const [cardSources, setCardSources] = useState<Source[]>([]);
@@ -121,6 +121,8 @@ const CardOverview: React.FC = () => {
   const [isSourceImageOpen, setSourceImageIsOpen] = useState(false);
   const [slot, setSlot] = useState<CardWithSourceName | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const [selectedRarity, setSelectedRarity] = useState<number[]>([]);
 
   type Language = "japanese" | "global" | "indo";
   const [primaryLanguage, setPrimaryLanguage] = useState<Language>(() => {
@@ -165,6 +167,10 @@ const CardOverview: React.FC = () => {
   0;
 
   const [selectedCostumeTheme, setSelectedCostumeTheme] = useState<
+    { value: string; label: string }[]
+  >([]);
+
+  const [selectedCategory, setSelectedCategory] = useState<
     { value: string; label: string }[]
   >([]);
 
@@ -221,29 +227,21 @@ const CardOverview: React.FC = () => {
     [cardSources, characters],
   ); // ✅ Sekarang hanya dihitung ulang saat `cardSources` atau `characters` berubah
 
-  const [cards, setCards] = useState<Card[]>([]);
-
-  // Memastikan cards diperbarui saat sources berubah
-  useEffect(() => {
-    if (cards.length === 0) {
-      setCards(
-        sources.flatMap((source) => {
-          return Array.isArray(source.data)
-            ? source.data.map((card: any) => ({
-                ...card,
-                sourceName: source.name,
-              }))
-            : [];
-        }),
-      );
-    }
-  }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
+  // Gabungkan semua kartu dari sources yang sudah ter-proses ke dalam satu array flat
+  const allCards = useMemo(() => {
+    return sources.flatMap((source) =>
+      source.data.map((card) => ({
+        ...card,
+        _sourceName: source.name, // Pastikan _sourceName masuk di sini agar tidak perlu .find() lagi nanti
+      })),
+    );
+  }, [sources]);
 
   // Ambil daftar unique Costume Themes
   const costumeThemeOptions = useMemo(() => {
     const counts: Record<string, number> = {};
 
-    cards.forEach((card) => {
+    allCards.forEach((card) => {
       // Gunakan 'Unknown' jika tema kosong, atau skip sesuai preferensi
       const theme = card.costumeTheme || "Unknown";
       counts[theme] = (counts[theme] || 0) + 1;
@@ -256,11 +254,11 @@ const CardOverview: React.FC = () => {
         count,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [cards]);
+  }, [allCards]);
 
   // Fungsi untuk mengaplikasikan filter
-  const applyFilters = (cards: CardWithSourceName[]) => {
-    return cards.filter((card) => {
+  const applyFilters = (allCards: CardWithSourceName[]) => {
+    return allCards.filter((card) => {
       // Ambil karakter yang sesuai dengan _sourceName
       const character = characters.find(
         (char) => char.name.toLowerCase() === card._sourceName.toLowerCase(),
@@ -289,155 +287,96 @@ const CardOverview: React.FC = () => {
         selectedCostumeTheme.length === 0 ||
         selectedCostumeTheme.some((theme) => theme.value === card.costumeTheme);
 
+      // Filter Rarity
+      const matchesRarity =
+        selectedRarity.length === 0 || selectedRarity.includes(card.initial);
+
+      const matchesCategory =
+        selectedCategory.length === 0 ||
+        selectedCategory.some((cat) => cat.value === card.category);
+
       return (
         matchesGroup &&
         matchesSourceName &&
         matchesType &&
         matchesAttribute &&
-        matchesTheme
+        matchesTheme &&
+        matchesRarity &&
+        matchesCategory
       );
     });
   };
 
-  // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
   const filteredCards: CardWithSourceName[] = useMemo(() => {
-    const filteredBySearch = cards
-      .filter((card) => {
-        // Ambil sourceName dari sources berdasarkan initialTitle
-        const source = sources.find((source) =>
-          source.data.some((c: Card) => c.initialTitle === card.initialTitle),
-        );
+    // A. Filter berdasarkan Search Term
+    const searchResults = allCards.filter((card) => {
+      const searchTermLower = searchTerm.toLowerCase();
 
-        const sourceName = source?.name || "Unknown Source";
+      // Ambil data karakter untuk pencarian berdasarkan Group/Seiyuu
+      const character = characters.find(
+        (char) => card._sourceName.toLowerCase() === char.name.toLowerCase(),
+      );
 
-        // Cari karakter berdasarkan sourceName yang sudah ditemukan
-        const character = characters.find(
-          (char) =>
-            sourceName && char.name.toLowerCase() === sourceName.toLowerCase(),
-        );
+      const nameMatches = character
+        ? character.name.toLowerCase().includes(searchTermLower) ||
+          character.familyName.toLowerCase().includes(searchTermLower) ||
+          character.japaneseName.toLowerCase().includes(searchTermLower) ||
+          character.groupName.toLowerCase().includes(searchTermLower)
+        : false;
 
-        const nameMatches = character
-          ? character.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            character.japaneseName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            character.groupName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            character.seiyuuName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            character.japaneseSeiyuuName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            (character.familyName &&
-              character.familyName
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()))
-          : false;
+      return (
+        card.initialTitle.toLowerCase().includes(searchTermLower) ||
+        card.title?.japanese?.toLowerCase().includes(searchTermLower) ||
+        card.title?.global?.toLowerCase().includes(searchTermLower) ||
+        nameMatches
+      );
+    });
 
-        return (
-          card.initialTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          card.title.japanese
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          card.title.global?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          card.title.indo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          card.attribute.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          card.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          nameMatches
-        );
-      })
-      .map((card) => {
-        // Ambil kembali sourceName agar bisa dipakai di _sourceName
-        const source = sources.find((source) =>
-          source.data.some((c: Card) => c.initialTitle === card.initialTitle),
-        );
+    // B. Terapkan Filter Kategori (Group, Type, dll)
+    const afterCategoryFilters = applyFilters(searchResults);
 
-        return {
-          ...card,
-          title: {
-            ...card.title,
-            [primaryLanguage]: card.title?.[primaryLanguage] || "Unknown Title",
-          },
-          _sourceName: source?.name || "Unknown Source", // Simpan _sourceName
-        };
-      });
-
-    const result = applyFilters(filteredBySearch);
-
-    // 2. SORTING (LOGIKA BARU)
-    return [...result].sort((a, b) => {
+    // C. PROSES SORTING (Gunakan slice() untuk copy array)
+    return afterCategoryFilters.slice().sort((a, b) => {
       let comparison = 0;
 
-      switch (sortOption) {
-        case "title":
-          // Sort berdasarkan Judul Jepang
-          const titleA = a.title?.japanese || "";
-          const titleB = b.title?.japanese || "";
-          comparison = titleA.localeCompare(titleB, "ja");
-          break;
-
-        case "releaseDate":
-          // Sort berdasarkan Tanggal Rilis
-          // Asumsi releaseDate format timestamp number atau string date
-          const dateA = new Date(a.releaseDate || 0).getTime();
-          const dateB = new Date(b.releaseDate || 0).getTime();
-          comparison = dateA - dateB;
-          break;
-
-        case "default":
-        default:
-          // Default biasanya order ID atau urutan array asli (0)
-          // Jika ingin konsisten, bisa sort by ID
-          comparison = 0;
-          break;
+      if (sortOption === "releaseDate") {
+        const dateA = new Date(a.releaseDate).getTime() || 0;
+        const dateB = new Date(b.releaseDate).getTime() || 0;
+        comparison = dateA - dateB;
+      } else if (sortOption === "title") {
+        const titleA = a.title?.[primaryLanguage] || a.title?.japanese || "";
+        const titleB = b.title?.[primaryLanguage] || b.title?.japanese || "";
+        comparison = titleA.localeCompare(
+          titleB,
+          primaryLanguage === "japanese" ? "ja" : "en",
+        );
+      } else {
+        // Default: Sort by uniqueId
+        comparison = (a.uniqueId || "").localeCompare(b.uniqueId || "");
       }
 
-      // Balik urutan jika Descending
+      // Secondary Sort: Jika nilai sama, urutkan berdasarkan uniqueId agar tidak lompat-lompat
+      if (comparison === 0) {
+        comparison = (a.uniqueId || "").localeCompare(b.uniqueId || "");
+      }
+
       return sortDirection === "asc" ? comparison : -comparison;
     });
   }, [
-    cards,
+    allCards,
     searchTerm,
     primaryLanguage,
-    sources,
-    selectedGroup,
-    selectedSourceName,
-    selectedType,
-    selectedAttribute,
-    selectedCostumeTheme, // Jangan lupa dependency baru
-    sortOption, // Dependency sorting
-    sortDirection, // Dependency sorting
+    applyFilters,
+    sortOption,
+    sortDirection,
+    selectedCategory,
     characters,
   ]);
 
   // ✅ Sekarang hanya dihitung ulang jika dependensi berubah
 
   useEffect(() => {
-    setLoading(true);
-    const fetchData = async () => {
-      try {
-        // Pastikan cardSources sudah didefinisikan
-        const data: Card[] = cardSources.flatMap((source) =>
-          source.data.map((item) => ({
-            ...item,
-            sourceName: source.name,
-          })),
-        );
-        setCards(data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [cardTitle]);
-
-  useEffect(() => {
-    const filteredCardTranslations = cards.filter(
+    const filteredCardTranslations = allCards.filter(
       (t) =>
         t.title?.[primaryLanguage] ||
         t.description?.[primaryLanguage] ||
@@ -455,7 +394,7 @@ const CardOverview: React.FC = () => {
           }
         : null,
     );
-  }, [primaryLanguage, cards]);
+  }, [primaryLanguage, allCards]);
 
   const toggleOpen = (_p0: boolean) => {
     setIsOpen(!isOpen);
@@ -573,6 +512,14 @@ const CardOverview: React.FC = () => {
     setShowSourceE(false); // Reset Full Image Evolved
   };
 
+  const handleRarityToggle = (rarity: number) => {
+    if (selectedRarity.includes(rarity)) {
+      setSelectedRarity((prev) => prev.filter((r) => r !== rarity));
+    } else {
+      setSelectedRarity((prev) => [...prev, rarity]);
+    }
+  };
+
   // Ambil daftar group yang unik dari data karakter
   const uniqueGroups = useMemo(() => {
     const groups = new Set<string>();
@@ -593,7 +540,7 @@ const CardOverview: React.FC = () => {
   const characterOptions = useMemo(() => {
     const counts: Record<string, number> = {};
 
-    cards.forEach((card) => {
+    allCards.forEach((card) => {
       // Menggunakan sourceName sebagai penentu karakter
       if (card.sourceName) {
         counts[card.sourceName] = (counts[card.sourceName] || 0) + 1;
@@ -607,7 +554,26 @@ const CardOverview: React.FC = () => {
         count,
       }))
       .sort((a, b) => b.count - a.count); // Urutkan Descending
-  }, [cards]);
+  }, [allCards]);
+
+  // 4. Category Options (Hitung berdasarkan field 'category')
+  const categoryOptions = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    allCards.forEach((card) => {
+      // Pastikan ada nilai default jika category kosong/undefined
+      const cat = card.category || "Unknown";
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+
+    return Object.entries(counts)
+      .map(([cat, count]) => ({
+        value: cat,
+        label: `${cat} (${count})`,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count); // Urutkan terbanyak
+  }, [allCards]);
 
   // Handler untuk tombol toggle type
   const handleTypeToggle = (type: string) => {
@@ -735,44 +701,6 @@ const CardOverview: React.FC = () => {
                 </div>
               </div>
               <div className="mt-2 flex flex-col gap-4 rounded border-2 border-white p-4">
-                {/* Filter Character (YANG KAMU MINTA) */}
-                <div>
-                  <p className="text-gray-300 text-sm font-semibold mb-1">
-                    CHARACTER
-                  </p>
-                  <Select
-                    isMulti
-                    options={characterOptions}
-                    value={selectedSourceName}
-                    onChange={(selected) =>
-                      setSelectedSourceName(
-                        selected as { value: string; label: string }[],
-                      )
-                    }
-                    className="text-slate-900"
-                    classNamePrefix="select"
-                    placeholder="Select Characters..."
-                  />
-                </div>
-
-                {/* Filter Group (Multi-Select Dropdown) */}
-                <div>
-                  <p className="text-white">Select Group</p>
-                  <Select
-                    isMulti
-                    options={groupOptions}
-                    value={selectedGroup}
-                    onChange={(selected) =>
-                      setSelectedGroup(
-                        selected as { value: string; label: string }[],
-                      )
-                    }
-                    className="mt-2"
-                    classNamePrefix="select"
-                    placeholder="Select groups..."
-                  />
-                </div>
-
                 {/* Filter Costume Theme (BARU) */}
                 <div>
                   <p className="text-white">Select Costume Theme</p>
@@ -806,6 +734,64 @@ const CardOverview: React.FC = () => {
                     className="mt-2"
                     classNamePrefix="select"
                     placeholder="Select characters..."
+                  />
+                </div>
+
+                {/* Filter Group (Multi-Select Dropdown) */}
+                <div>
+                  <p className="text-white">Select Group</p>
+                  <Select
+                    isMulti
+                    options={groupOptions}
+                    value={selectedGroup}
+                    onChange={(selected) =>
+                      setSelectedGroup(
+                        selected as { value: string; label: string }[],
+                      )
+                    }
+                    className="mt-2"
+                    classNamePrefix="select"
+                    placeholder="Select groups..."
+                  />
+                </div>
+
+                {/* Filter Rarity (Tombol Toggle) */}
+                <div>
+                  <p className="text-white">Select Rarity</p>
+                  <div className="mt-2 flex flex-row flex-wrap gap-2">
+                    {[5, 4, 3, 2].map((rarity) => (
+                      <button
+                        key={rarity}
+                        className={`rounded px-4 py-2 font-bold transition-all hover:bg-blue-300 ${
+                          selectedRarity.includes(rarity)
+                            ? "bg-blue-500 text-white"
+                            : "bg-white text-slate-900"
+                        }`}
+                        onClick={() => handleRarityToggle(rarity)}
+                      >
+                        {"✭".repeat(rarity)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* --- TAMBAHAN BARU: Filter Category --- */}
+                <div>
+                  <p className="text-gray-300 text-sm font-semibold mb-1">
+                    CATEGORY
+                  </p>
+                  <Select
+                    isMulti
+                    options={categoryOptions}
+                    value={selectedCategory}
+                    onChange={(selected) =>
+                      setSelectedCategory(
+                        selected as { value: string; label: string }[],
+                      )
+                    }
+                    className="text-slate-900"
+                    classNamePrefix="select"
+                    placeholder="Select Category..."
                   />
                 </div>
 

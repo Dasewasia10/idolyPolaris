@@ -141,3 +141,4 @@ const CardDesign: React.FC<CardDesignProps> = ({ card, primaryLanguage }) => {
 };
 
 export default CardDesign;
+
