@@ -148,6 +148,7 @@ export interface Card {
     global?: Array<string>;
     indo?: Array<string>;
   };
+  sourceName?: string;
 }
 
 export interface Source {

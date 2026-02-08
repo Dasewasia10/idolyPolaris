@@ -163,6 +163,17 @@ const CardOverview: React.FC = () => {
 
   const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
   0;
+
+  const [selectedCostumeTheme, setSelectedCostumeTheme] = useState<
+    { value: string; label: string }[]
+  >([]);
+
+  // State untuk Sorting
+  type SortOption = "default" | "title" | "releaseDate";
+  const [sortOption, setSortOption] = useState<SortOption>("releaseDate");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc"); // Default desc biar kartu terbaru muncul duluan jika by date
+
+  // New line spesial to any description or any long ass text
   const renderWithBr = (text: string | string[] | undefined) => {
     if (!text) return "No description available";
     const textStr = Array.isArray(text) ? text.join("\n") : text;
@@ -228,6 +239,25 @@ const CardOverview: React.FC = () => {
     }
   }, [sources]); // ✅ Ini hanya akan berjalan jika `sources` berubah
 
+  // Ambil daftar unique Costume Themes
+  const costumeThemeOptions = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    cards.forEach((card) => {
+      // Gunakan 'Unknown' jika tema kosong, atau skip sesuai preferensi
+      const theme = card.costumeTheme || "Unknown";
+      counts[theme] = (counts[theme] || 0) + 1;
+    });
+
+    return Object.entries(counts)
+      .map(([theme, count]) => ({
+        value: theme,
+        label: `${theme} (${count})`,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [cards]);
+
   // Fungsi untuk mengaplikasikan filter
   const applyFilters = (cards: CardWithSourceName[]) => {
     return cards.filter((card) => {
@@ -255,8 +285,16 @@ const CardOverview: React.FC = () => {
         selectedAttribute.length === 0 ||
         selectedAttribute.includes(card.attribute);
 
+      const matchesTheme =
+        selectedCostumeTheme.length === 0 ||
+        selectedCostumeTheme.some((theme) => theme.value === card.costumeTheme);
+
       return (
-        matchesGroup && matchesSourceName && matchesType && matchesAttribute
+        matchesGroup &&
+        matchesSourceName &&
+        matchesType &&
+        matchesAttribute &&
+        matchesTheme
       );
     });
   };
@@ -326,7 +364,39 @@ const CardOverview: React.FC = () => {
         };
       });
 
-    return applyFilters(filteredBySearch);
+    const result = applyFilters(filteredBySearch);
+
+    // 2. SORTING (LOGIKA BARU)
+    return [...result].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortOption) {
+        case "title":
+          // Sort berdasarkan Judul Jepang
+          const titleA = a.title?.japanese || "";
+          const titleB = b.title?.japanese || "";
+          comparison = titleA.localeCompare(titleB, "ja");
+          break;
+
+        case "releaseDate":
+          // Sort berdasarkan Tanggal Rilis
+          // Asumsi releaseDate format timestamp number atau string date
+          const dateA = new Date(a.releaseDate || 0).getTime();
+          const dateB = new Date(b.releaseDate || 0).getTime();
+          comparison = dateA - dateB;
+          break;
+
+        case "default":
+        default:
+          // Default biasanya order ID atau urutan array asli (0)
+          // Jika ingin konsisten, bisa sort by ID
+          comparison = 0;
+          break;
+      }
+
+      // Balik urutan jika Descending
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
   }, [
     cards,
     searchTerm,
@@ -336,7 +406,10 @@ const CardOverview: React.FC = () => {
     selectedSourceName,
     selectedType,
     selectedAttribute,
-    characters, // Tambahkan characters sebagai dependency
+    selectedCostumeTheme, // Jangan lupa dependency baru
+    sortOption, // Dependency sorting
+    sortDirection, // Dependency sorting
+    characters,
   ]);
 
   // ✅ Sekarang hanya dihitung ulang jika dependensi berubah
@@ -517,11 +590,24 @@ const CardOverview: React.FC = () => {
     label: group,
   }));
 
-  // Format data untuk react-select (karakter)
-  const characterOptions = characters.map((char) => ({
-    value: char.name,
-    label: char.name,
-  }));
+  const characterOptions = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    cards.forEach((card) => {
+      // Menggunakan sourceName sebagai penentu karakter
+      if (card.sourceName) {
+        counts[card.sourceName] = (counts[card.sourceName] || 0) + 1;
+      }
+    });
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({
+        value: name,
+        label: `${name} (${count})`,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count); // Urutkan Descending
+  }, [cards]);
 
   // Handler untuk tombol toggle type
   const handleTypeToggle = (type: string) => {
@@ -589,8 +675,28 @@ const CardOverview: React.FC = () => {
             isLeftMenuOpen ? "translate-x-0 w-72 lg:w-96" : "-translate-x-full"
           }`}
         >
+          <button
+            onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
+            title="Toggle Menu"
+            className="absolute -right-14 top-2 h-12 w-12 rounded-full bg-slate-900 border-2 border-white text-white shadow-lg hover:bg-slate-700 transition-all flex items-center justify-center z-50"
+          >
+            {/* PLACEHOLDER ICON SVG */}
+            {/* Ganti src ini dengan path gambar icon handler kamu */}
+            <img
+              src={`${import.meta.env.BASE_URL}assets/protocol_handler.svg`}
+              alt="Menu"
+              className="w-6 h-6"
+              onError={(e) => {
+                // Fallback jika gambar tidak ada (pake text arrow)
+                e.currentTarget.style.display = "none";
+                e.currentTarget.parentElement!.innerText = isLeftMenuOpen
+                  ? "<"
+                  : ">";
+              }}
+            />
+          </button>
           {/* Konten Menu */}
-          <div className="w-full bg-slate-900 p-4 overflow-y-auto">
+          <div className="w-full bg-slate-900 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-300">
             <h2 className="flex font-bold text-3xl text-white py-2">Handler</h2>
             <div className="flex flex-col gap-4">
               <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
@@ -629,6 +735,26 @@ const CardOverview: React.FC = () => {
                 </div>
               </div>
               <div className="mt-2 flex flex-col gap-4 rounded border-2 border-white p-4">
+                {/* Filter Character (YANG KAMU MINTA) */}
+                <div>
+                  <p className="text-gray-300 text-sm font-semibold mb-1">
+                    CHARACTER
+                  </p>
+                  <Select
+                    isMulti
+                    options={characterOptions}
+                    value={selectedSourceName}
+                    onChange={(selected) =>
+                      setSelectedSourceName(
+                        selected as { value: string; label: string }[],
+                      )
+                    }
+                    className="text-slate-900"
+                    classNamePrefix="select"
+                    placeholder="Select Characters..."
+                  />
+                </div>
+
                 {/* Filter Group (Multi-Select Dropdown) */}
                 <div>
                   <p className="text-white">Select Group</p>
@@ -644,6 +770,24 @@ const CardOverview: React.FC = () => {
                     className="mt-2"
                     classNamePrefix="select"
                     placeholder="Select groups..."
+                  />
+                </div>
+
+                {/* Filter Costume Theme (BARU) */}
+                <div>
+                  <p className="text-white">Select Costume Theme</p>
+                  <Select
+                    isMulti
+                    options={costumeThemeOptions} // Data dari useMemo di langkah 2
+                    value={selectedCostumeTheme}
+                    onChange={(selected) =>
+                      setSelectedCostumeTheme(
+                        selected as { value: string; label: string }[],
+                      )
+                    }
+                    className="mt-2 text-black" // text-black agar tulisan di dropdown terbaca
+                    classNamePrefix="select"
+                    placeholder="Select theme..."
                   />
                 </div>
 
@@ -704,26 +848,82 @@ const CardOverview: React.FC = () => {
                     ))}
                   </div>
                 </div>
+
+                <div className="mt-40 text-slate-900 cursor-none">
+                  aaaaaaaaaaaaaaaaaaaaaa
+                </div>
               </div>
             </div>
           </div>
-          {/* Tombol Toggle yang menempel di sisi kanan sidebar */}
-          <button
-            onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
-            title="Klik untuk membuka/tutup menu kiri"
-            className={`absolute -right-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-r-md hover:bg-slate-700 transition-all flex items-center justify-center`}
-          >
-            {isLeftMenuOpen ? "<" : ">"}
-          </button>
         </div>
       </section>
 
-      <div className="z-0 w-2/3">
-        <SearchBar
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          placeholderText="Search by name or title or group"
-        />
+      {/* Container Search & Sort */}
+      <div className="z-0 w-full lg:w-2/3 flex flex-row items-center gap-2 px-4 lg:px-0">
+        <div className="flex-grow">
+          <SearchBar
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            placeholderText="Search by name or title or group"
+          />
+        </div>
+
+        {/* Sorting Controls */}
+        <div className="flex flex-row gap-1 bg-white rounded-full p-1 shadow-md border items-center">
+          {/* Dropdown Sort Option */}
+          <select
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value as SortOption)}
+            className="bg-transparent text-sm text-gray-700 font-semibold focus:outline-none cursor-pointer pl-2 pr-1 py-1 rounded-l-full"
+          >
+            <option value="default">Default</option>
+            <option value="title">Title (JP)</option>
+            <option value="releaseDate">Date</option>
+          </select>
+
+          {/* Tombol Asc/Desc */}
+          <button
+            onClick={() =>
+              setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+            }
+            className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600"
+            title={sortDirection === "asc" ? "Ascending" : "Descending"}
+          >
+            {sortDirection === "asc" ? (
+              // Icon Ascending (A-Z / Lama-Baru)
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25"
+                />
+              </svg>
+            ) : (
+              // Icon Descending (Z-A / Baru-Lama)
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="flex w-full flex-col gap-4 overflow-y-scroll shadow-inner h-[33rem] p-2 scrollbar-minimal">
