@@ -26,6 +26,7 @@ const MainMenu: React.FC = () => {
 
   const upcomingFeatures = [
     { name: "Book Reader", path: "/bookreader" },
+    { name: "Chat Reader", path: "/chatreader" },
     { name: "Card Design", path: "/cardDesign" },
     { name: "KTP Manager", path: "/ktp" },
   ];
