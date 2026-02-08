@@ -19,4 +19,7 @@ export interface Message {
   reactions?: {
     [emoji: string]: string[]; // Key: emoji, Value: array of user IDs/names
   };
+  image?: string; // Untuk URL gambar
+  isVoiceNote?: boolean; // Penanda pesan suara
+  voiceDuration?: string; // Teks durasi (misal "0:12")
 }

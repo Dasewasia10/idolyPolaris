@@ -187,7 +187,8 @@ const CardComparison: React.FC = () => {
 
   // Gunakan useMemo agar filteredCards tidak dihitung ulang kecuali searchTerm atau cards berubah
   const filteredCards: CardWithSourceName[] = useMemo(() => {
-    return cards
+    // 1. FILTERING
+    const filtered = cards
       .filter((card) => {
         // Ambil sourceName dari sources berdasarkan initialTitle
         const source = sources.find((source) =>
@@ -246,11 +247,30 @@ const CardComparison: React.FC = () => {
             ...card.title,
             [primaryLanguage]: card.title?.[primaryLanguage] || "Unknown Title",
           },
-          _sourceName: source?.name || "mei", // Simpan _sourceName
+          _sourceName: source?.name || "Unknown Source", // Simpan _sourceName
         };
       });
-  }, [cards, searchTerm, primaryLanguage, sources]);
-  // ✅ Sekarang hanya dihitung ulang jika dependensi berubah
+
+    // 2. SORTING (Default by Release Date DESC)
+    return filtered.sort((a, b) => {
+      // Konversi tanggal string "YYYY-MM-DD" ke timestamp number
+      const timeA = new Date(a.releaseDate).getTime();
+      const timeB = new Date(b.releaseDate).getTime();
+
+      // Safety check: jika invalid date, anggap 0 (tahun 1970)
+      const dateA = isNaN(timeA) ? 0 : timeA;
+      const dateB = isNaN(timeB) ? 0 : timeB;
+
+      // Urutkan Descending (Terbaru di atas)
+      // Jika tanggal sama, urutkan berdasarkan ID agar konsisten
+      if (dateA !== dateB) {
+        return dateB - dateA;
+      }
+
+      return (b.uniqueId || "").localeCompare(a.uniqueId || "");
+    });
+  }, [cards, searchTerm, primaryLanguage, sources, idols]);
+  // Pastikan idols masuk dependency array karena dipakai di filter
 
   useEffect(() => {
     setLoading(true);
