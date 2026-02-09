@@ -196,19 +196,22 @@ const CompassChart: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-800 p-4 lg:p-8 font-sans text-gray-900">
+    <div className="min-h-screen bg-gray-900 p-4 lg:p-8 font-sans">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* --- KOLOM KIRI: Controls & Labels --- */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-slate-300 p-6 rounded-xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">
+          <h1 className="text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex justify-center lg:justify-start">
+            Compass Chart
+          </h1>
+          <div className="bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-gray-400">
               Chart Settings
             </h2>
 
             {/* Axis Inputs */}
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">
                   Title
                 </label>
                 <input
@@ -218,8 +221,11 @@ const CompassChart: React.FC = () => {
                   className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
+
+              <div className="flex border-b border-slate-500 mx-2"></div>
+
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">
                   Top Label (Y+)
                 </label>
                 <input
@@ -230,7 +236,7 @@ const CompassChart: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">
                   Bottom Label (Y-)
                 </label>
                 <input
@@ -241,7 +247,7 @@ const CompassChart: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">
                   Left Label (X-)
                 </label>
                 <input
@@ -252,7 +258,7 @@ const CompassChart: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">
                   Right Label (X+)
                 </label>
                 <input
@@ -292,14 +298,18 @@ const CompassChart: React.FC = () => {
 
         {/* --- KOLOM KANAN: Chart Area --- */}
         <div className="lg:col-span-2">
-          <div className="bg-white p-1 rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <p className="text-center text-gray-400 text-sm mb-4">
+            Drag icons from (+ Add Character) to position them on the spectrum.
+            Double click or hover to remove.
+          </p>
+          <div className="bg-gray-800 p-1 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
             {/* Chart Container 
               - Ref dipasang di sini untuk capture html2canvas
               - Relative positioning untuk Draggable items
             */}
             <div
               ref={chartRef}
-              className="relative w-full aspect-square bg-white overflow-hidden"
+              className="relative w-full aspect-square bg-gray-800 overflow-hidden"
               style={{ minHeight: "500px" }}
             >
               {/* Grid Background (Optional Gimmick) */}
@@ -325,10 +335,10 @@ const CompassChart: React.FC = () => {
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border">
                 {labels.bottom}
               </div>
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border -rotate-90 md:rotate-0 origin-center">
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 lg:-translate-x-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border -rotate-90 md:rotate-0 lg:-rotate-90 origin-center">
                 {labels.left}
               </div>
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border rotate-90 md:rotate-0 origin-center">
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 lg:translate-x-1/2 text-sm font-bold text-gray-600 bg-white px-2 py-1 rounded shadow-sm border rotate-90 md:rotate-0 lg:rotate-90 origin-center">
                 {labels.right}
               </div>
 
@@ -343,10 +353,6 @@ const CompassChart: React.FC = () => {
               ))}
             </div>
           </div>
-          <p className="text-center text-gray-400 text-sm mt-4">
-            Drag icons to position them on the spectrum. Double click or hover
-            to remove.
-          </p>
         </div>
       </div>
 

@@ -52,16 +52,23 @@ const HomeContent = () => {
       name: "Compass Chart",
       path: "/compassChart",
       bgImage:
-        "https://api.diveidolypapi.my.id/sourceImage/source-chisa-05-pajama-00-full.webp",
+        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_chs-05-fest-03.webp",
       description: "A quadrant chart based on two opposing variables.",
     },
-    // {
-    //   name: "Manager ID",
-    //   path: "/ktp",
-    //   bgImage:
-    //     "https://api.diveidolypapi.my.id/sourceImage/source-sakura-05-china-00-full.webp",
-    //   description: "Make your custom ktp- I mean Manager ID and share with your friends",
-    // },
+    {
+      name: "ID Manager",
+      path: "/ktp",
+      bgImage:
+        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_ngs-05-fest-02.webp",
+      description: "Make your custom ktp- I mean Manager ID and share with your friends",
+    },
+    {
+      name: "Card Design",
+      path: "/cardDesign",
+      bgImage:
+        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_skr-05-idol-03.webp",
+      description: "Design your own custom card with your favorite idol",
+    },
   ];
 
   return (

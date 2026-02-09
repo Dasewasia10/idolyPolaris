@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-// import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom"; // Tambahkan useSearchParams
 import { Source, Card } from "../interfaces/Card";
 import { Character } from "../interfaces/Character";
 import axios from "axios";
@@ -124,6 +124,8 @@ const CardOverview: React.FC = () => {
 
   const [selectedRarity, setSelectedRarity] = useState<number[]>([]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   type Language = "japanese" | "global" | "indo";
   const [primaryLanguage, setPrimaryLanguage] = useState<Language>(() => {
     // Cek apakah kode berjalan di browser
@@ -141,12 +143,10 @@ const CardOverview: React.FC = () => {
     return "global"; // Default jika tidak ada yang tersimpan
   });
 
-  // TAMBAHKAN INI: Effect untuk menyimpan ke localStorage setiap kali bahasa berubah
   useEffect(() => {
     localStorage.setItem("primaryLanguage", primaryLanguage);
   }, [primaryLanguage]);
 
-  const [showIconB, setShowIconB] = useState<boolean>(false);
   const [showIconE, setShowIconE] = useState<boolean>(false);
   const [showSource, setShowSource] = useState<boolean>(false);
   const [showSourceE, setShowSourceE] = useState<boolean>(false);
@@ -396,6 +396,58 @@ const CardOverview: React.FC = () => {
     );
   }, [primaryLanguage, allCards]);
 
+  // --- URL SYNC & DEEP LINKING MANAGER ---
+  useEffect(() => {
+    // 1. GUARD: Jika data belum siap, JANGAN lakukan apa-apa pada URL.
+    // Ini mencegah URL dihapus sebelum sempat dibaca.
+    if (allCards.length === 0) return;
+
+    const originalTitle = "Polaris Idoly | Card Overview";
+    const cardIdFromUrl = searchParams.get("card");
+
+    // --- LOGIC A: DEEP LINKING (Saat Reload/Awal Buka) ---
+    // Jika ada ID di URL, tapi modal masih tertutup
+    if (cardIdFromUrl && !isOpen && !slot) {
+      const targetCard = allCards.find((c) => c.uniqueId === cardIdFromUrl);
+      if (targetCard) {
+        const cardWithSource = {
+          ...targetCard,
+          _sourceName: targetCard.sourceName || "Unknown Source",
+        } as CardWithSourceName;
+
+        setSlot(cardWithSource);
+        setIsOpen(true);
+        // Return di sini agar logika sinkronisasi di bawah tidak menimpa state yang baru diset
+        return;
+      }
+    }
+
+    // --- LOGIC B: SYNC STATE -> URL (Saat User Klik Manual) ---
+    if (isOpen && slot) {
+      // 1. Update Title
+      const jpTitle = slot.title?.japanese || slot.initialTitle;
+      document.title = `${jpTitle} | Polaris Idoly`;
+
+      // 2. Update URL hanya jika berbeda (mencegah loop tak perlu)
+      if (cardIdFromUrl !== slot.uniqueId) {
+        setSearchParams({ card: slot.uniqueId });
+      }
+    } else {
+      // Jika modal tertutup, kembalikan Title & Hapus Param URL
+      document.title = originalTitle;
+
+      // Hanya hapus jika memang ada parameternya (biar console bersih)
+      if (cardIdFromUrl) {
+        setSearchParams((prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.delete("card");
+          return newParams;
+        });
+      }
+    }
+  }, [isOpen, slot, allCards, searchParams, setSearchParams]);
+  // Pastikan 'allCards' masuk dependency array!
+
   const toggleOpen = (_p0: boolean) => {
     setIsOpen(!isOpen);
   };
@@ -506,7 +558,6 @@ const CardOverview: React.FC = () => {
     setIsOpen(true);
 
     // 3. RESET SEMUA TOGGLE (PENTING!)
-    setShowIconB(false); // Reset Trained Icon (jika ada)
     setShowIconE(false); // Reset Evolved Icon
     setShowSource(false); // Reset Full Image Base (Mobile)
     setShowSourceE(false); // Reset Full Image Evolved
@@ -646,20 +697,7 @@ const CardOverview: React.FC = () => {
             title="Toggle Menu"
             className="absolute -right-14 top-2 h-12 w-12 rounded-full bg-slate-900 border-2 border-white text-white shadow-lg hover:bg-slate-700 transition-all flex items-center justify-center z-50"
           >
-            {/* PLACEHOLDER ICON SVG */}
-            {/* Ganti src ini dengan path gambar icon handler kamu */}
-            <img
-              src={`${import.meta.env.BASE_URL}assets/protocol_handler.svg`}
-              alt="Menu"
-              className="w-6 h-6"
-              onError={(e) => {
-                // Fallback jika gambar tidak ada (pake text arrow)
-                e.currentTarget.style.display = "none";
-                e.currentTarget.parentElement!.innerText = isLeftMenuOpen
-                  ? "<"
-                  : ">";
-              }}
-            />
+            {isLeftMenuOpen ? "<" : ">"}
           </button>
           {/* Konten Menu */}
           <div className="w-full bg-slate-900 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-300">
@@ -1046,28 +1084,7 @@ const CardOverview: React.FC = () => {
                         </span>
                       </button>
                     </div>
-                  </>
-                )}
-                {/* Periksa apakah slot memiliki iconImageB yang valid */}
-                {slot.initial !== 5 && (
-                  <>
-                    <div className="flex flex-col gap-2 rounded border-2 border-white p-4">
-                      <p className="text-white">Trained Icon</p>
-                      <button
-                        onClick={() => setShowIconB(!showIconB)}
-                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={slot.initial === 5}
-                      >
-                        <span className="font-semibold opacity-100">
-                          {showIconB ? "Non-*5 Icon" : "Trained Icon"}
-                        </span>
-                      </button>
-                    </div>
-                  </>
-                )}
-                {slot.hasAwakening && (
-                  <>
-                    <div className="flex flex-col gap-2 rounded border-2 border-white p-4 lg:block hidden">
+                    <div className="mt-2 flex flex-col gap-2 rounded border-2 border-white p-4">
                       <p className="text-white">Evolution Image</p>
                       <button
                         onClick={() => setShowSourceE(!showSourceE)}
@@ -1080,49 +1097,17 @@ const CardOverview: React.FC = () => {
                     </div>
                   </>
                 )}
-                {(slot.initial == 5 || 4) && (
-                  <div className="flex flex-col gap-2 rounded border-2 border-white p-4 lg:hidden block">
-                    <p className="text-white">Full Image</p>
-                    <button
-                      onClick={() => {
-                        setShowSource(!showSource);
-                      }}
-                      className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      <span className="font-semibold text-black">
-                        {showSource ? "Hide Image" : "Show Image"}
-                      </span>
-                    </button>
-                    {slot.hasAwakening && (
-                      <button
-                        onClick={() => {
-                          setShowSourceE(!showSourceE);
-                        }}
-                        className="mt-2 flex flex-col flex-wrap content-center justify-center gap-2 rounded border-2 border-white p-2 bg-white hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      >
-                        <span className="font-semibold text-black">
-                          {showSourceE
-                            ? "Hide Evolution Image"
-                            : "Show Evolution Image"}
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
             </section>
 
             {showSource && (
-              <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
+              <div className="justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
                   src={getCardImageUrl(slot, "full", false)}
                   alt={`Source ${slot.initialTitle}`}
                   className="max-w-full h-auto rounded-lg border-2 border-white"
                   onError={(e) => {
-                    e.currentTarget.src = `${
-                      import.meta.env.BASE_URL
-                    }assets/default_image.png`;
-                    e.currentTarget.alt = "Image not available";
+                    e.currentTarget.src = getPlaceholderImageUrl("square");
                   }}
                 />
               </div>
@@ -1131,7 +1116,7 @@ const CardOverview: React.FC = () => {
             {/* Logika: Jika showSourceE aktif, tampilkan evolved. Jika tidak, tampilkan base (jika showSource aktif) */}
 
             {(showSource || showSourceE) && (
-              <div className="flex justify-center absolute z-40 lg:hidden block left-0 top-4">
+              <div className="justify-center absolute z-40 lg:hidden block left-0 top-4">
                 <img
                   src={getCardImageUrl(
                     slot,
@@ -1141,28 +1126,22 @@ const CardOverview: React.FC = () => {
                   alt={`Source ${slot.initialTitle}`}
                   className="max-w-full h-auto rounded-lg border-2 border-white"
                   onError={(e) => {
-                    e.currentTarget.style.display = "none";
+                    e.currentTarget.src = getPlaceholderImageUrl("square");
                   }}
                 />
               </div>
             )}
             <div className="inset-0 mx-auto h-auto w-full overflow-y-auto rounded bg-white p-4 shadow-lg scrollbar-minimal relative mb-36 lg:mb-0">
               {/* Gambar fixed (diam) */}
-              {/* HAPUS kondisi slot.initial < 5 di sini agar *5 juga muncul */}
               <div className="sticky top-0 z-0 hidden lg:block">
                 <img
                   src={getCardImageUrl(slot, "full", showSourceE)}
                   alt={`Card ${slot.initialTitle}`}
                   // Style default
                   className="h-full w-auto rounded bg-white object-cover p-1"
-                  // LOGIKA ERROR:
-                  // Jika gambar gagal dimuat (misal kartu *3 base yang tidak punya full art),
-                  // maka sembunyikan elemen ini agar tidak mengganggu layout.
                   onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                    // Opsional: Jika ingin menyembunyikan parent div-nya juga,
-                    // perlu manipulasi DOM atau state tambahan,
-                    // tapi display: none pada img biasanya sudah cukup rapi.
+                    e.currentTarget.src = getPlaceholderImageUrl("rect");
+                    e.currentTarget.alt = "Image not available";
                   }}
                 />
               </div>
@@ -1246,7 +1225,7 @@ const CardOverview: React.FC = () => {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <img
                         // UPDATE DISINI: Logika Icon (Thumb)
-                        // showIconB (Trained) atau showIconE (Evolved) memicu gambar index 2
+                        // showIconE (Evolved) memicu gambar index 2
                         src={getCardImageUrl(slot, "thumb", showIconE)}
                         onError={(e) => {
                           e.currentTarget.src = `${
@@ -1320,12 +1299,15 @@ const CardOverview: React.FC = () => {
                       <div className="flex flex-col gap-1 border-2 lg:flex-row">
                         <div className="flex flex-col items-center border-x p-2 text-center">
                           <img
-                            src={
-                              skill?.source?.initialImage ||
-                              getPlaceholderImageUrl("square")
-                            }
+                            src={skill?.source?.initialImage}
                             alt={`IconSkillOne ${index + 1}`}
                             className="h-20 w-20 rounded object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = `${
+                                import.meta.env.BASE_URL
+                              }assets/default_image.png`;
+                              e.currentTarget.alt = "Image not available";
+                            }}
                           />
                         </div>
                         <ul className="grid grid-rows-2 grid-cols-2 lg:grid-rows-1 lg:grid-cols-4 w-full">
@@ -1446,12 +1428,9 @@ const CardOverview: React.FC = () => {
                     {/* ICON YELL */}
                     <div className="flex-shrink-0">
                       <img
-                        src={
-                          slot.yell?.source?.initialImage ||
-                          getPlaceholderImageUrl("square")
-                        }
+                        src={slot.yell?.source?.initialImage}
                         alt={`Yell Icon ${slot.initialTitle}`}
-                        className="h-14 w-14 lg:h-16 lg:w-16 object-contain"
+                        className="h-14 w-14 object-contain"
                         onError={(e) => {
                           e.currentTarget.src =
                             getPlaceholderImageUrl("square");

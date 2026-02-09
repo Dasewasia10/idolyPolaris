@@ -130,7 +130,7 @@ export const getCharacter3ImageUrl = (characterName: string): string => {
 
 export const getGiftItemImageUrl = (
   characterName: string,
-  index: number = 0
+  index: number = 0,
 ): string => {
   // Mapping tipe hadiah untuk setiap karakter
   const characterGiftTypes: Record<string, string> = {
@@ -169,7 +169,8 @@ export const getGiftItemImageUrl = (
 
 export const getPlaceholderImageUrl = (typeName: string): string => {
   const placeholderImages: { [key: string]: string } = {
-    square: "https://fakeimg.pl/500x500?text=None+To+View+Here&font=bebas",
+    square: `${import.meta.env.BASE_URL}assets/default_image.png`,
+    rect: `${import.meta.env.BASE_URL}assets/default_image_rect.png`,
   };
 
   return placeholderImages[typeName];

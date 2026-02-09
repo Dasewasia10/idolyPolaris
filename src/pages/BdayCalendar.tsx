@@ -181,9 +181,9 @@ const CharacterCalendar: React.FC = () => {
       
       <div className="flex flex-col lg:flex-row gap-4 w-full overflow-y-auto pr-2">
         <section className="flex flex-col flex-[3] z-10">
-          <div className="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-xl">
+          <div className="flex justify-between items-center mb-4 bg-gray-800 p-2 rounded-xl">
             <button onClick={() => changeMonth(-1)} className="px-3 py-1 bg-white shadow-sm rounded-lg hover:bg-gray-100 transition-colors">&lt; Prev</button>
-            <h2 className="text-lg font-bold text-gray-700">{format(currentDate, "MMMM yyyy")}</h2>
+            <h2 className="text-lg font-bold text-gray-200">{format(currentDate, "MMMM yyyy")}</h2>
             <button onClick={() => changeMonth(1)} className="px-3 py-1 bg-white shadow-sm rounded-lg hover:bg-gray-100 transition-colors">Next &gt;</button>
           </div>
 

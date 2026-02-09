@@ -5,7 +5,7 @@ import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 
 // // import BookReader from "./pages/BookReader";
-import KTPManager from "./pageJunk/KTPManager";
+import KTPManager from "./pages/KTPManager";
 import CompassChart from "./pages/CompassChart";
 
 import Lyrics from "./pages/Lyrics";

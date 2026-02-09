@@ -463,6 +463,13 @@ const CardComparison: React.FC = () => {
             isLeftMenuOpen ? "translate-x-0 w-72" : "-translate-x-full"
           }`}
         >
+          <button
+            onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
+            title="Toggle Menu"
+            className="absolute -right-14 top-2 h-12 w-12 rounded-full bg-slate-900 border-2 border-white text-white shadow-lg hover:bg-slate-700 transition-all flex items-center justify-center z-50"
+          >
+            {isLeftMenuOpen ? "<" : ">"}
+          </button>
           {/* Konten Menu */}
           <div className="w-full bg-slate-900 p-4 overflow-y-auto gap-4 flex flex-col">
             <h2 className="flex font-bold text-3xl text-white py-2">Handler</h2>
@@ -525,14 +532,6 @@ const CardComparison: React.FC = () => {
               </button>
             </div>
           </div>
-          {/* Tombol Toggle yang menempel di sisi kanan sidebar */}
-          <button
-            onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
-            title="Klik untuk membuka/tutup menu kiri"
-            className={`absolute -right-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-r-md hover:bg-slate-700 transition-all flex items-center justify-center`}
-          >
-            {isLeftMenuOpen ? "<" : ">"}
-          </button>
         </div>
       </section>
 
@@ -650,12 +649,13 @@ const CardComparison: React.FC = () => {
                         <div className="flex flex-col gap-1 border-2 lg:flex-row">
                           <div className="flex flex-col items-center border-x p-2 text-center">
                             <img
-                              src={
-                                skill?.source?.initialImage ||
-                                getPlaceholderImageUrl("square")
-                              }
+                              src={skill?.source?.initialImage}
                               alt={`IconSkillOne ${index + 1}`}
                               className="h-20 w-20 rounded object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  getPlaceholderImageUrl("square");
+                              }}
                             />
                           </div>
                           <ul className="grid grid-rows-2 grid-cols-2 lg:grid-rows-1 lg:grid-cols-4 w-full">
@@ -712,12 +712,13 @@ const CardComparison: React.FC = () => {
                       <div className="flex flex-col gap-1 border-2 lg:flex-row">
                         <div className="flex flex-col items-center justify-center border-x p-2 text-center">
                           <img
-                            src={
-                              slot1.skillFour.source?.initialImage ||
-                              getPlaceholderImageUrl("square")
-                            }
+                            src={slot1.skillFour.source?.initialImage}
                             alt="Skill Four Icon"
                             className="h-20 w-20 rounded object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                getPlaceholderImageUrl("square");
+                            }}
                           />
                         </div>
                         <ul className="grid grid-rows-2 grid-cols-2 lg:grid-rows-1 lg:grid-cols-4">
@@ -779,16 +780,35 @@ const CardComparison: React.FC = () => {
                   )}
 
                   <section className="text-md flex lg:mt-2 lg:items-center gap-2 lg:flex-row flex-col">
-                    <h3 className="text-xl font-bold">Yell :</h3>
-                    <div className="p-2 flex flex-col border rounded">
-                      <h4 className="font-bold">
-                        {slot1.yell?.name?.[primaryLanguage]}
-                      </h4>
-                      <p>
-                        {renderWithBr(
-                          slot1.yell?.description?.[primaryLanguage] || "",
-                        )}
-                      </p>
+                    <h3 className="text-xl font-bold min-w-fit">
+                      Yell/Cheer :
+                    </h3>
+
+                    <div className="flex flex-row gap-3 p-2 border rounded w-full items-center bg-gray-800">
+                      {/* ICON YELL */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={slot1.yell?.source?.initialImage}
+                          alt={`Yell Icon ${slot1.initialTitle}`}
+                          className="h-14 w-14 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              getPlaceholderImageUrl("square");
+                          }}
+                        />
+                      </div>
+
+                      {/* TEXT YELL */}
+                      <div className="flex flex-col text-gray-50">
+                        <h4 className="font-bold text-lg">
+                          {slot1.yell?.name?.[primaryLanguage]}
+                        </h4>
+                        <p className="text-sm whitespace-pre-line">
+                          {renderWithBr(
+                            slot1.yell?.description?.[primaryLanguage],
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </section>
                 </div>
@@ -909,12 +929,13 @@ const CardComparison: React.FC = () => {
                         <div className="flex flex-col gap-1 border-2 lg:flex-row">
                           <div className="flex flex-col items-center border-x p-2 text-center">
                             <img
-                              src={
-                                skill?.source?.initialImage ||
-                                getPlaceholderImageUrl("square")
-                              }
+                              src={skill?.source?.initialImage}
                               alt={`IconSkillOne ${index + 1}`}
                               className="h-20 w-20 rounded object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  getPlaceholderImageUrl("square");
+                              }}
                             />
                           </div>
                           <ul className="grid grid-rows-2 grid-cols-2 lg:grid-rows-1 lg:grid-cols-4 w-full">
@@ -971,12 +992,13 @@ const CardComparison: React.FC = () => {
                       <div className="flex flex-col gap-1 border-2 lg:flex-row">
                         <div className="flex flex-col items-center justify-center border-x p-2 text-center">
                           <img
-                            src={
-                              slot2.skillFour.source?.initialImage ||
-                              getPlaceholderImageUrl("square")
-                            }
+                            src={slot2.skillFour.source?.initialImage}
                             alt="Skill Four Icon"
                             className="h-20 w-20 rounded object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                getPlaceholderImageUrl("square");
+                            }}
                           />
                         </div>
                         <ul className="grid grid-rows-2 grid-cols-2 lg:grid-rows-1 lg:grid-cols-4">
@@ -1038,16 +1060,35 @@ const CardComparison: React.FC = () => {
                   )}
 
                   <section className="text-md flex lg:mt-2 lg:items-center gap-2 lg:flex-row flex-col">
-                    <h3 className="text-xl font-bold">Yell :</h3>
-                    <div className="p-2 flex flex-col border rounded">
-                      <h4 className="font-bold">
-                        {slot2.yell?.name?.[primaryLanguage]}
-                      </h4>
-                      <p>
-                        {renderWithBr(
-                          slot2.yell?.description?.[primaryLanguage] || "",
-                        )}
-                      </p>
+                    <h3 className="text-xl font-bold min-w-fit">
+                      Yell/Cheer :
+                    </h3>
+
+                    <div className="flex flex-row gap-3 p-2 border rounded w-full items-center bg-gray-800">
+                      {/* ICON YELL */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={slot2.yell?.source?.initialImage}
+                          alt={`Yell Icon ${slot2.initialTitle}`}
+                          className="h-14 w-14 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              getPlaceholderImageUrl("square");
+                          }}
+                        />
+                      </div>
+
+                      {/* TEXT YELL */}
+                      <div className="flex flex-col text-gray-50">
+                        <h4 className="font-bold text-lg">
+                          {slot2.yell?.name?.[primaryLanguage]}
+                        </h4>
+                        <p className="text-sm whitespace-pre-line">
+                          {renderWithBr(
+                            slot2.yell?.description?.[primaryLanguage],
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </section>
                 </div>

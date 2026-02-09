@@ -12,7 +12,7 @@ const MainMenu: React.FC = () => {
 
   // Menu items
   const mainFeatures = [
-    { name: "Idol Detail", path: "/idolList" },
+    { name: "Idol Details", path: "/idolList" },
     { name: "Card Overview", path: "/cardOverview" },
     { name: "Card Comparison", path: "/cardComparison" },
     { name: "Lyrics", path: "/lyric" },
@@ -22,13 +22,13 @@ const MainMenu: React.FC = () => {
   const playgroundFeatures = [
     { name: "IdolyChat", path: "/chat" },
     { name: "Compass Chart", path: "/compassChart" },
+    { name: "ID Manager", path: "/ktp" },
+    { name: "Card Design", path: "/cardDesign" },
   ];
 
   const upcomingFeatures = [
     { name: "Book Reader", path: "/bookreader" },
     { name: "Chat Reader", path: "/chatreader" },
-    { name: "Card Design", path: "/cardDesign" },
-    { name: "KTP Manager", path: "/ktp" },
   ];
 
   const handleNavigation = (path: string) => {

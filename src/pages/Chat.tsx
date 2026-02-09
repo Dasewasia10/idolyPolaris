@@ -458,6 +458,9 @@ const ChatPage: React.FC = () => {
       <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Sidebar - Menu Controls */}
         <section className="space-y-6 flex flex-col text-xs lg:text-base">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex justify-center lg:justify-start">
+            IdolyChat
+          </h1>
           <div className="flex flex-col justify-around gap-4">
             <div className="flex gap-4 justify-around flex-col">
               {/* BUTTONS GROUP: Actions */}
@@ -527,7 +530,7 @@ const ChatPage: React.FC = () => {
             </div>
 
             <div className="flex border-b border-slate-500 mx-2"></div>
-            
+
             <button
               className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-md w-full flex items-center justify-center gap-2"
               onClick={() => setShowCallLogModal(true)}
@@ -542,13 +545,13 @@ const ChatPage: React.FC = () => {
         <section className="lg:col-span-2 overflow-y-auto no-scrollbar">
           <div
             id="idolyMessage"
-            className="bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[22rem] scrollbar-minimal z-[9999] bg-[url('/assets/chat-bg.png')] bg-repeat bg-blend-multiply bg-cover"
+            className="bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[24rem] scrollbar-minimal z-[9999] bg-[url('/assets/chat-bg.png')] bg-repeat bg-blend-multiply bg-cover"
           >
             {/* Conditional Rendering Title */}
             {titleVisible && (
               <h2>
                 <TextareaAutosize
-                  className="w-full bg-gray-900 text-white text-lg lg:text-2xl font-bold p-3 mb-4 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-gray-900 text-white text-lg lg:text-2xl font-bold p-3 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={title}
                   onChange={(e) => {
                     setTitle(e.target.value);
