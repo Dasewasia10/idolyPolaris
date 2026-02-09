@@ -69,6 +69,13 @@ const HomeContent = () => {
         "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_skr-05-idol-03.webp",
       description: "Design your own custom card with your favorite idol",
     },
+    {
+      name: "Idol Messages",
+      path: "/messages",
+      bgImage:
+        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_mhk-05-fest-02.webp",
+      description: "Read messages from your favorite idols",
+    },
   ];
 
   return (

@@ -58,6 +58,13 @@ const KTPManager: React.FC = () => {
     fetchIcons();
   }, []);
 
+  useEffect(() => {
+    document.title = "Polaris Idoly | ID Manager";
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   // Handler Upload Foto Profil
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

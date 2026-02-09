@@ -166,6 +166,13 @@ const CardDesign: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [selectedCard]); // Re-calculate if card changes (just in case)
 
+  useEffect(() => {
+    document.title = "Polaris Idoly | Card Designer";
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   // --- HANDLERS ---
 
   const handleDownload = async () => {

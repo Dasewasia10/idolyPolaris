@@ -18,7 +18,8 @@ import CardOverviewPage from "./pages/CardOverviewPage";
 import CardComparison from "./pages/CardComparison";
 import ChatPage from "./pages/Chat";
 import CharacterStatsPage from "./pages/CharacterStatPage";
-import CardDesign from "./pageJunk/CardDesign";
+import CardDesign from "./pages/CardDesign";
+import MessagePage from "./pages/MessagePage";
 import MaintenanceNotice from "./components/maintenanceNotice";
 
 const MainLayout = () => {
@@ -67,6 +68,7 @@ const App: React.FC = () => {
             <Route path="/ktp" element={<KTPManager />} />
             <Route path="/stat" element={<CharacterStatsPage />} />
             <Route path="/cardDesign" element={<CardDesign />} />
+            <Route path="/messages" element={<MessagePage />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}
