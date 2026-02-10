@@ -26,6 +26,8 @@ const IdolyWordlePage: React.FC = () => {
   );
   const [message, setMessage] = useState("");
 
+  const [isRevealing, setIsRevealing] = useState(false);
+
   // Load Game Data
   useEffect(() => {
     const fetchDailyWord = async () => {
@@ -71,7 +73,7 @@ const IdolyWordlePage: React.FC = () => {
 
   // --- LOGIC ---
   const handleKey = (key: string) => {
-    if (gameStatus !== "playing") return;
+    if (gameStatus !== "playing" || isRevealing) return;
 
     if (key === "DEL") {
       setCurrentGuess((prev) => prev.slice(0, -1));
@@ -95,16 +97,32 @@ const IdolyWordlePage: React.FC = () => {
   const submitGuess = () => {
     const newGuesses = [...guesses, currentGuess];
     setGuesses(newGuesses);
+    setCurrentGuess("");
+
+    // Blokir input segera
+    setIsRevealing(true);
 
     if (currentGuess === solution) {
-      setGameStatus("won");
-      showMessage("CONGRATULATIONS! 🎉");
+      // Menang: Tunggu 2 detik baru muncul overlay
+      setTimeout(() => {
+        setGameStatus("won");
+        setIsRevealing(false); // Buka blokir (walau game sudah selesai)
+        showMessage("CONGRATULATIONS! 🎉");
+      }, 2000);
     } else if (newGuesses.length >= 6) {
-      setGameStatus("lost");
-      showMessage(`Jawaban: ${solution}`);
+      // Kalah: Tunggu 2 detik baru muncul overlay
+      setTimeout(() => {
+        setGameStatus("lost");
+        setIsRevealing(false);
+        showMessage(`Jawaban: ${solution}`);
+      }, 2000);
+    } else {
+      // Belum selesai: Beri jeda sedikit untuk efek visual (opsional, misal 0.5d)
+      // atau langsung lanjut
+      setTimeout(() => {
+        setIsRevealing(false); // Izinkan ngetik lagi
+      }, 1000); // Saya set 1 detik agar user sempat lihat warna kotaknya dulu
     }
-
-    setCurrentGuess("");
   };
 
   const showMessage = (msg: string) => {
