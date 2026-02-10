@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ChevronLeft, RotateCcw, HelpCircle } from "lucide-react";
+import { ChevronLeft } from "lucide-react"; // Icon yang tidak terpakai sudah dihapus
 import { useNavigate } from "react-router-dom";
 
 // --- CONFIG ---
-const API_BASE = "https://diveidolypapi.my.id/api/wordle"; // Sesuaikan domain backend kamu
+const API_BASE = "https://diveidolypapi.my.id/api/wordle";
 
 // Keyboard Layout
 const KEYBOARD_ROWS = [
@@ -17,7 +17,7 @@ const IdolyWordlePage: React.FC = () => {
   const navigate = useNavigate();
 
   // --- STATE ---
-  const [solution, setSolution] = useState(""); // Kata Jawaban (Decoded)
+  const [solution, setSolution] = useState("");
   const [wordLength, setWordLength] = useState(5);
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState("");
@@ -31,22 +31,18 @@ const IdolyWordlePage: React.FC = () => {
     const fetchDailyWord = async () => {
       try {
         const res = await axios.get(`${API_BASE}/daily`);
-        // Decode Base64
         const decodedWord = atob(res.data.hash);
 
         setSolution(decodedWord);
         setWordLength(res.data.length);
 
-        // Cek LocalStorage
         const savedData = localStorage.getItem("idolyWordleState");
         if (savedData) {
           const parsed = JSON.parse(savedData);
-          // Jika tanggalnya sama dengan hari ini, load progress
           if (parsed.date === res.data.date) {
             setGuesses(parsed.guesses);
             setGameStatus(parsed.status);
           } else {
-            // Hari baru, reset storage
             localStorage.removeItem("idolyWordleState");
           }
         }
@@ -58,14 +54,14 @@ const IdolyWordlePage: React.FC = () => {
     fetchDailyWord();
   }, []);
 
-  // Save Progress ke LocalStorage setiap ada perubahan guess
+  // Save Progress
   useEffect(() => {
     if (solution) {
-      const todayDate = new Date().toISOString().split("T")[0]; // Simple date match (bisa disesuaikan logic backend)
+      const todayDate = new Date().toISOString().split("T")[0];
       localStorage.setItem(
         "idolyWordleState",
         JSON.stringify({
-          date: todayDate, // Perlu sinkron dengan backend date sebenarnya idealnya
+          date: todayDate,
           guesses,
           status: gameStatus,
         }),
@@ -116,7 +112,7 @@ const IdolyWordlePage: React.FC = () => {
     setTimeout(() => setMessage(""), 3000);
   };
 
-  // Keyboard Event Listener (PC)
+  // Keyboard Event Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toUpperCase();
@@ -128,10 +124,12 @@ const IdolyWordlePage: React.FC = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentGuess, gameStatus, wordLength]); // Deps penting agar state terbaca
+  }, [currentGuess, gameStatus, wordLength]);
 
-  // --- HELPER: CHECK COLORS ---
-  const getLetterStatus = (letter: string, index: number, word: string) => {
+  // --- HELPER: CHECK COLORS (FIXED) ---
+
+  // 1. Disederhanakan: Hapus parameter 'word' yang tidak terpakai
+  const getLetterStatus = (letter: string, index: number) => {
     const correctLetter = solution[index];
 
     if (letter === correctLetter) return "correct"; // Hijau
@@ -139,20 +137,31 @@ const IdolyWordlePage: React.FC = () => {
     return "absent"; // Abu
   };
 
-  // Helper untuk warna keyboard (Global status per huruf)
+  // 2. Logic Keyboard Diperbaiki (Priority Check)
   const getKeyStatus = (key: string) => {
-    let status = "";
-    guesses.forEach((guess) => {
+    let bestStatus = "";
+
+    // Loop semua tebakan yang sudah ada
+    for (const guess of guesses) {
       for (let i = 0; i < guess.length; i++) {
+        // Jika huruf di tebakan ini sama dengan tombol keyboard yg dicek
         if (guess[i] === key) {
-          const s = getLetterStatus(guess[i], i, guess);
-          if (s === "correct") return "correct"; // Prioritas tertinggi
-          if (s === "present" && status !== "correct") status = "present";
-          if (s === "absent" && status === "") status = "absent";
+          const currentStatus = getLetterStatus(key, i);
+
+          // Prioritas: CORRECT (Hijau) > PRESENT (Kuning) > ABSENT (Abu)
+          if (currentStatus === "correct") {
+            return "correct"; // Langsung return jika sudah pernah hijau
+          }
+          if (currentStatus === "present") {
+            bestStatus = "present"; // Simpan kuning, tapi lanjut cek siapa tau ada hijau di tebakan lain
+          }
+          if (currentStatus === "absent" && bestStatus === "") {
+            bestStatus = "absent";
+          }
         }
       }
-    });
-    return status;
+    }
+    return bestStatus;
   };
 
   return (
@@ -168,7 +177,7 @@ const IdolyWordlePage: React.FC = () => {
         <h1 className="font-bold text-xl tracking-widest bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
           IDOLY WORDLE
         </h1>
-        <div className="w-8"></div> {/* Spacer */}
+        <div className="w-8"></div>
       </header>
 
       {/* MESSAGE TOAST */}
@@ -184,11 +193,9 @@ const IdolyWordlePage: React.FC = () => {
           className="grid gap-1 mb-4"
           style={{
             gridTemplateRows: `repeat(6, 1fr)`,
-            // DYNAMIC COLUMN BASED ON WORD LENGTH
             gridTemplateColumns: `repeat(${wordLength}, 1fr)`,
           }}
         >
-          {/* Render 6 Baris Tebakan */}
           {[...Array(6)].map((_, rowIndex) => {
             const guess = guesses[rowIndex];
             const isCurrentRow = rowIndex === guesses.length;
@@ -198,16 +205,14 @@ const IdolyWordlePage: React.FC = () => {
               let status = "";
 
               if (guess) {
-                // Baris yang sudah ditebak
                 letter = guess[colIndex];
-                status = getLetterStatus(letter, colIndex, guess);
+                // Panggil getLetterStatus tanpa parameter ke-3
+                status = getLetterStatus(letter, colIndex);
               } else if (isCurrentRow) {
-                // Baris yang sedang diketik
                 letter = currentGuess[colIndex] || "";
                 status = "active";
               }
 
-              // Style Classes
               let bgClass = "bg-gray-900 border-gray-700";
               if (status === "correct")
                 bgClass = "bg-green-600 border-green-600";
@@ -242,10 +247,15 @@ const IdolyWordlePage: React.FC = () => {
           <div key={i} className="flex justify-center gap-1 mb-1">
             {row.map((key) => {
               const status = getKeyStatus(key);
+
+              // Logic warna tombol keyboard
               let bgClass = "bg-gray-600 hover:bg-gray-500";
-              if (status === "correct") bgClass = "bg-green-600";
-              if (status === "present") bgClass = "bg-yellow-600";
-              if (status === "absent") bgClass = "bg-gray-800 text-gray-500";
+              if (status === "correct")
+                bgClass = "bg-green-600"; // Hijau
+              else if (status === "present")
+                bgClass = "bg-yellow-600"; // Kuning
+              else if (status === "absent")
+                bgClass = "bg-gray-800 text-gray-500"; // Abu
 
               return (
                 <button
@@ -285,7 +295,6 @@ const IdolyWordlePage: React.FC = () => {
               >
                 Back to Menu
               </button>
-              {/* Tombol Share bisa ditambahkan di sini nanti */}
             </div>
             <p className="mt-6 text-xs text-gray-500">
               Come back tomorrow for a new word!
