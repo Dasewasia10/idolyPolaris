@@ -32,25 +32,46 @@ const IdolyWordlePage: React.FC = () => {
   useEffect(() => {
     const fetchDailyWord = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/daily`);
+        // --- LOGIC HARI LOKAL ---
+        // Ambil waktu sekarang di perangkat user
+        const now = new Date();
+        // Buat objek Date baru yang menunjuk ke jam 00:00:00 waktu lokal hari ini
+        const localMidnight = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        // Hitung index hari (Epoch ms dibagi ms dalam sehari)
+        // Ini akan menghasilkan angka integer unik untuk setiap tanggal lokal
+        const localDayIndex = Math.floor(localMidnight.getTime() / 86400000);
+
+        // Request ke API dengan parameter ?day=
+        const res = await axios.get(`${API_BASE}/daily?day=${localDayIndex}`);
+
+        // Decode Base64
         const decodedWord = atob(res.data.hash);
 
         setSolution(decodedWord);
         setWordLength(res.data.length);
 
+        // --- CEK LOCAL STORAGE ---
         const savedData = localStorage.getItem("idolyWordleState");
         if (savedData) {
           const parsed = JSON.parse(savedData);
-          if (parsed.date === res.data.date) {
+
+          // Bandingkan dayIndex yang tersimpan dengan hari ini
+          // Jika sama, berarti user melanjutkan game hari ini
+          if (parsed.dayIndex === localDayIndex) {
             setGuesses(parsed.guesses);
             setGameStatus(parsed.status);
           } else {
+            // Jika beda (misal user main kemarin), reset untuk hari baru
             localStorage.removeItem("idolyWordleState");
           }
         }
       } catch (err) {
         console.error("Error fetching wordle:", err);
-        setMessage("Gagal memuat kata hari ini.");
+        setMessage("Failed to load today's word. Please try again later or contact the dev.");
       }
     };
     fetchDailyWord();
@@ -59,11 +80,19 @@ const IdolyWordlePage: React.FC = () => {
   // Save Progress
   useEffect(() => {
     if (solution) {
-      const todayDate = new Date().toISOString().split("T")[0];
+      // Hitung lagi index hari untuk disimpan (agar konsisten saat load)
+      const now = new Date();
+      const localMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
+      const localDayIndex = Math.floor(localMidnight.getTime() / 86400000);
+
       localStorage.setItem(
         "idolyWordleState",
         JSON.stringify({
-          date: todayDate,
+          dayIndex: localDayIndex, // Simpan ID hari, bukan tanggal string
           guesses,
           status: gameStatus,
         }),

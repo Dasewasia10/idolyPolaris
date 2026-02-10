@@ -110,7 +110,6 @@ const CardOverview: React.FC = () => {
   const menuRef = useRef(null);
   const openRef = useRef(null);
   const sourceImageRef = useRef(null);
-  // const { cardTitle } = useParams<{ cardTitle: string }>();
 
   const [characters, setCharacters] = useState<Character[]>([]);
   const [cardSources, setCardSources] = useState<Source[]>([]);

@@ -17,6 +17,7 @@ const MENUS = {
     { name: "ID Manager", path: "/ktp" },
     { name: "Card Design", path: "/cardDesign" },
     { name: "Idoly Wordle", path: "/wordle" },
+    { name: "Gacha Simulator", path: "/gacha" },
   ],
   addOn: [
     { name: "Idol Messages", path: "/messages" },
@@ -26,7 +27,6 @@ const MENUS = {
 
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },
-    { name: "Gacha Simulator", path: "/gachaSimulator" },
     { name: "Event Tracker", path: "/eventTracker" },
   ],
 };
