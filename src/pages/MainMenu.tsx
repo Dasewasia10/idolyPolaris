@@ -16,14 +16,18 @@ const MENUS = {
     { name: "Compass Chart", path: "/compassChart" },
     { name: "ID Manager", path: "/ktp" },
     { name: "Card Design", path: "/cardDesign" },
+    { name: "Idoly Wordle", path: "/wordle" },
   ],
   addOn: [
     { name: "Idol Messages", path: "/messages" },
     { name: "Character Comparison", path: "/stat" },
+    { name: "Love Story", path: "/loveStory" },
   ],
 
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },
+    { name: "Gacha Simulator", path: "/gachaSimulator" },
+    { name: "Event Tracker", path: "/eventTracker" },
   ],
 };
 

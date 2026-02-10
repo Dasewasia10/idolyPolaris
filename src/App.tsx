@@ -21,6 +21,8 @@ import CharacterStatsPage from "./pages/CharacterStatPage";
 import CardDesign from "./pages/CardDesign";
 import MessagePage from "./pages/MessagePage";
 import MaintenanceNotice from "./components/maintenanceNotice";
+import LoveStoryPage from "./pages/LoveStory";
+import IdolyWordlePage from "./pages/IdolyWordlePage";
 
 const MainLayout = () => {
   return (
@@ -69,6 +71,8 @@ const App: React.FC = () => {
             <Route path="/stat" element={<CharacterStatsPage />} />
             <Route path="/cardDesign" element={<CardDesign />} />
             <Route path="/messages" element={<MessagePage />} />
+            <Route path="/lovestory" element={<LoveStoryPage />} />
+            <Route path="/wordle" element={<IdolyWordlePage />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}

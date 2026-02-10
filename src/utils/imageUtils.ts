@@ -164,7 +164,6 @@ export const getGiftItemImageUrl = (
     fran: "adult",
     kana: "sweet",
     miho: "adult",
-    Mana: "rice",
   };
 
   const type = characterGiftTypes[characterName];
@@ -200,7 +199,6 @@ export const getSpecialGiftItemImageUrl = (characterName: string): string => {
     fran: "kor",
     kana: "kna",
     miho: "mhk",
-    Mana: "mna",
   };
 
   const type = characterSpecialGiftTypes[characterName];
