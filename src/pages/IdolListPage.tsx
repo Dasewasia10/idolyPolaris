@@ -304,7 +304,7 @@ const IdolListPage: React.FC = () => {
         {/* Group Members List */}
         <div className="rounded-lg p-4 absolute z-20 bottom-12 lg:bottom-10 max-w-full">
           {/* 1. Tambahkan flex-nowrap dan overflow-x-auto. Gunakan scrollbar-minimal agar tampilan rapi */}
-          <div className="flex flex-nowrap gap-3 transition-all duration-500 ease-out py-2 max-w-80 lg:max-w-full overflow-x-auto scrollbar-minimal">
+          <div className="flex flex-nowrap gap-3 transition-all duration-500 ease-out py-2 max-w-80 w-screen lg:max-w-screen-xl overflow-x-auto scrollbar-minimal">
             {currentGroupMembers.map((idol: Character, index: number) => {
               const accessKey = (index + 1).toString();
 
