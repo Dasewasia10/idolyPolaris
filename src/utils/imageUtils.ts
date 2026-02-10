@@ -123,6 +123,16 @@ export const getCharacter3ImageUrl = (characterName: string): string => {
     kana: "https://api.diveidolypapi.my.id/image3Character/source-kana-05-china-00-full.webp",
     miho: "https://api.diveidolypapi.my.id/image3Character/source-miho-05-idoloutfit-00-full.webp",
     Mana: "https://api.diveidolypapi.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
+    Miku: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_mku-05-miku-05.webp",
+    Snow: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_ymk-05-miku-01.webp",
+    Chino:
+      "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_chn-05-goch-00.webp",
+    Cocoa:
+      "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_cca-05-goch-00.webp",
+    Chika:
+      "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_chk-05-sush-00.webp",
+    Riko: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_rik-05-sush-00.webp",
+    Yo: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_yo-05-sush-00.webp",
   };
 
   return characterImages[characterName] || "";
@@ -165,6 +175,38 @@ export const getGiftItemImageUrl = (
   const indexStr = validatedIndex === 0 ? "01" : "02";
 
   return `https://api.diveidolypapi.my.id/giftItem/img_item_thumb_enjoy-present-${type}-${indexStr}-01.png`;
+};
+
+export const getSpecialGiftItemImageUrl = (characterName: string): string => {
+  // Mapping tipe hadiah untuk setiap karakter
+  const characterSpecialGiftTypes: Record<string, string> = {
+    Kotono: "ktn",
+    Nagisa: "ngs",
+    Mei: "mei",
+    Suzu: "suz",
+    Saki: "ski",
+    Sakura: "skr",
+    Shizuku: "szk",
+    Chisa: "chn",
+    Haruko: "hrk",
+    Rei: "rei",
+    Rui: "rui",
+    Sumire: "smr",
+    Yu: "yu",
+    Rio: "rio",
+    Aoi: "aoi",
+    Ai: "ai",
+    Kokoro: "kkr",
+    fran: "kor",
+    kana: "kna",
+    miho: "mhk",
+    Mana: "mna",
+  };
+
+  const type = characterSpecialGiftTypes[characterName];
+  if (!type) return "";
+
+  return `https://api.diveidolypapi.my.id/giftItem/img_item_thumb_enjoy-present-sp-${type}.png`;
 };
 
 export const getPlaceholderImageUrl = (typeName: string): string => {

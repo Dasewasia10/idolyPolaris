@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { Character } from "../interfaces/Character";
 import { Icon } from "../interfaces/Icon";
 
@@ -50,7 +52,6 @@ const CharacterComparisonPage: React.FC = () => {
 
     fetchData();
   }, []);
-
 
   // Title Page Dynamic
   useEffect(() => {
@@ -108,12 +109,12 @@ const CharacterComparisonPage: React.FC = () => {
       case "height":
         return Math.max(
           ...characters.map((c) => c.numeralStat?.height || 0),
-          180
+          180,
         );
       case "weight":
         return Math.max(
           ...characters.map((c) => c.numeralStat?.weight || 0),
-          60
+          60,
         );
       case "bust":
         return Math.max(...characters.map((c) => c.numeralStat?.bust || 0), 90);
@@ -160,134 +161,137 @@ const CharacterComparisonPage: React.FC = () => {
     }
   };
 
-  const getColor = () => {
+  const getGradientColor = () => {
     switch (sortBy) {
       case "age":
-        return "bg-blue-500";
+        return "from-blue-400 to-indigo-600";
       case "height":
-        return "bg-green-500";
+        return "from-green-400 to-teal-600";
       case "weight":
-        return "bg-yellow-500";
+        return "from-yellow-400 to-orange-500";
       case "bust":
-        return "bg-pink-500";
+        return "from-pink-400 to-rose-500";
       case "waist":
-        return "bg-slate-500";
+        return "from-slate-400 to-slate-600";
       case "hips":
-        return "bg-emerald-500";
+        return "from-emerald-400 to-emerald-600";
       default:
-        return "bg-gray-500";
+        return "from-gray-400 to-gray-600";
     }
   };
 
   return (
-    <div className="p-6 bg-slate-900 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-white">
-        Character Comparison
-      </h1>
+    <div className="p-4 md:p-8 bg-[#0f172a] min-h-screen text-slate-200">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-10 text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-pink-500 mb-2">
+            Character Comparison
+          </h1>
+          <p className="text-slate-400">
+            Analyze and compare the physical attributes of Hoshimi Production
+            idols.
+          </p>
+        </header>
 
-      {/* Sorting Controls */}
-      <div className="grid justify-center gap-4 mb-8 grid-cols-2 lg:grid-cols-6">
-        <button
-          onClick={() => setSortBy("age")}
-          className={`px-4 py-2 rounded-lg ${
-            sortBy === "age" ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Sort by Age
-        </button>
-        <button
-          onClick={() => setSortBy("height")}
-          className={`px-4 py-2 rounded-lg ${
-            sortBy === "height" ? "bg-green-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Sort by Height
-        </button>
-        <button
-          onClick={() => setSortBy("weight")}
-          className={`px-4 py-2 rounded-lg ${
-            sortBy === "weight" ? "bg-yellow-500 text-black" : "bg-gray-200"
-          }`}
-        >
-          Sort by Weight
-        </button>
-        <button
-          onClick={() => setSortBy("bust")}
-          className={`px-4 py-2 rounded-lg ${
-            sortBy === "bust" ? "bg-pink-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Sort by Bust
-        </button>
-        <button
-          onClick={() => setSortBy("waist")}
-          className={`px-4 py-2 rounded-lg ${
-            sortBy === "waist" ? "bg-pink-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Sort by Waist
-        </button>
-        <button
-          onClick={() => setSortBy("hips")}
-          className={`px-4 py-2 rounded-lg ${
-            sortBy === "hips" ? "bg-pink-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Sort by Hips
-        </button>
-      </div>
+        {/* Sorting Controls - Improved UI */}
+        <div className="flex flex-wrap justify-center gap-2 mb-10 bg-slate-800/50 p-2 rounded-2xl backdrop-blur-sm border border-slate-700">
+          {(["age", "height", "weight", "bust", "waist", "hips"] as const).map(
+            (type) => (
+              <button
+                key={type}
+                onClick={() => setSortBy(type)}
+                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 capitalize ${
+                  sortBy === type
+                    ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] scale-105"
+                    : "bg-transparent text-slate-400 hover:text-white hover:bg-slate-700"
+                }`}
+              >
+                {type}
+              </button>
+            ),
+          )}
+        </div>
 
-      {/* Comparison Chart */}
-      <div className="bg-slate-700 p-6 rounded-lg shadow-lg text-white">
-        <h2 className="text-xl font-semibold mb-4 text-center">
-          {getStatLabel()}
-        </h2>
+        {/* Comparison Chart Container */}
+        <div className="bg-slate-800/30 backdrop-blur-md rounded-3xl p-4 md:p-8 border border-slate-700/50 shadow-2xl">
+          <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span className="w-2 h-8 bg-blue-500 rounded-full"></span>
+              {getStatLabel()}
+            </h2>
+          </div>
 
-        <div className="space-y-6">
-          {getSortedCharacters().map((character) => {
-            const icon = icons.find((icon) => icon.name === character.name);
-            const value = getValue(character);
-            const maxValue = getMaxValue();
-            const percentage = (value / maxValue) * 100;
+          <div className="space-y-5">
+            <AnimatePresence mode="popLayout">
+              {getSortedCharacters().map((character, index) => {
+                const icon = icons.find((i) => i.name === character.name);
+                const value = getValue(character);
+                const maxValue = getMaxValue();
+                const percentage = (value / maxValue) * 100;
 
-            return (
-              <div key={character.id} className="flex lg:items-center flex-col lg:flex-row">
-                {/* Character Icon and Name */}
-                <div className="flex items-center w-48">
-                  {icon && (
-                    <img
-                      src={icon.src}
-                      alt={character.name}
-                      className="w-10 h-10 rounded-full mr-3"
-                    />
-                  )}
-                  <div>
-                    <div className="font-medium">{character.name}</div>
-                    <div className="text-xs text-white/80">
-                      {character.groupName}
+                return (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                    key={character.name} // Gunakan name karena ID mungkin sama
+                    className="group relative flex items-center gap-4"
+                  >
+                    {/* Rank Number */}
+                    <div className="w-6 text-slate-500 font-mono text-sm">
+                      {(index + 1).toString().padStart(2, "0")}
                     </div>
-                  </div>
-                </div>
 
-                {/* Stat Value */}
-                <div className="w-16 text-right pr-4 hidden lg:block">
-                  <span className="font-bold">{value}</span>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="flex-1 lg:mt-0 mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-6">
-                    <div
-                      className={`${getColor()} h-6 rounded-full flex items-center justify-end transition-all duration-300 ease-in-out`}
-                      style={{ width: `${percentage}%` }}
-                    >
-                      <span className="text-white text-xs pr-2">{value}</span>
+                    {/* Avatar with Group Color Ring */}
+                    <div className="relative flex-shrink-0">
+                      <div
+                        className="absolute -inset-1 rounded-full opacity-20 group-hover:opacity-100 transition-opacity"
+                        style={{ backgroundColor: `#${character.color}` }}
+                      ></div>
+                      <img
+                        src={icon?.src}
+                        alt={character.name}
+                        className="relative w-12 h-12 rounded-full border-2 border-slate-900 object-cover"
+                      />
                     </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+
+                    <div className="flex-1">
+                      <div className="flex justify-between items-end mb-1">
+                        <div>
+                          <span className="font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
+                            {character.name}
+                          </span>
+                          <span className="ml-2 text-[10px] uppercase tracking-widest text-slate-500 font-semibold px-2 py-0.5 bg-slate-900 rounded-md">
+                            {character.groupName}
+                          </span>
+                        </div>
+                        <div className="text-sm font-black font-mono text-blue-400">
+                          {value}
+                          <span className="text-[10px] text-slate-500 ml-0.5">
+                            {sortBy === "age" ? "y.o" : "unit"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar with Glow */}
+                      <div className="w-full bg-slate-900/50 rounded-full h-3 overflow-hidden border border-slate-700/30">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percentage}%` }}
+                          transition={{ duration: 1, ease: "circOut" }}
+                          className={`h-full bg-gradient-to-r ${getGradientColor()} relative`}
+                        >
+                          <div className="absolute top-0 right-0 w-4 h-full bg-white/20 blur-sm"></div>
+                        </motion.div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>

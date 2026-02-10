@@ -6,16 +6,17 @@ import { Character } from "../interfaces/Character";
 import {
   getCharacter3ImageUrl,
   getGiftItemImageUrl,
+  getSpecialGiftItemImageUrl,
   getGroupImageUrl,
 } from "../utils/imageUtils";
 import { QnASource } from "../interfaces/QnA";
 
 const getCharacterImageUrl = (
   characterName: string,
-  type: "icon" | "sprite1" | "sprite2" | "banner"
+  type: "icon" | "sprite1" | "sprite2" | "banner",
 ) => {
   return `https://diveidolypapi.my.id/api/img/character/${type}/${encodeURIComponent(
-    characterName.toLowerCase()
+    characterName.toLowerCase(),
   )}`;
 };
 
@@ -26,6 +27,7 @@ const allowedGroups = [
   "LizNoir",
   "IIIX",
   "Mana Nagase",
+  "Collaboration",
 ];
 
 const IdolListPage: React.FC = () => {
@@ -93,36 +95,39 @@ const IdolListPage: React.FC = () => {
   // Group characters by groupName
   const groupBy = <T, K extends keyof any>(
     array: T[],
-    keyExtractor: (item: T) => K
+    keyExtractor: (item: T) => K,
   ) => {
-    return array.reduce((acc, current) => {
-      const key = keyExtractor(current);
-      (acc[key] = acc[key] || []).push(current);
-      return acc;
-    }, {} as Record<K, T[]>);
+    return array.reduce(
+      (acc, current) => {
+        const key = keyExtractor(current);
+        (acc[key] = acc[key] || []).push(current);
+        return acc;
+      },
+      {} as Record<K, T[]>,
+    );
   };
 
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
         const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters"
+          "https://diveidolypapi.my.id/api/characters",
         );
         if (!response.ok) throw new Error("Failed to fetch characters");
 
         const data: Character[] = await response.json();
 
         const filteredCharacters = data.filter((idol) =>
-          allowedGroups.includes(idol.groupName)
+          allowedGroups.includes(idol.groupName),
         );
         setCharacters(filteredCharacters);
 
         const groups = groupBy(
           filteredCharacters,
-          (idol: Character) => idol.groupName
+          (idol: Character) => idol.groupName,
         );
         const orderedGroupNames = allowedGroups.filter(
-          (groupName) => groups[groupName]
+          (groupName) => groups[groupName],
         );
 
         if (orderedGroupNames.length > 0) {
@@ -160,7 +165,6 @@ const IdolListPage: React.FC = () => {
     fetchData();
   }, []);
 
-
   // Title Page Dynamic
   useEffect(() => {
     document.title = "Polaris Idoly | Idol Database";
@@ -177,7 +181,7 @@ const IdolListPage: React.FC = () => {
 
   const hasQnAData = (characterName: string, qnaSources: QnASource[]) => {
     return qnaSources.some(
-      (source) => source.name.toLowerCase() === characterName.toLowerCase()
+      (source) => source.name.toLowerCase() === characterName.toLowerCase(),
     );
   };
 
@@ -188,10 +192,10 @@ const IdolListPage: React.FC = () => {
     Object.entries(groups).map(([groupName, members]) => [
       groupName,
       [...members].sort((a, b) => (b.isCenter ? 1 : 0) - (a.isCenter ? 1 : 0)),
-    ])
+    ]),
   );
   const groupNames = allowedGroups.filter(
-    (groupName) => sortedGroups[groupName]
+    (groupName) => sortedGroups[groupName],
   );
 
   const currentGroup = groupNames[selectedGroupIndex];
@@ -298,8 +302,9 @@ const IdolListPage: React.FC = () => {
 
       <div className="flex">
         {/* Group Members List */}
-        <div className="rounded-lg p-4 absolute z-20 bottom-12 lg:bottom-10">
-          <div className="flex gap-3 transition-all duration-500 ease-out py-2">
+        <div className="rounded-lg p-4 absolute z-20 bottom-12 lg:bottom-10 max-w-full">
+          {/* 1. Tambahkan flex-nowrap dan overflow-x-auto. Gunakan scrollbar-minimal agar tampilan rapi */}
+          <div className="flex flex-nowrap gap-3 transition-all duration-500 ease-out py-2 max-w-80 lg:max-w-full overflow-x-auto scrollbar-minimal">
             {currentGroupMembers.map((idol: Character, index: number) => {
               const accessKey = (index + 1).toString();
 
@@ -309,7 +314,8 @@ const IdolListPage: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedIdol(idol)}
-                  className={`cursor-pointer rounded-lg overflow-hidden relative`}
+                  // 2. Tambahkan flex-shrink-0 agar item tidak mengecil saat jumlahnya banyak
+                  className="flex-shrink-0 cursor-pointer rounded-lg overflow-hidden relative"
                   style={{ borderTop: `4px solid ${idol.color}` }}
                   accessKey={accessKey}
                   tabIndex={0}
@@ -325,7 +331,8 @@ const IdolListPage: React.FC = () => {
                     onDragStart={(e) => e.preventDefault()}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = "/placeholder-idol.png";
+                      target.src =
+                        "https://diveidolypapi.my.id/api/img/character/sprite2/satomi";
                     }}
                     aria-hidden="true"
                   />
@@ -344,10 +351,10 @@ const IdolListPage: React.FC = () => {
         <div className="w-full h-[30rem] z-0">
           {selectedIdol && (
             <section className="relative flex flex-col items-center">
-              {!isMobile && (
+              {!isMobile && getGiftItemImageUrl(selectedIdol.name) && (
                 <div className="absolute w-20 h-20 p-2 flex flex-row gap-2 top-12 left-40 transition-all duration-500 ease-out z-20">
                   <img
-                    src={getGiftItemImageUrl(selectedIdol.name)}
+                    src={getSpecialGiftItemImageUrl(selectedIdol.name)}
                     alt="Give 40pt"
                     title="Give 40pt"
                     className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
@@ -365,6 +372,21 @@ const IdolListPage: React.FC = () => {
                     src={getGiftItemImageUrl(selectedIdol.name, 1)}
                     alt="Give 100pt"
                     title="Give 100pt"
+                    className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
+                    onContextMenu={(e) => e.preventDefault()}
+                    draggable="false"
+                    onDragStart={(e) => e.preventDefault()}
+                    onError={(e) => {
+                      e.currentTarget.src = `${
+                        import.meta.env.BASE_URL
+                      }assets/default_image.png`;
+                      e.currentTarget.alt = "Image not available";
+                    }}
+                  />
+                  <img
+                    src={getGiftItemImageUrl(selectedIdol.name)}
+                    alt="Give 40pt"
+                    title="Give 40pt"
                     className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
                     onContextMenu={(e) => e.preventDefault()}
                     draggable="false"
@@ -448,7 +470,7 @@ const IdolListPage: React.FC = () => {
                     </button>
                   </div>
                 )}
-                {!isMobile && (
+                {!isMobile && selectedIdol.introduction && (
                   <div className="absolute top-40 left-40 z-[50] max-w-xs transition-all duration-500 ease-out ring-2 rounded-lg">
                     {/* Container utama bubble dengan ekor */}
                     <div className="relative">
@@ -472,10 +494,10 @@ const IdolListPage: React.FC = () => {
                       selectedIdol.groupName === "Tsuki no Tempest"
                         ? "top-8 -right-52"
                         : selectedIdol.groupName === "TRINITYAiLE"
-                        ? "top-0 -right-52"
-                        : selectedIdol.groupName === "LizNoir"
-                        ? "top-2 -right-52"
-                        : "top-12 -right-52"
+                          ? "top-0 -right-52"
+                          : selectedIdol.groupName === "LizNoir"
+                            ? "top-2 -right-52"
+                            : "top-12 -right-52"
                     }`}
                     src={getGroupImageUrl(selectedIdol.groupName)}
                     alt="groupLogo"
@@ -551,7 +573,7 @@ const IdolListPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
-                        <div className="col-start-6 rounded-lg font-semibold p-4 font-bold flex items-end transition-all duration-300 ease-out w-24">
+                        <div className="col-start-6 rounded-lg p-4 font-bold flex items-end transition-all duration-300 ease-out w-24">
                           <div
                             style={{
                               backgroundColor: `#${selectedIdol.color}`,
@@ -563,7 +585,7 @@ const IdolListPage: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="col-start-7 col-span-2 text-black rounded-lg font-semibold p-4 font-bold">
+                        <div className="col-start-7 col-span-2 text-black rounded-lg p-4 font-bold">
                           <h3 className="text-lg font-bold mb-2">Profile</h3>
                           <div className="space-y-1 font-normal">
                             <p>
@@ -666,7 +688,7 @@ const IdolListPage: React.FC = () => {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
-                        <div className="col-start-6 rounded-lg font-semibold p-4 font-bold flex items-end transition-all duration-300 ease-out w-24">
+                        <div className="col-start-6 rounded-lg p-4 font-bold flex items-end transition-all duration-300 ease-out w-24">
                           <div
                             style={{
                               backgroundColor: `#${selectedIdol.color}`,
@@ -708,7 +730,7 @@ const IdolListPage: React.FC = () => {
                         <motion.img
                           src={getCharacterImageUrl(
                             selectedIdol.name,
-                            "sprite2"
+                            "sprite2",
                           )}
                           initial={{ x: 100 }}
                           animate={{ x: 0 }}
@@ -717,13 +739,18 @@ const IdolListPage: React.FC = () => {
                             willChange: "transform",
                           }}
                           alt={selectedIdol.name}
-                          className="w-auto h-auto max-w-full max-h-full z-10 select-none"
+                          className={`w-auto h-auto max-w-full max-h-full z-10 select-none transition-transform duration-300 ${
+                            selectedIdol.name.toLowerCase() === "snow"
+                              ? "-mt-32"
+                              : "mt-0"
+                          }`}
                           onContextMenu={(e) => e.preventDefault()}
                           draggable="false"
                           onDragStart={(e) => e.preventDefault()}
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = "/placeholder-idol.png";
+                            target.src =
+                              "https://diveidolypapi.my.id/api/img/character/sprite2/satomi";
                           }}
                         />
                       </motion.div>
@@ -756,7 +783,7 @@ const IdolListPage: React.FC = () => {
                         <motion.img
                           src={getCharacterImageUrl(
                             selectedIdol.name,
-                            "sprite2"
+                            "sprite2",
                           )}
                           initial={{ x: 100 }}
                           animate={{ x: 0 }}
@@ -823,7 +850,7 @@ const IdolListPage: React.FC = () => {
                         }`}
                         onClick={() =>
                           setActiveTab(
-                            tab as "profile" | "gifts" | "description"
+                            tab as "profile" | "gifts" | "description",
                           )
                         }
                       >
@@ -943,11 +970,11 @@ const IdolListPage: React.FC = () => {
                       <div className="flex flex-col gap-4">
                         <div className="flex justify-center gap-4">
                           <img
-                            src={getGiftItemImageUrl(selectedIdol.name)}
+                            src={getSpecialGiftItemImageUrl(selectedIdol.name)}
                             onContextMenu={(e) => e.preventDefault()}
                             draggable="false"
                             onDragStart={(e) => e.preventDefault()}
-                            alt="Give 40pt"
+                            alt="Give 150pt"
                             className="w-16 h-16 object-cover rounded-lg shadow-lg bg-white"
                           />
                           <img
@@ -956,6 +983,14 @@ const IdolListPage: React.FC = () => {
                             draggable="false"
                             onDragStart={(e) => e.preventDefault()}
                             alt="Give 100pt"
+                            className="w-16 h-16 object-cover rounded-lg shadow-lg bg-white"
+                          />
+                          <img
+                            src={getGiftItemImageUrl(selectedIdol.name)}
+                            onContextMenu={(e) => e.preventDefault()}
+                            draggable="false"
+                            onDragStart={(e) => e.preventDefault()}
+                            alt="Give 40pt"
                             className="w-16 h-16 object-cover rounded-lg shadow-lg bg-white"
                           />
                         </div>

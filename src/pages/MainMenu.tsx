@@ -17,10 +17,13 @@ const MENUS = {
     { name: "ID Manager", path: "/ktp" },
     { name: "Card Design", path: "/cardDesign" },
   ],
-  addOn: [{ name: "Idol Messages", path: "/messages" }],
+  addOn: [
+    { name: "Idol Messages", path: "/messages" },
+    { name: "Character Comparison", path: "/stat" },
+  ],
+
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },
-    { name: "Character Stats", path: "/stat" },
   ],
 };
 
