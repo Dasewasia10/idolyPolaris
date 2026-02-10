@@ -590,21 +590,21 @@ const IdolListPage: React.FC = () => {
                           <div className="space-y-1 font-normal">
                             <p>
                               <span className="font-medium">Birthday:</span>{" "}
-                              {formatDateToDM(selectedIdol.birthdayDate)}
+                              {formatDateToDM(selectedIdol.birthdayDate) || "-"}
                             </p>
                             <p>
                               <span className="font-medium">Height:</span>{" "}
-                              {selectedIdol.numeralStat.height} cm
+                              {selectedIdol.numeralStat.height || "-"} cm
                             </p>
                             <p>
                               <span className="font-medium">Weight:</span>{" "}
-                              {selectedIdol.numeralStat.weight} kg
+                              {selectedIdol.numeralStat.weight || "-"} kg
                             </p>
                             <p>
                               <span className="font-medium">B/W/H:</span>{" "}
-                              {selectedIdol.numeralStat.bust}/
-                              {selectedIdol.numeralStat.waist}/
-                              {selectedIdol.numeralStat.hip}
+                              {selectedIdol.numeralStat.bust || "-"}/
+                              {selectedIdol.numeralStat.waist || "-"}/
+                              {selectedIdol.numeralStat.hip || "-"}
                             </p>
                           </div>
                         </div>
@@ -883,21 +883,21 @@ const IdolListPage: React.FC = () => {
                             <div className="space-y-1 font-normal">
                               <p>
                                 <span className="font-medium">Birthday:</span>{" "}
-                                {formatDateToDM(selectedIdol.birthdayDate)}
+                                {formatDateToDM(selectedIdol.birthdayDate) || "-"}
                               </p>
                               <p>
                                 <span className="font-medium">Height:</span>{" "}
-                                {selectedIdol.numeralStat.height} cm
+                                {selectedIdol.numeralStat.height || "-"} cm
                               </p>
                               <p>
                                 <span className="font-medium">Weight:</span>{" "}
-                                {selectedIdol.numeralStat.weight} kg
+                                {selectedIdol.numeralStat.weight || "-"} kg
                               </p>
                               <p>
                                 <span className="font-medium">B/W/H:</span>{" "}
-                                {selectedIdol.numeralStat.bust}/
-                                {selectedIdol.numeralStat.waist}/
-                                {selectedIdol.numeralStat.hip}
+                                {selectedIdol.numeralStat.bust || "-"}/
+                                {selectedIdol.numeralStat.waist || "-"}/
+                                {selectedIdol.numeralStat.hip || "-"}
                               </p>
                             </div>
                           </div>
