@@ -71,7 +71,9 @@ const IdolyWordlePage: React.FC = () => {
         }
       } catch (err) {
         console.error("Error fetching wordle:", err);
-        setMessage("Failed to load today's word. Please try again later or contact the dev.");
+        setMessage(
+          "Failed to load today's word. Please try again later or contact the dev.",
+        );
       }
     };
     fetchDailyWord();
@@ -171,8 +173,8 @@ const IdolyWordlePage: React.FC = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentGuess, gameStatus, wordLength]);
-
+  }, [currentGuess, gameStatus, wordLength, isRevealing]);
+  
   // --- HELPER: CHECK COLORS (FIXED) ---
 
   // 1. Disederhanakan: Hapus parameter 'word' yang tidak terpakai
