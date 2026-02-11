@@ -1,151 +1,203 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Sparkles,
+  ArrowRight,
+  Star,
+  Music,
+  Users,
+  CreditCard,
+} from "lucide-react";
 
 const HomeContent = () => {
   const navigate = useNavigate();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
+  // LOGIC GRID BARU:
+  // Total Grid: 4 Kolom.
+  // Item disusun agar menutup celah dengan sempurna.
+
   const menuItems = [
+    // --- ROW 1 (Top Section - The Database) ---
     {
-      name: "Idol Details",
+      name: "Idol Directory",
       path: "/idolList",
       bgImage:
         "https://api.diveidolypapi.my.id/image3Character/source-suzu-05-premium-01-full.webp",
-      description: "Explore all idols and their profiles",
+      description: "Profiles & Lore",
+      size: "md:col-span-2 md:row-span-2", // KOTAK BESAR (Jantung Aplikasi)
+      icon: <Users className="w-5 h-5 text-pink-400" />,
     },
     {
-      name: "Card Overview",
+      name: "Gacha Sim",
+      path: "/gacha",
+      bgImage:
+        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_chs-05-fest-03.webp",
+      description: "Test your luck",
+      size: "md:col-span-2 md:row-span-1", // MELEBAR (Header Kanan)
+      icon: <Star className="w-5 h-5 text-yellow-400" />,
+    },
+    {
+      name: "Card Database",
       path: "/cardOverview",
       bgImage:
         "https://api.diveidolypapi.my.id/image3Character/source-mei-05-rock-00-full.webp",
-      description: "Browse all available cards",
+      description: "Browse cards",
+      size: "md:col-span-1 md:row-span-1", // KOTAK KECIL
+      icon: <CreditCard className="w-5 h-5 text-blue-400" />,
     },
     {
-      name: "Card Comparison",
+      name: "Comparison",
       path: "/cardComparison",
       bgImage:
         "https://api.diveidolypapi.my.id/image3Character/source-ai-05-rock-00-full.webp",
-      description: "Compare cards side by side",
+      description: "Stat battle",
+      size: "md:col-span-1 md:row-span-1", // KOTAK KECIL
+      icon: <CreditCard className="w-5 h-5 text-purple-400" />,
     },
+
+    // --- ROW 2 (Mid Section - Content) ---
     {
-      name: "Lyrics",
+      name: "Lyrics Library",
       path: "/lyric",
       bgImage:
         "https://api.diveidolypapi.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
-      description: "Find song lyrics and its translations",
-    },
-    {
-      name: "Bday Calendar",
-      path: "/bdayCalendar",
-      bgImage:
-        "https://api.diveidolypapi.my.id/image3Character/source-rio-05-fes-03-full.webp",
-      description: "Never miss an idol's birthday",
+      description: "Song translations",
+      size: "md:col-span-2 md:row-span-1", // MELEBAR (Penyeimbang Kiri)
+      icon: <Music className="w-5 h-5 text-green-400" />,
     },
     {
       name: "Idoly Chat",
       path: "/chat",
       bgImage:
         "https://api.diveidolypapi.my.id/image3Character/source-aoi-05-kaito-00-full.webp",
-      description: "Make your custom chat with your favorite idol",
+      description: "Talk to idols",
+      size: "md:col-span-1 md:row-span-1",
+      icon: null,
     },
     {
-      name: "Compass Chart",
-      path: "/compassChart",
+      name: "Bday Calendar",
+      path: "/bdayCalendar",
       bgImage:
-        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_chs-05-fest-03.webp",
-      description: "A quadrant chart based on two opposing variables.",
+        "https://api.diveidolypapi.my.id/image3Character/source-rio-05-fes-03-full.webp",
+      description: "Important dates",
+      size: "md:col-span-1 md:row-span-1",
+      icon: null,
     },
+
+    // --- ROW 3 (Bottom Section - Tools) ---
     {
-      name: "ID Manager",
+      name: "Manager ID",
       path: "/ktp",
       bgImage:
         "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_ngs-05-fest-02.webp",
-      description: "Make your custom ktp- I mean Manager ID and share with your friends",
+      description: "Create ID",
+      size: "md:col-span-1 md:row-span-1",
+      icon: null,
     },
     {
       name: "Card Design",
       path: "/cardDesign",
       bgImage:
         "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_skr-05-idol-03.webp",
-      description: "Design your own custom card with your favorite idol",
+      description: "Custom art",
+      size: "md:col-span-1 md:row-span-1",
+      icon: null,
     },
     {
       name: "Idol Messages",
       path: "/messages",
       bgImage:
         "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_mhk-05-fest-02.webp",
-      description: "Read messages from your favorite idols",
+      description: "Incoming SMS",
+      size: "md:col-span-2 md:row-span-1", // MELEBAR (Penutup Bawah Kanan)
+      icon: null,
     },
   ];
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto z-10 scrollbar-minimal lg:-mb-10">
-      {/* Welcome Banner */}
-      <div className="bg-slate-700 rounded-lg p-6 text-white bg-opacity-70 mb-4">
-        <h1 className="text-3xl font-bold mb-2">
-          Welcome to Idoly Pride Fan-Website
-        </h1>
-        <p className="text-lg">Select a feature below to get started</p>
+    <div className="flex-1 p-4 md:p-8 overflow-y-auto z-10 scrollbar-minimal lg:-mb-10 pb-24">
+      {/* HEADER: Lebih bersih dan to-the-point */}
+      <div className="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 animate-in slide-in-from-top-4 duration-700 bg-slate-700 bg-opacity-80 px-6 py-8 rounded-2xl shadow-lg">
+        <div>
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+            IDOLY PRIDE <span className="text-pink-500">HUB</span>
+          </h1>
+          <p className="text-slate-300 text-sm md:text-base mt-1">
+            Database, Tools, and Community Resources.
+          </p>
+        </div>
+        <div className="hidden md:block">
+          <div className="flex items-center gap-2 bg-gray-800/50 border border-gray-700 px-3 py-1.5 rounded-full text-xs text-slate-300">
+            <Sparkles size={14} className="text-yellow-400" />
+            <span>Unofficial Fan Site</span>
+          </div>
+        </div>
       </div>
 
-      {/* Collage Menu Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
-        {menuItems.map((item) => (
+      {/* GRID LAYOUT: Lebih Rapi & Tertata */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[160px]">
+        {menuItems.map((item, index) => (
           <div
             key={item.path}
             onClick={() => navigate(item.path)}
             onMouseEnter={() => setHoveredItem(item.path)}
             onMouseLeave={() => setHoveredItem(null)}
-            className="relative h-52 rounded-xl overflow-hidden shadow-2xl cursor-pointer group transition-all duration-300 hover:shadow-pink-500/30"
+            className={`
+              relative rounded-xl overflow-hidden cursor-pointer group 
+              transition-all duration-300 border border-gray-800
+              ${item.size} 
+              ${hoveredItem === item.path ? "ring-2 ring-pink-500 shadow-xl shadow-pink-500/20 z-10 scale-[1.01]" : "hover:border-gray-600"}
+            `}
+            style={{ animationDelay: `${index * 50}ms` }}
           >
-            {/* Background Image with Zoom Effect */}
+            {/* Background Image */}
             <div
-              className="absolute inset-0 bg-cover bg-center transition-all duration-500 group-hover:scale-110"
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
               style={{ backgroundImage: `url(${item.bgImage})` }}
             >
+              {/* Overlay Gradient: Gelap di bawah agar teks terbaca */}
               <div
-                className={`absolute inset-0 transition-all duration-300 ${
-                  hoveredItem === item.path ? "bg-black/30" : "bg-black/50"
-                }`}
+                className={`absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/60 to-transparent transition-opacity duration-300 ${hoveredItem === item.path ? "opacity-80" : "opacity-90"}`}
               />
             </div>
 
-            {/* Animated Border Bottom */}
-            <div
-              className={`
-              absolute bottom-0 left-0 h-1 bg-pink-500 transition-all duration-300
-              ${hoveredItem === item.path ? "w-full" : "w-0"}
-            `}
-            />
+            {/* Content: Minimalis di pojok kiri bawah */}
+            <div className="absolute inset-0 p-5 flex flex-col justify-end">
+              <div className="flex justify-between items-end">
+                <div>
+                  {/* Icon Header (Optional) */}
+                  {item.icon && (
+                    <div className="mb-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                      {item.icon}
+                    </div>
+                  )}
+                  <h3 className="text-xl font-bold text-white leading-none drop-shadow-md group-hover:text-pink-200 transition-colors">
+                    {item.name}
+                  </h3>
+                  <p className="text-gray-400 text-xs mt-1.5 line-clamp-1 font-medium group-hover:text-white transition-colors">
+                    {item.description}
+                  </p>
+                </div>
 
-            {/* Content */}
-            <div className="relative h-full flex flex-col justify-end p-6">
-              <h3 className="text-2xl font-bold text-white drop-shadow-lg">
-                {item.name}
-              </h3>
-              <p className="text-white/90 mt-1 drop-shadow-md text-sm">
-                {item.description}
-              </p>
-
-              {/* Animated Button */}
-              <button
-                className={`
-                absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-full
-                transition-all duration-300 transform shadow-lg
-                ${
-                  hoveredItem === item.path
-                    ? "opacity-100 scale-100"
-                    : "opacity-0 scale-90"
-                }
-              `}
-              >
-                Explore
-              </button>
+                {/* Arrow yg muncul halus saat hover */}
+                <div
+                  className={`
+                    bg-white/10 backdrop-blur-md p-2 rounded-full text-white 
+                    transition-all duration-300 transform 
+                    ${hoveredItem === item.path ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}
+                `}
+                >
+                  <ArrowRight size={16} />
+                </div>
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Footer Spacer */}
+      <div className="h-8"></div>
     </div>
   );
 };

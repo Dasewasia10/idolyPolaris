@@ -57,7 +57,7 @@ const App: React.FC = () => {
   return (
     // <DarkModeProvider>
     //<HistoryProvider>
-    <div className="mt-20 mb-20 lg:mb-0">
+    <div className="mb-20 lg:mb-0">
       <Router>
         <Routes>
           <Route path="/" element={<MainLayout />}>

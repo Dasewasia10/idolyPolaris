@@ -1,23 +1,54 @@
-import React, { useState, useEffect } from "react";
-
-import { Lyric } from "../interfaces/Lyric";
+import React, { useState, useEffect, useMemo } from "react";
+import axios from "axios";
 import { Character } from "../interfaces/Character";
-
+import { Lyric } from "../interfaces/Lyric";
 import VideoModal from "../components/videoYoutube";
 import SearchBar from "../components/searchBar";
+import {
+  Play,
+  ChevronRight,
+  ArrowLeft,
+  Languages,
+  Info,
+  X,
+  ExternalLink,
+  Calendar,
+  Mic2,
+  Music,
+  User,
+} from "lucide-react";
 
-const matchWithCharacters = (lyricsData: any[], characters: any[]) =>
+const API_BASE_URL = "https://diveidolypapi.my.id/api";
+
+// --- INTERFACES ---
+interface ExtendedLyric extends Lyric {
+  matchedCharacters: {
+    name: string;
+    character: Character | null;
+  }[];
+}
+
+const getCharacterIconUrl = (characterName: string) => {
+  return `https://api.diveidolypapi.my.id/iconCharacter/chara-${encodeURIComponent(
+    characterName,
+  )}.png`;
+};
+
+// --- HELPER FUNCTIONS ---
+const matchWithCharacters = (
+  lyricsData: any[],
+  characters: Character[],
+): { groupName: string; data: ExtendedLyric[] }[] =>
   lyricsData.map((source) => {
-    // Proses setiap item di dalam source.data
-    const matchedData = source.data.map((item: { character: any }) => {
-      // Pastikan item.character ada dan merupakan array
+    const matchedData = source.data.map((item: Lyric) => {
       const characterNames = Array.isArray(item.character)
         ? item.character
         : [];
 
       const matchedCharacters = characterNames.map((charName) => {
+        if (!charName) return { name: "Unknown", character: null };
         const matched = characters.find(
-          (char) => char.name?.toLowerCase() === charName?.toLowerCase()
+          (char) => char.name?.toLowerCase() === charName.toLowerCase(),
         );
         return {
           name: charName,
@@ -25,803 +56,575 @@ const matchWithCharacters = (lyricsData: any[], characters: any[]) =>
         };
       });
 
-      return {
-        ...item,
-        matchedCharacters, // Tambahkan daftar karakter yang cocok ke item
-      };
+      return { ...item, matchedCharacters };
     });
-
-    return {
-      ...source,
-      data: matchedData, // Perbarui source.data dengan matchedCharacters
-    };
+    return { ...source, data: matchedData };
   });
 
+// --- COMPONENT: Song Info Modal (NEW) ---
+const SongInfoModal = ({
+  isOpen,
+  onClose,
+  song,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  song: ExtendedLyric | null;
+}) => {
+  if (!isOpen || !song) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-gray-900 border border-gray-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
+        {/* Header Modal */}
+        <div className="flex justify-between items-center p-4 border-b border-gray-800 bg-gray-900 sticky top-0">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <Info size={20} className="text-blue-400" />
+            Song Details
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+          {/* 1. Titles */}
+          <div className="text-center space-y-1">
+            <h2 className="text-2xl font-bold text-white leading-tight">
+              {song.title}
+            </h2>
+            {song.jpTitle && (
+              <p className="text-gray-400 font-jp">{song.jpTitle}</p>
+            )}
+            {song.alternateTitle && (
+              <p className="text-sm text-gray-500 italic">
+                ({song.alternateTitle})
+              </p>
+            )}
+          </div>
+
+          {/* 2. Credits Grid */}
+          <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div className="flex flex-col gap-1">
+              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
+                <Calendar size={12} /> Release Date
+              </span>
+              <span className="text-gray-200 font-medium">
+                {song.releaseDate || "-"}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
+                <Mic2 size={12} /> Lyricist
+              </span>
+              <span className="text-gray-200 font-medium">
+                {song.lyricist || "-"}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
+                <Music size={12} /> Composer
+              </span>
+              <span className="text-gray-200 font-medium">
+                {song.composer || "-"}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
+                <User size={12} /> Arranger
+              </span>
+              <span className="text-gray-200 font-medium">
+                {song.arranger || "-"}
+              </span>
+            </div>
+          </div>
+
+          {/* 3. Group & Artists */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-gray-400 border-b border-gray-800 pb-1">
+              PERFORMED BY
+            </h4>
+            <div className="flex flex-col items-center gap-4">
+              {/* Group Image (Logic dari snippet kamu) */}
+              {song.altGroup && (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-16 h-16 rounded-full bg-gray-800 p-1 border border-gray-700 shadow-lg">
+                    <img
+                      src={`https://api.diveidolypapi.my.id/idolGroup/group-${song.altGroup}-circle.png`}
+                      alt={song.group}
+                      className="w-full h-full object-contain rounded-full"
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-gray-300">
+                    {song.group}
+                  </span>
+                </div>
+              )}
+
+              {/* Characters List */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {song.matchedCharacters.map((charObj, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 bg-gray-800 pr-3 rounded-full border border-gray-700"
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full border border-gray-600 overflow-hidden bg-gray-700"
+                      style={{
+                        backgroundColor: charObj.character?.color || "#374151",
+                      }}
+                    >
+                      <img
+                        src={getCharacterIconUrl(charObj.name.toLowerCase())}
+                        alt={charObj.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="text-xs text-gray-300 font-medium">
+                      {charObj.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Source Link */}
+          {song.source && (
+            <div className="pt-2">
+              <a
+                href={song.source}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-all hover:shadow-lg shadow-blue-500/20"
+              >
+                <ExternalLink size={18} />
+                View Source of Lyric
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Lyrics: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState<string>(""); // State untuk menyimpan nilai input pencarian
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [filteredSuggestions, setFilteredSuggestions] = useState<any[]>([]);
+  // Data State
+  const [lyricsData, setLyricsData] = useState<any[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [lyric, setLyric] = useState<Lyric[]>([]);
-  const [idols, setIdols] = useState<Character[]>([]);
-  const [sources, setSources] = useState<any[]>([]);
-  // Gunakan string kosong sebagai initial state
-  const [activeSource, setActiveSource] = useState<string>("");
-  const [activeData, setActiveData] = useState<any[]>([]);
-  const [videoModalIsOpen, setVideoModalIsOpen] = useState(false);
-  const [videoModalIsSmall, setVideoModalIsSmall] = useState(true);
+  // UI State
+  const [selectedSong, setSelectedSong] = useState<ExtendedLyric | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
-  const [isRightMenuOpen, setIsRightMenuOpen] = useState(false);
+  // Modals State
+  const [isInfoOpen, setIsInfoOpen] = useState(false); // New State for Info Modal
+  const [videoSrc, setVideoSrc] = useState("");
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [isVideoSmall, setIsVideoSmall] = useState(false);
 
-  useEffect(() => {
-    const fetchLyrics = async () => {
-      try {
-        const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/lyrics"
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch lyrics data");
-        }
-        const data = await response.json();
-        setLyric(data); // Simpan data lirik ke state
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchLyrics();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          "https://www.diveidolypapi.my.id/api/characters"
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const data: Character[] = await response.json();
-
-        const filteredIdols = data.sort((a, b) => a.name.localeCompare(b.name)); // Urutkan berdasarkan nama idol
-
-        setIdols(filteredIdols); // ✅ Simpan hanya idol dalam grup tertentu
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-
-  // Title Page Dynamic
-  useEffect(() => {
-    document.title = "Polaris Idoly | Idoly Lyrics";
-
-    return () => {
-      document.title = "Polaris Idoly";
-    };
-  }, []);
-
-  const generateIds = (data: any[]) =>
-    data.map((item, index) => ({ ...item, id: index + 1 }));
-
-  const getCharacterIconUrl = (characterName: string) => {
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${encodeURIComponent(
-      characterName
-    )}.png`;
-  };
-
-  const processLyrics = (lyricsData: any[]) => {
-    return lyricsData.map((source) => ({
-      ...source,
-      data: generateIds(
-        source.data.map(
-          (item: {
-            alternateTitle: any;
-            jpTitle: any;
-            group: any;
-            character: any;
-            lyricist: any;
-            composer: any;
-            arranger: any;
-          }) => ({
-            ...item,
-            alternateTitle: item.alternateTitle,
-            jpTitle: item.jpTitle,
-            group: item.group,
-            character: item.character || [], // Berikan array kosong sebagai default
-            lyricist: item.lyricist,
-            composer: item.composer,
-            arranger: item.arranger,
-          })
-        )
-      ),
-    }));
-  };
-
-  // Gunakan fungsi ini setelah data lirik di-fetch
-  useEffect(() => {
-    if (lyric?.length > 0) {
-      const processedLyrics = processLyrics(lyric);
-      const matchedLyrics = matchWithCharacters(processedLyrics, idols);
-      setSources(matchedLyrics);
-
-      if (matchedLyrics.length > 0 && matchedLyrics[0].data?.length > 0) {
-        setActiveSource(matchedLyrics[0].name);
-        setActiveData(matchedLyrics[0].data);
-        setActiveCharacters(matchedLyrics[0].data[0]?.matchedCharacters || []);
-      }
-    }
-  }, [lyric, idols]);
-
-  useEffect(() => {
-    if (activeSource && sources.length > 0) {
-      const selectedSource = sources.find(
-        (source) => source.name === activeSource
-      );
-      if (selectedSource) {
-        setActiveData(selectedSource.data || []);
-        setActiveCharacters(selectedSource.data[0]?.matchedCharacters || []);
-      }
-    }
-  }, [activeSource, sources]);
-
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
-    null
-  );
-
-  const filteredTitleByGroup = selectedGroup
-    ? sources.filter((title) =>
-        title.data.some((item: any) =>
-          item.group?.toLowerCase().includes(selectedGroup.toLowerCase())
-        )
-      )
-    : sources;
-
-  const filteredTitleByCharacter = selectedCharacter
-    ? sources.filter((title) =>
-        title.data.some((item: any) =>
-          item.character?.some((char: string) =>
-            char?.toLowerCase().includes(selectedCharacter.toLowerCase())
-          )
-        )
-      )
-    : sources;
-
-  const combinedFilteredTitles = sources.filter(
-    (title) =>
-      (searchTerm === "" ||
-        title.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        title.data.some((item: any) =>
-          item.alternateTitle?.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        title.data.some((item: any) =>
-          item.jpTitle?.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        title.data.some((item: any) =>
-          item.lyricist?.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        title.data.some((item: any) =>
-          item.composer?.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        title.data.some((item: any) =>
-          item.arranger?.toLowerCase().includes(searchTerm.toLowerCase())
-        )) &&
-      (selectedGroup === "" || filteredTitleByGroup.includes(title)) &&
-      (selectedCharacter === "" || filteredTitleByCharacter.includes(title))
-  );
-
-  const [activeCharacters, setActiveCharacters] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (activeSource && sources.length > 0) {
-      const activeLyric = sources.find(
-        (source) => source.name === activeSource
-      );
-      if (activeLyric) {
-        const matchedCharacters = matchWithCharacters([activeLyric], idols);
-        setActiveCharacters(
-          matchedCharacters[0]?.data[0]?.matchedCharacters || []
-        );
-      }
-    }
-  }, [activeSource, sources, idols]);
-
-  const parseText = (text: string) => {
-    // Regex untuk pola formatting dengan aturan yang benar
-    const bold = /(?<!\*)\*\*(.+?)\*\*(?!\*)/g; // Hanya mencocokkan teks antara ** dan **
-    const italic = /(?<!\*)\*(.+?)\*(?!\*)/g; // Hanya mencocokkan teks antara * dan * tanpa double asterisk
-    const underline = /__(.+?)__/g; // Hanya mencocokkan teks antara __ dan __
-
-    const htmlText = text
-      .replace(bold, "<strong>$1</strong>")
-      .replace(italic, "<em>$1</em>")
-      .replace(underline, "<u>$1</u>");
-
-    return <span dangerouslySetInnerHTML={{ __html: htmlText }} />;
-  };
-
-  const uniqueGroups = Array.from(
-    new Set(
-      sources.flatMap((source) => source.data.map((item: any) => item.group))
-    )
-  );
-
-  const uniqueCharacters = Array.from(
-    new Set(
-      sources.flatMap((source) =>
-        source.data.flatMap((item: any) => item.character)
-      )
-    )
-  );
-
-  const handleGroupFilter = (group: string) => {
-    setSelectedGroup(group);
-    setSelectedCharacter(null);
-  };
-
-  const handleCharacterFilter = (character: string) => {
-    setSelectedCharacter(character);
-    setSelectedGroup(null);
-  };
-
-  const handleSourceChange = (sourceKey: string) => {
-    setActiveSource(sourceKey);
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    if (value.length > 0) {
-      const filtered = combinedFilteredTitles.flatMap((source) =>
-        source.data
-          .map((item: any) => ({
-            sourceName: source.name,
-            ...item,
-          }))
-          .filter(
-            (item: {
-              title: string;
-              alternateTitle: string;
-              jpTitle: string;
-            }) =>
-              item.title.toLowerCase().includes(value.toLowerCase()) ||
-              (item.alternateTitle &&
-                item.alternateTitle
-                  .toLowerCase()
-                  .includes(value.toLowerCase())) ||
-              (item.jpTitle &&
-                item.jpTitle.toLowerCase().includes(value.toLowerCase()))
-          )
-          .slice(0, 5)
-      ); // Batasi hasil maksimal 5
-
-      setFilteredSuggestions(filtered);
-      setShowSuggestions(true);
-    } else {
-      setShowSuggestions(false);
-    }
-  };
-
-  // Handle ketika memilih suggestion
-  const handleSelectSuggestion = (selectedItem: any) => {
-    // Cari sumber yang sesuai
-    const selectedSource = sources.find(
-      (source) => source.name === selectedItem.sourceName
-    );
-
-    if (selectedSource) {
-      setActiveSource(selectedSource.name);
-      setActiveData(selectedSource.data);
-      setActiveCharacters(selectedSource.data[0]?.matchedCharacters || []);
-    }
-
-    setSearchTerm(selectedItem.title);
-    setShowSuggestions(false);
-  };
-
-  const [activeTab, setActiveTab] = useState<"video" | "detail" | "source">(
-    "video"
-  );
-
+  // Column Toggle State
   const [activeColumns, setActiveColumns] = useState({
     kanji: true,
     romaji: true,
     english: true,
-    indonesian: true,
+    indonesian: true, // Asumsi ada field indonesian
   });
 
-  // Fungsi toggle kolom
-  const toggleColumn = (column: keyof typeof activeColumns) => {
-    setActiveColumns((prev) => ({
-      ...prev,
-      [column]: !prev[column],
-    }));
-  };
-
+  // --- FETCH DATA ---
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // Cek jika klik terjadi di luar kedua menu
-      const leftMenu = document.getElementById("leftConsole");
-      const rightMenu = document.getElementById("rightConsole");
-
-      const isClickOutsideLeft =
-        leftMenu && !leftMenu.contains(event.target as Node);
-      const isClickOutsideRight =
-        rightMenu && !rightMenu.contains(event.target as Node);
-
-      // Jika salah satu menu terbuka dan klik di luar
-      if (
-        (isLeftMenuOpen || isRightMenuOpen) &&
-        isClickOutsideLeft &&
-        isClickOutsideRight
-      ) {
-        setIsLeftMenuOpen(false);
-        setIsRightMenuOpen(false);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [lyricsRes, charsRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/lyrics`),
+          axios.get(`${API_BASE_URL}/characters`),
+        ]);
+        setLyricsData(lyricsRes.data);
+        setCharacters(charsRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
+    fetchData();
+  }, []);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isLeftMenuOpen, isRightMenuOpen]); // Tambahkan dependencies
+  // Process Data
+  const processedData = useMemo(
+    () => matchWithCharacters(lyricsData, characters),
+    [lyricsData, characters],
+  );
 
+  // Flatten & Filter
+  const allSongs = useMemo(() => {
+    return processedData.flatMap((group) =>
+      group.data.map((song) => ({
+        ...song,
+        group: song.group || group.groupName,
+      })),
+    );
+  }, [processedData]);
+
+  const filteredSongs = useMemo(() => {
+    if (!searchTerm) return allSongs;
+    const lower = searchTerm.toLowerCase();
+    return allSongs.filter(
+      (song) =>
+        song.title.toLowerCase().includes(lower) ||
+        song.jpTitle?.toLowerCase().includes(lower),
+    );
+  }, [allSongs, searchTerm]);
+
+  // --- HANDLERS ---
+  const handleSongClick = (song: ExtendedLyric) => {
+    setSelectedSong(song);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const openVideo = (url?: string) => {
+    if (!url) return;
+    let embedUrl = url;
+    if (url.includes("watch?v=")) {
+      embedUrl = url.replace("watch?v=", "embed/");
+    } else if (url.includes("youtu.be/")) {
+      embedUrl = url.replace("youtu.be/", "www.youtube.com/embed/");
+    }
+    setVideoSrc(embedUrl);
+    setIsVideoOpen(true);
+    setIsVideoSmall(false);
+  };
+
+  const toggleColumn = (column: keyof typeof activeColumns) => {
+    setActiveColumns((prev) => ({ ...prev, [column]: !prev[column] }));
+  };
+
+  // --- RENDER ---
   return (
-    <>
-      <div className="h-max w-auto z-10 flex flex-col p-2 gap-2 mb-10 lg:mb-0 mt-10 lg:mt-0">
-        <section id="leftConsole" className="absolute">
-          {/* Menu Sidebar */}
-          <div
-            className={`fixed left-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
-              isLeftMenuOpen ? "translate-x-0 w-72" : "-translate-x-full"
-            }`}
-          >
-            {/* Konten Menu */}
-            <div className="w-full bg-slate-900 p-4 overflow-y-auto">
-              <h2 className="flex font-bold text-3xl text-white py-2">
-                Filter Lyrics
-              </h2>
-              <div className="flex flex-col gap-4">
-                {/* Filter Section */}
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-left font-bold text-white">Filter</h2>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center gap-2">
-                      <select
-                        className="p-2 rounded-md bg-gray-300 flex-1"
-                        value={selectedGroup || ""}
-                        onChange={(e) => handleGroupFilter(e.target.value)}
-                      >
-                        <option value="">All Groups</option>
-                        {uniqueGroups.map((group, index) => (
-                          <option key={index} value={group}>
-                            {group}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex justify-between items-center gap-2">
-                      <select
-                        className="p-2 rounded-md bg-gray-300 flex-1"
-                        value={selectedCharacter || ""}
-                        onChange={(e) => handleCharacterFilter(e.target.value)}
-                      >
-                        <option value="">All Characters</option>
-                        {uniqueCharacters.map((character, index) => (
-                          <option key={index} value={character}>
-                            {character}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+    <div className="flex h-screen bg-gray-950 text-white font-sans overflow-hidden">
+      {/* SIDEBAR LIST */}
+      <aside
+        className={`
+        flex-col w-full md:w-[350px] lg:w-[400px] border-r border-gray-800 bg-gray-900/50 backdrop-blur-sm z-20
+        ${selectedSong ? "hidden md:flex" : "flex"} 
+      `}
+      >
+        <div className="p-4 border-b border-gray-800 bg-gray-900 sticky top-0 z-10">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
+            Song Lyrics
+          </h1>
+          <SearchBar
+            searchTerm={searchTerm}
+            onSearchChange={(e) => setSearchTerm(e.target.value)}
+            placeholderText="Search song title..."
+          />
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
+          {loading ? (
+            <div className="flex justify-center p-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-pink-500"></div>
+            </div>
+          ) : filteredSongs.length > 0 ? (
+            filteredSongs.map((song, idx) => (
+              <div
+                key={idx}
+                onClick={() => handleSongClick(song)}
+                className={`group p-3 rounded-lg cursor-pointer transition-all border border-transparent hover:border-gray-700 hover:bg-gray-800 ${selectedSong?.title === song.title ? "bg-gray-800 border-pink-500/50 shadow-md" : ""}`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3
+                      className={`font-bold text-sm mb-1 ${selectedSong?.title === song.title ? "text-pink-400" : "text-gray-200 group-hover:text-white"}`}
+                    >
+                      {song.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 font-mono truncate">
+                      {song.jpTitle}
+                    </p>
+                  </div>
+                  <ChevronRight
+                    size={16}
+                    className={`mt-1 text-gray-600 ${selectedSong?.title === song.title ? "text-pink-500" : "group-hover:text-gray-400"}`}
+                  />
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-700/50 text-gray-400 border border-gray-600/30">
+                    {song.group}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-gray-500 py-10 text-sm">
+              No songs found.
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main
+        className={`
+        flex-1 flex flex-col bg-gray-950 relative overflow-hidden
+        ${!selectedSong ? "hidden md:flex" : "flex fixed inset-0 md:static z-30"}
+      `}
+      >
+        {selectedSong ? (
+          <>
+            <header className="flex-shrink-0 bg-gray-900/90 backdrop-blur border-b border-gray-800 p-4 flex flex-col gap-4 shadow-lg z-20">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedSong(null)}
+                    className="md:hidden p-2 -ml-2 hover:bg-gray-800 rounded-full text-gray-300"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold text-white leading-tight">
+                      {selectedSong.title}
+                    </h2>
+                    <p className="text-sm text-gray-400 font-medium mt-1">
+                      {selectedSong.jpTitle}
+                    </p>
                   </div>
                 </div>
 
-                {/* Titles Section */}
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-left font-bold text-white">Titles</h2>
-                  <select
-                    value={activeSource}
-                    onChange={(e) => handleSourceChange(e.target.value)}
-                    className="p-2 rounded-md bg-gray-300 text-black"
+                <div className="flex gap-2">
+                  {/* TOMBOL INFO BARU */}
+                  <button
+                    onClick={() => setIsInfoOpen(true)}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-full font-bold text-sm transition-all"
+                    title="Song Details"
                   >
-                    {combinedFilteredTitles.map((source) => (
-                      <option key={source.name} value={source.name}>
-                        {source.data[0].title}
-                      </option>
-                    ))}
-                  </select>
+                    <Info size={18} />
+                    <span className="hidden sm:inline">Info</span>
+                  </button>
+
+                  {selectedSong.video && (
+                    <button
+                      onClick={() => openVideo(selectedSong.video)}
+                      className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-full font-bold text-sm shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                    >
+                      <Play size={16} fill="currentColor" />
+                      <span className="hidden sm:inline">Play Video</span>
+                    </button>
+                  )}
                 </div>
               </div>
-            </div>
-            {/* Tombol Toggle yang menempel di sisi kanan sidebar */}
-            <button
-              onClick={() => setIsLeftMenuOpen(!isLeftMenuOpen)}
-              title="Klik untuk membuka/tutup menu kiri"
-              className={`absolute -right-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-r-md hover:bg-slate-700 transition-all flex items-center justify-center`}
-            >
-              {isLeftMenuOpen ? "<" : ">"}
-            </button>
-          </div>
-        </section>
-        <section id="rightConsole" className="absolute">
-          {/* Menu Sidebar */}
-          <div
-            className={`fixed right-0 top-0 h-full bg-slate-900 z-10 transition-all duration-300 ease-in-out flex mt-20 ${
-              isRightMenuOpen ? "translate-x-0 w-72" : "translate-x-full"
-            }`}
-          >
-            {/* Tombol Toggle yang menempel di sisi kiri sidebar */}
-            <button
-              onClick={() => setIsRightMenuOpen(!isRightMenuOpen)}
-              className={`absolute -left-8 top-1/3 h-16 w-8 bg-slate-900 text-white rounded-l-md hover:bg-slate-700 transition-all flex items-center justify-center`}
-            >
-              {isRightMenuOpen ? ">" : "<"}
-            </button>
 
-            {/* Konten Menu */}
-            <div className="w-full bg-slate-900 p-4 overflow-y-auto max-w-72">
-              <h2 className="flex font-bold text-3xl text-white py-2">
-                Content
-              </h2>
-              <div className="flex flex-col gap-4 bg-white p-4 rounded-md">
-                {/* Tab Header */}
-                <div className="flex gap-2 border-b border-gray-300 text-sm">
-                  {["video", "detail", "source"].map((tab) => (
-                    <button
-                      key={tab}
-                      className={`px-4 py-2 font-semibold capitalize ${
-                        activeTab === tab
-                          ? "border-b-4 border-blue-500 text-blue-600"
-                          : "text-gray-600"
-                      }`}
-                      onClick={() =>
-                        setActiveTab(tab as "video" | "detail" | "source")
-                      }
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                {/* Singers List */}
+                <div className="flex -space-x-2 overflow-hidden py-1">
+                  {selectedSong.matchedCharacters.length > 0 ? (
+                    selectedSong.matchedCharacters.map((charObj, idx) => (
+                      <div
+                        key={idx}
+                        className="relative group/char cursor-help"
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full border-2 border-gray-900 bg-gray-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden"
+                          style={{
+                            backgroundColor:
+                              charObj.character?.color || "#374151",
+                          }}
+                        >
+                          <img
+                            src={getCharacterIconUrl(
+                              charObj.name.toLowerCase(),
+                            )}
+                            alt={charObj.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/char:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                          {charObj.name}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-500 italic">
+                      Unknown Artist
+                    </span>
+                  )}
+                </div>
+
+                {/* Language Toggles */}
+                <div className="flex items-center gap-2 bg-gray-800/50 p-1 rounded-lg border border-gray-700/50 self-start sm:self-auto">
+                  <Languages size={16} className="ml-2 text-gray-400" />
+                  <div className="h-4 w-px bg-gray-700 mx-1"></div>
+                  {(
+                    Object.keys(activeColumns) as Array<
+                      keyof typeof activeColumns
                     >
-                      {tab}
+                  ).map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => toggleColumn(lang)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                        activeColumns[lang]
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "text-gray-400 hover:text-white hover:bg-gray-700"
+                      }`}
+                    >
+                      {lang.charAt(0).toUpperCase() + lang.slice(1)}
                     </button>
                   ))}
                 </div>
-
-                {/* Tab Content */}
-                <div>
-                  {activeTab === "video" && (
-                    <div className="flex flex-col items-center gap-4">
-                      <button onClick={() => setVideoModalIsOpen(true)}>
-                        <img
-                          src={activeData[0]?.videoThumbnail}
-                          alt="Thumbnail Video"
-                          className="cursor-pointer rounded-md hover:opacity-80 transition"
-                        />
-                      </button>
-                    </div>
-                  )}
-
-                  {activeTab === "detail" && (
-                    <div className="overflow-auto max-h-[40vh] scrollbar-minimal">
-                      <div className="flex flex-col gap-4">
-                        {/* Title */}
-                        <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                          <h3 className="text-center font-bold mb-2">Title</h3>
-                          <div className="flex flex-col text-center divide-y divide-gray-700">
-                            <span>{activeData[0]?.title}</span>
-                            {activeData[0]?.alternateTitle && (
-                              <span>{activeData[0]?.alternateTitle}</span>
-                            )}
-                            {activeData[0]?.jpTitle && (
-                              <span>{activeData[0]?.jpTitle}</span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Details */}
-                        <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                          <h3 className="text-center font-bold mb-2">
-                            Details
-                          </h3>
-                          <div className="flex flex-col divide-y divide-gray-700">
-                            <span>
-                              <b>Release Date:</b> {activeData[0]?.releaseDate}
-                            </span>
-                            <span>
-                              <b>Lyricist:</b> {activeData[0]?.lyricist}
-                            </span>
-                            <span>
-                              <b>Composer:</b> {activeData[0]?.composer}
-                            </span>
-                            <span>
-                              <b>Arranger:</b> {activeData[0]?.arranger}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Performance Grouping */}
-                        <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
-                          <h3 className="text-center font-bold mb-2">
-                            Performance Grouping
-                          </h3>
-                          {activeData[0]?.group && (
-                            <img
-                              src={`https://api.diveidolypapi.my.id/idolGroup/group-${activeData[0]?.altGroup}-circle.png`}
-                              alt={activeData[0]?.group}
-                              className="w-12 h-auto"
-                            />
-                          )}
-                        </div>
-
-                        {/* Characters */}
-                        <div className="flex flex-col items-center bg-gray-200 p-4 rounded-md">
-                          <h3 className="text-center font-bold mb-2">
-                            Characters
-                          </h3>
-                          <div className="flex justify-center gap-1 flex-wrap">
-                            {activeCharacters.map((char, index) => (
-                              <img
-                                key={char.name}
-                                src={getCharacterIconUrl(
-                                  char.name?.toLowerCase() || "mei"
-                                )}
-                                alt={`Character ${index}`}
-                                className="rounded-full border-2 border-gray-700 w-8 h-8"
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === "source" && (
-                    <div className="text-center p-2">
-                      <p className="flex flex-col gap-2">
-                        {activeData[0]?.source ? (
-                          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
-                            <a
-                              className=""
-                              href={activeData[0]?.source}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Click Here
-                            </a>
-                          </button>
-                        ) : (
-                          <span className="text-gray-500">No source</span>
-                        )}
-                      </p>
-                    </div>
-                  )}
-                </div>
               </div>
-            </div>
-          </div>
-        </section>
-        <section className="flex gap-4 w-full max-h-40 items-center justify-between bg-slate-900 p-2 rounded-md">
-          <h1 className="flex w-full font-bold text-2xl text-white px-2 justify-center">
-            {activeData[0]?.title}
-          </h1>
-        </section>
+            </header>
 
-        <div
-          id="videoModal"
-          className={`absolute ${
-            videoModalIsOpen
-              ? "fixed flex items-center justify-center z-[9999] bg-black bg-opacity-0 transition-all duration-300"
-              : ""
-          }`}
-        >
-          <div
-            className={`transform ${
-              videoModalIsOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
-            } transition-all duration-300`}
-          >
-            {/* Video Modal Selalu Tersedia */}
-            <VideoModal
-              src={activeData[0]?.video}
-              // thumbnail={activeData[0]?.videoThumbnail}
-              isOpen={videoModalIsOpen}
-              setIsOpen={setVideoModalIsOpen}
-              isSmall={videoModalIsSmall}
-              setIsSmall={setVideoModalIsSmall}
-            />
-          </div>
-        </div>
-
-        <section className="flex flex-col w-full mx-auto overflow-auto gap-4 scrollbar-none h-[28rem]">
-          {/* Tampilkan lirik lagu */}
-          {activeData.length > 0 && (
-            <table className="table-auto w-full bg-white rounded-md">
-              <thead className="sticky top-0 bg-slate-700 text-white">
-                <tr>
-                  {activeColumns.kanji && <th className="px-4 py-2">Kanji</th>}
-                  {activeColumns.romaji && (
-                    <th className="px-4 py-2">Romaji</th>
-                  )}
-                  {activeColumns.english && (
-                    <th className="px-4 py-2">English</th>
-                  )}
-                  {activeColumns.indonesian && (
-                    <th className="px-4 py-2">Indonesian</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody
-                className={`${
-                  // Jika hanya satu kolom yang aktif, center-kan teks
-                  Object.values(activeColumns).filter(Boolean).length === 1
-                    ? "text-center"
-                    : ""
-                }`}
-              >
-                {activeData.map((item: any) => (
-                  <React.Fragment key={item.id}>
-                    {item.kanji.map((kanji: string, index: number) => (
-                      <tr
-                        key={`${item.id}-kanji-${index}`}
-                        className="hover:text-white hover:bg-slate-700"
-                      >
+            {/* Lyrics Content (Table) */}
+            <div className="flex-1 overflow-auto bg-gray-950 relative scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+              <div className="min-w-full inline-block align-middle">
+                <div className="border-t border-gray-800">
+                  <table className="min-w-full divide-y divide-gray-800">
+                    <thead className="bg-gray-900 sticky top-0 z-10 shadow-lg">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-12 text-center"
+                        >
+                          #
+                        </th>
                         {activeColumns.kanji && (
-                          <td className="border px-4 py-2">
-                            {parseText(kanji)}
-                          </td>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider min-w-[200px]"
+                          >
+                            Kanji / Original
+                          </th>
                         )}
                         {activeColumns.romaji && (
-                          <td className="border px-4 py-2">
-                            {parseText(item.romaji[index] || "")}
-                          </td>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-bold text-pink-400 uppercase tracking-wider min-w-[200px]"
+                          >
+                            Romaji
+                          </th>
                         )}
                         {activeColumns.english && (
-                          <td className="border px-4 py-2">
-                            {parseText(item.english[index] || "")}
-                          </td>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-bold text-blue-400 uppercase tracking-wider min-w-[200px]"
+                          >
+                            English
+                          </th>
                         )}
                         {activeColumns.indonesian && (
-                          <td className="border px-4 py-2">
-                            {parseText(item.indonesian[index] || "")}
-                          </td>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-bold text-green-400 uppercase tracking-wider min-w-[200px]"
+                          >
+                            Indonesian
+                          </th>
                         )}
                       </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
-
-        <div
-          id="belowConsole"
-          className="w-full flex flex-col md:flex-col lg:flex-row justify-around mx-auto py-2 items-center gap-4"
-        >
-          <div className="w-full lg:w-1/2 z-10">
-            <SearchBar
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
-              onSelectSuggestion={handleSelectSuggestion}
-              placeholderText="Search by any title"
-              suggestions={filteredSuggestions}
-              showSuggestions={showSuggestions}
-              setShowSuggestions={setShowSuggestions}
-            />
-          </div>
-
-          {/* Toggle Controls */}
-          <div className="flex gap-4 p-2 bg-gray-100 rounded-lg z-10 shadow-sm h-12 flex-col lg:flex-row">
-            {/* Preset Buttons as Switch */}
-            <div className="flex flex-row gap-2 border-l border-gray-200 pl-4">
-              <button
-                onClick={() =>
-                  setActiveColumns({
-                    kanji: true,
-                    romaji: true,
-                    english: true,
-                    indonesian: true,
-                  })
-                }
-                className={`px-3 py-1.5 rounded-lg transition-colors text-xs font-medium shadow-xs flex items-center gap-1 ${
-                  activeColumns.kanji &&
-                  activeColumns.romaji &&
-                  activeColumns.english &&
-                  activeColumns.indonesian
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Show All
-              </button>
-              <button
-                onClick={() =>
-                  setActiveColumns({
-                    kanji: true,
-                    romaji: false,
-                    english: false,
-                    indonesian: false,
-                  })
-                }
-                className={`px-3 py-1.5 rounded-lg transition-colors text-xs font-medium shadow-xs flex items-center gap-1 ${
-                  activeColumns.kanji &&
-                  !activeColumns.romaji &&
-                  !activeColumns.english &&
-                  !activeColumns.indonesian
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Kanji Only
-              </button>
+                    </thead>
+                    <tbody className="bg-gray-950 divide-y divide-gray-800/50">
+                      {Array.from({
+                        length: Math.max(
+                          selectedSong.kanji?.length || 0,
+                          selectedSong.romaji?.length || 0,
+                          selectedSong.english?.length || 0,
+                        ),
+                      }).map((_, index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-white/5 transition-colors duration-150 group"
+                        >
+                          <td className="px-4 py-4 whitespace-nowrap text-xs text-center text-gray-600 font-mono group-hover:text-pink-500">
+                            {index + 1}
+                          </td>
+                          {activeColumns.kanji && (
+                            <td className="px-6 py-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap font-jp">
+                              {selectedSong.kanji?.[index] || ""}
+                            </td>
+                          )}
+                          {activeColumns.romaji && (
+                            <td className="px-6 py-4 text-sm text-pink-100/90 leading-relaxed whitespace-pre-wrap font-medium">
+                              {selectedSong.romaji?.[index] || ""}
+                            </td>
+                          )}
+                          {activeColumns.english && (
+                            <td className="px-6 py-4 text-sm text-blue-100/80 leading-relaxed whitespace-pre-wrap italic">
+                              {selectedSong.english?.[index] || ""}
+                            </td>
+                          )}
+                          {activeColumns.indonesian && (
+                            <td className="px-6 py-4 text-sm text-green-100/80 leading-relaxed whitespace-pre-wrap italic">
+                              {(selectedSong as any).indonesian?.[index] || ""}
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="h-20 md:h-0"></div>
             </div>
-
-            <div className="border-l border-slate-500 mx-1 hidden lg:block"></div>
-            {/* Column Toggles */}
-            <div className="flex flex-row gap-2 items-center text-sm bg-gray-100 rounded-lg p-2">
-              {Object.keys(activeColumns).map((column) => (
-                <label
-                  key={column}
-                  className="inline-flex items-center cursor-pointer"
-                >
-                  {/* Input hidden untuk aksesibilitas */}
-                  <input
-                    type="checkbox"
-                    checked={
-                      activeColumns[column as keyof typeof activeColumns]
-                    }
-                    onChange={() =>
-                      toggleColumn(column as keyof typeof activeColumns)
-                    }
-                    className="sr-only" // Sembunyikan input asli
-                  />
-                  {/* Custom checkbox dengan efek tenggelam */}
-                  <div
-                    className={`px-3 py-1.5 rounded-md border transition-all duration-150 select-none ${
-                      activeColumns[column as keyof typeof activeColumns]
-                        ? "bg-blue-600 text-white border-blue-700 shadow-inner transform scale-[0.98] inset-shadow-sm inset-shadow-blue-900"
-                        : "bg-white text-gray-700 border-gray-300 shadow-sm hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="capitalize font-medium">{column}</span>
-                  </div>
-                </label>
-              ))}
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-600 p-8 text-center">
+            <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mb-6 shadow-inner">
+              <MusicIcon />
             </div>
+            <h2 className="text-2xl font-bold text-gray-400 mb-2">
+              Select a Song
+            </h2>
+            <p className="max-w-xs mx-auto">
+              Choose a song from the list to view lyrics, translations, and play
+              the music video.
+            </p>
           </div>
-        </div>
-      </div>
-    </>
+        )}
+      </main>
+
+      {/* --- MODALS --- */}
+      <VideoModal
+        isOpen={isVideoOpen}
+        setIsOpen={setIsVideoOpen}
+        src={videoSrc}
+        isSmall={isVideoSmall}
+        setIsSmall={setIsVideoSmall}
+      />
+
+      <SongInfoModal
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        song={selectedSong}
+      />
+    </div>
   );
 };
+
+const MusicIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="40"
+    height="40"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 18V5l12-2v13"></path>
+    <circle cx="6" cy="18" r="3"></circle>
+    <circle cx="18" cy="16" r="3"></circle>
+  </svg>
+);
 
 export default Lyrics;

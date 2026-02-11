@@ -6,10 +6,12 @@ import BirthdayReminder from "../components/birthdayReminder";
 const MENUS = {
   main: [
     { name: "Idol Details", path: "/idolList" },
-    { name: "Card Overview", path: "/cardOverview" },
-    { name: "Card Comparison", path: "/cardComparison" },
     { name: "Lyrics", path: "/lyric" },
     { name: "Bday Calendar", path: "/bdayCalendar" },
+  ],
+  card: [
+    { name: "Card Overview", path: "/cardOverview" },
+    { name: "Card Comparison", path: "/cardComparison" },
   ],
   playground: [
     { name: "IdolyChat", path: "/chat" },
@@ -234,6 +236,12 @@ const MainMenu: React.FC = () => {
           ))}
 
           <DesktopDropdown
+            title="Idoly Card"
+            items={MENUS.card}
+            navigate={handleNavigation}
+            currentPath={location.pathname}
+          />
+          <DesktopDropdown
             title="Idoly Playground"
             items={MENUS.playground}
             navigate={handleNavigation}
@@ -293,6 +301,12 @@ const MainMenu: React.FC = () => {
               />
             ))}
             <MobileDropdown
+              title="Idoly Card"
+              items={MENUS.card}
+              navigate={handleNavigation}
+              currentPath={location.pathname}
+            />
+            <MobileDropdown
               title="Idoly Playground"
               items={MENUS.playground}
               navigate={handleNavigation}
@@ -331,6 +345,8 @@ const MainMenu: React.FC = () => {
       <div className="absolute bottom-0 right-0 z-[999] transition-all duration-500 ease-in-out">
         <BirthdayReminder />
       </div>
+
+      <div className="h-20 w-full shrink-0"></div>
     </div>
   );
 };

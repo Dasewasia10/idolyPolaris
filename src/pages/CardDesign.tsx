@@ -232,7 +232,7 @@ const CardDesign: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 lg:p-8 flex flex-col lg:flex-row gap-8 font-sans">
+    <div className="h-auto bg-gray-900 text-white p-4 lg:p-8 flex flex-col lg:flex-row gap-8 font-sans">
       {/* --- LEFT COLUMN: CONTROLS --- */}
       <div className="w-full lg:w-1/3 space-y-6 overflow-y-auto no-scrollbar">
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
