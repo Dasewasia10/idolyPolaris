@@ -1,50 +1,103 @@
-# React + TypeScript + Vite
+# 🌟 Idoly Polaris
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Unofficial Idoly Pride Fan Companion Website**
 
-Currently, two official plugins are available:
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Idoly Polaris** is a comprehensive fan-made hub for the *Idoly Pride* franchise. It serves as a database, simulator, and utility tool designed to enhance the experience for managers worldwide.
 
-## Expanding the ESLint configuration
+🔗 **Repository:** [github.com/Dasewasia10/idolyPolaris](https://github.com/Dasewasia10/idolyPolaris)
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+---
 
-- Configure the top-level `parserOptions` property like this:
+## ✨ Features
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### 📚 Database & Information
+* **Idol Directory:** Detailed profiles and lore for all idols.
+* **Card Database:** Browse all cards with advanced filtering (Rarity, Type, Attribute).
+* **Lyrics Library:** Complete song lyrics with Kanji, Romaji, English, and Indonesian translations. Includes YouTube playback integration.
+* **Birthday Calendar:** Never miss an idol's special day.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 🛠️ Tools & Utilities
+* **Card Comparison:** Compare stats, skills, and potential of two cards side-by-side.
+* **Manager ID (KTP) Generator:** Create and customize your own Manager ID card.
+* **Card Designer:** Create custom card art mockups.
+* **Compass Chart:** Analyze character traits using a quadrant chart.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+### 🎮 Simulation & Fun
+* **Gacha Simulator:** Realistic gacha experience with "Spark" system (100/200 pts), distinct pools (Fes, Limited, Birthday), and detailed animations.
+* **Idoly Chat:** Simulate chat conversations with your favorite idols.
+* **Q&A Sessions:** Interactive interview-style Q&A with characters.
+* **Idoly Wordle:** A word puzzle game themed around the franchise.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+---
+
+## 🚀 Tech Stack
+
+* **Frontend:** React (v18) with TypeScript
+* **Build Tool:** Vite
+* **Styling:** Tailwind CSS
+* **Icons:** Lucide React
+* **Routing:** React Router DOM
+* **Components:** React Draggable, React Select
+* **Deployment:** Vercel (Recommended)
+
+---
+
+## 📦 Installation & Setup
+
+To run this project locally, follow these steps:
+
+1.  **Clone the repository**
+    ```bash
+    git clone [https://github.com/Dasewasia10/idolyPolaris.git](https://github.com/Dasewasia10/idolyPolaris.git)
+    cd idolyPolaris
+    ```
+
+2.  **Install dependencies**
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
+
+3.  **Run the development server**
+    ```bash
+    npm run dev
+    ```
+
+4.  **Open in browser**
+    Visit `http://localhost:5173` to see the app running.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! If you have suggestions for new features, bug reports, or translation improvements, please feel free to:
+
+1.  Fork the repository.
+2.  Create a new branch (`git checkout -b feature/NewFeature`).
+3.  Commit your changes.
+4.  Push to the branch.
+5.  Open a Pull Request.
+
+---
+
+## 📢 Credits & Acknowledgements
+
+This project is a labor of love by fans, for fans.
+
+* **Developer:** [Dasewasia10](https://github.com/Dasewasia10)
+* **Vendor data from [Vibbit](https://github.com/MalitsPlus) (external)**
+* **Assets & IP:** All character images, card art, and audio assets belong to **QualiArts**, **CyberAgent**, and the **Idoly Pride Project**.
+
+---
+
+## ⚠️ Disclaimer
+
+**Idoly Polaris** is an unofficial fan project and is **not affiliated, associated, authorized, endorsed by, or in any way officially connected** with QualiArts, CyberAgent, or the official Idoly Pride management.
+
+This website is non-profit and intended for educational and entertainment purposes only.

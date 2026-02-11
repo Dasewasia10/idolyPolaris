@@ -30,6 +30,18 @@ const allowedGroups = [
   "Collaboration",
 ];
 
+const preloadImages = async (imageUrls: string[]) => {
+  const promises = imageUrls.map((src) => {
+    return new Promise((resolve, _reject) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = resolve;
+      img.onerror = resolve; // Tetap resolve meski error agar tidak memblokir sisa antrian
+    });
+  });
+  await Promise.all(promises);
+};
+
 const IdolListPage: React.FC = () => {
   const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -135,6 +147,22 @@ const IdolListPage: React.FC = () => {
         }
 
         setLoading(false);
+
+        // 1. Kumpulkan semua URL gambar sprite2 (gambar besar)
+        const spriteUrls = filteredCharacters.map((char) =>
+          getCharacterImageUrl(char.name, "sprite2"),
+        );
+
+        // 2. Kumpulkan URL banner (untuk navigasi bawah agar tidak blank saat scroll)
+        const bannerUrls = filteredCharacters.map((char) =>
+          getCharacterImageUrl(char.name, "banner"),
+        );
+
+        // 3. Jalankan preloading di background (tanpa await agar UI tidak freeze)
+        preloadImages([...spriteUrls, ...bannerUrls]).then(() => {
+          console.log("All character assets preloaded!");
+        });
+        // ----------------------------------------
       } catch (err) {
         setError((err as Error).message);
         setLoading(false);
@@ -883,7 +911,8 @@ const IdolListPage: React.FC = () => {
                             <div className="space-y-1 font-normal">
                               <p>
                                 <span className="font-medium">Birthday:</span>{" "}
-                                {formatDateToDM(selectedIdol.birthdayDate) || "-"}
+                                {formatDateToDM(selectedIdol.birthdayDate) ||
+                                  "-"}
                               </p>
                               <p>
                                 <span className="font-medium">Height:</span>{" "}
