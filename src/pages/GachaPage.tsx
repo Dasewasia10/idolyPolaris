@@ -1,153 +1,167 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-// Import Interface Card
-import { Source, Card } from "../interfaces/Card";
+import { useParams, useNavigate } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
+// Pastikan path interface ini benar
+import { Card } from "../interfaces/Card";
+import { getPlaceholderImageUrl } from "../utils/imageUtils";
 
-const API_BASE_URL = "https://diveidolypapi.my.id/api";
+// --- CONFIG ---
+const API_BASE = "https://diveidolypapi.my.id/api";
+const BANNER_IMG_BASE = "https://api.diveidolypapi.my.id/gachaBanner";
 const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
 
-const GachaSimulation: React.FC = () => {
+// Interface Response dari Backend (/api/gachas/:id/pool)
+interface PoolResponse {
+  bannerInfo: {
+    id: string;
+    name: string;
+    assetId: string;
+    startAt: string;
+    category: string;
+    exchangeLimit: number;
+  };
+  rateUpCards: Card[]; // Kartu yang sedang Rate Up
+  pool: Card[]; // Pool Standar (sudah difilter tanggal & limited)
+}
+
+const GachaPage: React.FC = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   // --- STATE ---
+  const [loading, setLoading] = useState(true);
+  const [bannerData, setBannerData] = useState<PoolResponse | null>(null);
+
   const [points, setPoints] = useState<number>(0);
   const [history, setHistory] = useState<Card[]>([]);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
-  // Data State
-  const [loading, setLoading] = useState(true);
-  const [rawSources, setRawSources] = useState<Source[]>([]); // Data mentah dari API
-
-  // Banner State
-  const [featuredCard, setFeaturedCard] = useState<Card | null>(null);
-
-  // --- 1. FETCH DATA DARI API ---
+  // --- 1. FETCH DATA POOL ---
   useEffect(() => {
-    const fetchData = async () => {
+    if (!id) return;
+
+    const fetchPool = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        // Fetch API /cards yang mengembalikan Source[]
-        const res = await axios.get(`${API_BASE_URL}/cards`);
+        console.log("Fetching Pool for Banner ID:", id);
+        const res = await axios.get(`${API_BASE}/gachas/${id}/pool`);
 
-        console.log("Raw API Response:", res.data); // Debugging
+        console.log("Pool Data Received:", res.data);
 
-        if (Array.isArray(res.data)) {
-          setRawSources(res.data);
-        } else {
-          console.error("Format data API salah!", res.data);
+        // Validasi data sedikit agar tidak blank screen
+        if (!res.data || !res.data.pool) {
+          throw new Error("Data pool kosong");
         }
-        setLoading(false);
+
+        setBannerData(res.data);
       } catch (err) {
-        console.error("Gagal ambil data kartu:", err);
+        console.error("Gagal load pool gacha:", err);
+        // Jangan langsung navigate, biarkan user baca errornya dulu atau coba lagi
+        alert(
+          "Gagal memuat data banner. Pastikan backend berjalan dan ID banner valid.",
+        );
+        navigate("/gacha");
+      } finally {
         setLoading(false);
       }
     };
-    fetchData();
+
+    fetchPool();
+  }, [id, navigate]);
+
+  // Title Page Dynamic
+  useEffect(() => {
+    document.title = "Polaris Idoly | Gacha Poll";
+
+    return () => {
+      document.title = "Polaris Idoly";
+    };
   }, []);
 
-  // --- 2. FLATTEN DATA (Source[] -> Card[]) ---
-  // Kita gabungkan semua kartu dari berbagai karakter menjadi satu array besar
-  const allCards = useMemo(() => {
-    if (rawSources.length === 0) return [];
+  // --- 2. PREPARE POOLS (Memoized) ---
+  // Kita memisahkan pool standar berdasarkan rarity untuk memudahkan logika gacha
+  const { standard5, standard4, standard3 } = useMemo(() => {
+    if (!bannerData) return { standard5: [], standard4: [], standard3: [] };
 
-    // FlatMap: Ambil array 'data' dari setiap source dan gabung
-    const flattened = rawSources.flatMap((source) => source.data);
+    // Filter manual menggunakan Number() untuk keamanan tipe data
+    const p5 = bannerData.pool.filter((c) => Number(c.initial) === 5);
+    const p4 = bannerData.pool.filter((c) => Number(c.initial) === 4);
+    // Masukkan bintang 1, 2, 3 ke pool Common
+    const p3 = bannerData.pool.filter((c) => Number(c.initial) <= 3);
 
-    console.log(`Total Kartu Terkumpul: ${flattened.length}`);
-    return flattened;
-  }, [rawSources]);
-
-  // --- 3. MEMPROSES POOL (Berdasarkan allCards yang sudah di-flat) ---
-  const { pool5, pool4, pool3 } = useMemo(() => {
-    if (allCards.length === 0) return { pool5: [], pool4: [], pool3: [] };
-
-    // Pastikan konversi tipe data aman (Number)
-    const p5 = allCards.filter((c) => Number(c.initial) === 5);
-    const p4 = allCards.filter((c) => Number(c.initial) === 4);
-    // Masukkan bintang 1, 2, 3 ke pool3 (Common)
-    const p3 = allCards.filter((c) => Number(c.initial) <= 3);
-
-    console.log(
-      `Pool Stats -> ★5: ${p5.length}, ★4: ${p4.length}, ★3: ${p3.length}`,
-    );
-
-    return { pool5: p5, pool4: p4, pool3: p3 };
-  }, [allCards]);
-
-  // --- 4. SET FEATURED CARD ---
-  useEffect(() => {
-    // Jalankan hanya jika data sudah siap dan banner belum diset
-    if (pool5.length > 0 && !featuredCard) {
-      const targetId = "smr-05-nurs-00"; // Target Banner: Sumire Nurse
-
-      const specificFeatured = pool5.find((c) => c.uniqueId === targetId);
-
-      if (specificFeatured) {
-        console.log("✅ BANNER SET:", specificFeatured.title.global);
-        setFeaturedCard(specificFeatured);
-      } else {
-        console.warn("⚠️ Target banner tidak ketemu, pakai random ★5");
-        setFeaturedCard(pool5[0]);
-      }
-    }
-  }, [pool5, featuredCard]);
+    return { standard5: p5, standard4: p4, standard3: p3 };
+  }, [bannerData]);
 
   // --- LOGIKA GACHA ---
-  const getRandomCard = (cards: Card[]) => {
-    if (cards.length === 0) return null;
-    return cards[Math.floor(Math.random() * cards.length)];
+  const getRandom = (arr: Card[]) => {
+    if (arr.length === 0) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
   };
 
   const pullCard = (): Card | null => {
-    // Safety check
-    if (pool3.length === 0) return null; // Minimal harus ada kartu bintang 3
+    if (!bannerData) return null;
 
-    const rand = Math.random(); // 0.0 - 1.0
+    const rand = Math.random();
     const RATE_5 = 0.035; // 3.5%
     const RATE_4 = 0.15; // 15%
-    const RATE_UP_CHANCE = 0.5; // 50% chance jika dapat *5
+    const RATE_UP_CHANCE = 0.5; // 50% chance jika dapat *5 dan ada Rate Up
 
-    // Bintang 5
-    if (pool5.length > 0 && rand < RATE_5) {
-      // Cek Rate Up
-      if (featuredCard && Math.random() < RATE_UP_CHANCE) {
-        return featuredCard;
+    // --- BINTANG 5 ---
+    if (rand < RATE_5) {
+      // 1. Cek Rate Up
+      if (bannerData.rateUpCards.length > 0) {
+        // Menang 50/50?
+        if (Math.random() < RATE_UP_CHANCE) {
+          return getRandom(bannerData.rateUpCards); // HORE! Dapat Rate Up
+        }
       }
-      // Spook (Non-rate up)
-      const spookPool = pool5.filter(
-        (c) => c.uniqueId !== featuredCard?.uniqueId,
-      );
-      return (
-        getRandomCard(spookPool.length > 0 ? spookPool : pool5) || featuredCard!
-      );
+
+      // 2. Spook (Kalah Rate Up atau Banner Biasa)
+      // Ambil dari standard5 pool
+      // Fallback: Jika standard5 kosong (misal game baru rilis), paksa ambil rateup atau null
+      if (standard5.length === 0) {
+        return getRandom(bannerData.rateUpCards) || null;
+      }
+
+      console.log("Standard5 Pool:", standard5);
+      console.log("Total Standard5 Cards:", bannerData.rateUpCards.length);
+      return getRandom(standard5);
     }
 
-    // Bintang 4
-    if (pool4.length > 0 && rand < RATE_5 + RATE_4) {
-      return getRandomCard(pool4)!;
+    // --- BINTANG 4 ---
+    if (rand < RATE_5 + RATE_4) {
+      if (standard4.length === 0) return getRandom(standard3); // Safety fallback
+      return getRandom(standard4);
     }
 
-    // Bintang 3 (Sisanya)
-    return getRandomCard(pool3)!;
+    // --- BINTANG 3 ---
+    if (standard3.length === 0) return null; // Harusnya gak mungkin terjadi
+    return getRandom(standard3);
   };
 
   const handleGacha = (count: number) => {
-    if (isAnimating || !featuredCard) return;
+    if (isAnimating || !bannerData) return;
 
     setIsAnimating(true);
-    setHistory([]); // Reset tampilan
+    setHistory([]);
 
     // Delay simulasi server/animasi
     setTimeout(() => {
       const results: Card[] = [];
       for (let i = 0; i < count; i++) {
-        const card = pullCard();
-        if (card) results.push(card);
+        const c = pullCard();
+        if (c) results.push(c);
       }
-
       setHistory(results);
       setPoints((prev) => prev + count);
       setIsAnimating(false);
     }, 800);
   };
+
+  // Helper Spark
+  const exchangeLimit = bannerData?.bannerInfo.exchangeLimit || 200;
+  const canSpark = points >= exchangeLimit;
 
   const getCardImageUrl = (
     card: { initialTitle: string; initial: number; hasAwakening?: boolean },
@@ -188,122 +202,210 @@ const GachaSimulation: React.FC = () => {
   };
 
   // --- RENDER ---
-  return (
-    <div className="bg-gray-900 text-white p-4 font-sans">
-      <div className="max-w-6xl mx-auto">
-        {/* HEADER / BANNER */}
-        <div className="bg-gradient-to-r from-blue-900 to-purple-900 rounded-xl overflow-hidden shadow-2xl mb-8 border border-white/10 relative min-h-[150px]">
-          {loading ? (
-            <div className="flex items-center justify-center h-48 animate-pulse text-gray-400">
-              <p>Mengunduh Data Gacha...</p>
-            </div>
-          ) : featuredCard ? (
-            <div className="p-6 md:p-10 flex flex-col md:flex-row items-center gap-6 animate-in fade-in duration-500">
-              {/* Visual Banner */}
-              <div className="relative group flex-shrink-0">
-                <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-lg blur opacity-75"></div>
-                <img
-                  src={getCardImageUrl(featuredCard, "thumb")}
-                  alt={featuredCard.title.global}
-                  className="relative w-32 h-32 md:w-40 md:h-40 rounded-lg object-cover border-2 border-white shadow-lg bg-gray-800"
-                />
-                <div className="absolute top-0 right-0 bg-pink-600 text-white text-xs font-bold px-2 py-1 rounded-bl-lg z-10">
-                  PICK UP
-                </div>
-              </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white font-sans">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500 mb-4"></div>
+        <p className="animate-pulse text-gray-400">
+          Menyiapkan Time Machine Gacha...
+        </p>
+      </div>
+    );
+  }
 
-              {/* Info Text */}
-              <div className="text-center md:text-left z-10">
-                <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md mb-1">
-                  {featuredCard.title.global || featuredCard.title.japanese}
-                </h2>
-                <p className="text-blue-200 italic mb-2 text-sm md:text-base">
-                  {featuredCard.title.japanese}
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                  <span className="px-3 py-1 bg-pink-500/20 border border-pink-500/50 rounded-full text-xs text-pink-200">
-                    {featuredCard.attribute}
-                  </span>
-                  <span className="px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-full text-xs text-blue-200">
-                    {featuredCard.type}
-                  </span>
-                </div>
-              </div>
+  if (!bannerData) return null;
+
+  return (
+    <div className="bg-gray-950 text-white p-4 font-sans">
+      <div className="max-w-6xl mx-auto">
+        {/* HEADER & NAV */}
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate("/gacha")}
+            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <ChevronLeft />
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold truncate text-gray-100">
+              {bannerData.bannerInfo.name}
+            </h1>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                  bannerData.bannerInfo.category === "Fes"
+                    ? "bg-red-900 text-red-200"
+                    : bannerData.bannerInfo.category === "Birthday"
+                      ? "bg-purple-900 text-purple-200"
+                      : bannerData.bannerInfo.category === "Kizuna"
+                        ? "bg-indigo-900 text-indigo-200"
+                        : "bg-gray-800 text-gray-400"
+                }`}
+              >
+                {bannerData.bannerInfo.category}
+              </span>
+              <p className="text-xs text-gray-500">Spark: {exchangeLimit} Pt</p>
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-48 text-red-400">
-              <p>Data Kartu Siap, tapi Banner Gagal Load.</p>
+          </div>
+        </div>
+
+        {/* BANNER AREA */}
+        <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-800 mb-8 bg-gray-900 group max-w-3xl mx-auto">
+          {/* Background Glow */}
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-900/20 to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+
+          {/* Banner Image */}
+          <div className="w-full h-max relative">
+            <img
+              src={`${BANNER_IMG_BASE}/img_banner_l_gacha-${bannerData.bannerInfo.assetId}.png`}
+              alt="Banner"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = getPlaceholderImageUrl("rect");
+              }}
+            />
+          </div>
+
+          {/* Rate Up Info Badge (Overlay) */}
+          {bannerData.rateUpCards.length > 0 && (
+            <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-pink-400 drop-shadow-md bg-black/60 px-2 py-1 rounded w-fit">
+                Featured Idols
+              </span>
+              <div className="flex gap-2">
+                {bannerData.rateUpCards.map((c) => (
+                  <div
+                    key={c.uniqueId}
+                    className="relative group/icon cursor-help"
+                  >
+                    <img
+                      src={getCardImageUrl(c, "thumb", false)}
+                      className="w-12 h-12 rounded border-2 border-pink-500 shadow-lg bg-gray-800"
+                      alt="icon"
+                    />
+                    {/* Tooltip Nama */}
+                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none">
+                      {c.title.global}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {/* Spark Counter */}
-          <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-            <span className="text-yellow-400 font-bold text-lg">{points}</span>
-            <span className="text-xs text-gray-300 ml-1">/ 200 Pt</span>
+          <div
+            className={`absolute top-4 right-4 backdrop-blur px-4 py-2 rounded-full border shadow-lg z-10 transition-colors ${
+              canSpark
+                ? "bg-yellow-500/90 border-yellow-300 text-black animate-pulse"
+                : "bg-black/80 border-white/20 text-white"
+            }`}
+          >
+            <span className="font-bold text-lg">{points}</span>
+            <span className="text-xs opacity-80 ml-1">
+              / {exchangeLimit} Pt
+            </span>
           </div>
         </div>
 
-        {/* CONTROLS */}
-        <div className="flex justify-center gap-4 mb-5">
+        {/* SPARK BUTTON (Jika Poin Cukup) */}
+        {canSpark && (
+          <div className="flex justify-center mb-6 animate-bounce">
+            <button
+              onClick={() => {
+                alert(`Exchange Berhasil! Poin dikurangi ${exchangeLimit}`);
+                setPoints((prev) => prev - exchangeLimit);
+              }}
+              className="px-8 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-extrabold rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.6)] hover:scale-105 transition-transform"
+            >
+              EXCHANGE NOW ({exchangeLimit} Pt)
+            </button>
+          </div>
+        )}
+
+        {/* ACTION BUTTONS */}
+        <div className="flex justify-center gap-4 mb-10">
           <button
             onClick={() => handleGacha(1)}
-            disabled={isAnimating || !featuredCard}
-            className="px-8 py-2 bg-white text-blue-900 font-bold rounded-full shadow-lg hover:bg-blue-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            disabled={isAnimating}
+            className="w-36 py-3 bg-gray-100 hover:bg-white text-blue-900 font-bold rounded-xl shadow-[0_4px_0_rgb(209,213,219)] hover:shadow-[0_2px_0_rgb(209,213,219)] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Pull 1x
           </button>
+
           <button
             onClick={() => handleGacha(10)}
-            disabled={isAnimating || !featuredCard}
-            className="px-8 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-full shadow-lg hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex flex-col items-center leading-tight"
+            disabled={isAnimating}
+            className="w-44 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold rounded-xl shadow-[0_4px_0_rgb(157,23,77)] hover:shadow-[0_2px_0_rgb(157,23,77)] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none transition-all flex flex-col items-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>Pull 10x</span>
-            <span className="text-[10px] font-normal opacity-80">
-              SR not guaranteed
+            <span className="text-lg">Pull 10x</span>
+            <span className="text-[10px] opacity-90 font-medium">
+              SR Not Guaranteed
             </span>
           </button>
         </div>
 
         {/* RESULTS GRID */}
         {history.length > 0 && (
-          <div className="animate-in slide-in-from-bottom-4 fade-in duration-500">
-            <h3 className="text-xl font-bold mb-4 text-center border-b border-gray-700 pb-2">
-              Result
-            </h3>
+          <div className="animate-in slide-in-from-bottom-8 fade-in duration-500">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-px bg-gray-800 flex-1"></div>
+              <h3 className="text-lg font-bold text-gray-400">GACHA RESULT</h3>
+              <div className="h-px bg-gray-800 flex-1"></div>
+            </div>
+
             <div className="grid grid-cols-3 sm:grid-cols-10 gap-4">
-              {history.map((card, idx) => (
-                <div
-                  key={`${card.uniqueId}-${idx}`}
-                  className={`relative rounded-lg p-2 border-2 flex flex-col items-center transition-transform hover:scale-105 bg-gray-800 ${
-                    card.initial === 5
-                      ? "border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
-                      : card.initial === 4
-                        ? "border-yellow-500"
-                        : "border-gray-600"
-                  }`}
-                >
-                  <div className="relative w-full aspect-square mb-2">
-                    <img
-                      src={getCardImageUrl(card, "upper")}
-                      alt={card.title.global}
-                      className="w-full h-full object-cover rounded shadow-sm bg-gray-900"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "https://placehold.co/200x200?text=No+Img";
-                      }}
-                    />
-                    <div className="absolute -bottom-2 left-0 right-0 flex justify-center">
-                      <div className="bg-black/80 px-2 rounded-full text-yellow-400 text-xs tracking-tighter border border-white/10">
-                        {"★".repeat(card.initial)}
+              {history.map((card, idx) => {
+                const isRateUp = bannerData.rateUpCards.some(
+                  (r) => r.uniqueId === card.uniqueId,
+                );
+                const isFiveStar = card.initial === 5;
+                const isFourStar = card.initial === 4;
+
+                return (
+                  <div
+                    key={`${card.uniqueId}-${idx}`}
+                    className={`
+                            relative rounded-lg p-2 border-2 flex flex-col items-center transition-transform hover:scale-105 bg-gray-800
+                            ${isFiveStar ? "border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.3)] scale-105 z-10" : ""}
+                            ${isFourStar ? "border-yellow-500" : ""}
+                            ${!isFiveStar && !isFourStar ? "border-gray-700 opacity-80 hover:opacity-100" : ""}
+                        `}
+                    style={{
+                      animationDelay: `${idx * 50}ms`, // Efek muncul berurutan
+                    }}
+                  >
+                    {/* Rate Up Badge */}
+                    {isRateUp && (
+                      <div className="absolute top-0 right-0 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg z-20 shadow-sm">
+                        PICK UP
+                      </div>
+                    )}
+
+                    <div className="relative w-full aspect-square mb-2 bg-gray-900 rounded min-h-60">
+                      <img
+                        src={getCardImageUrl(card, "upper")}
+                        alt={card.title.global}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Stars Overlay */}
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-1 pt-4 text-center">
+                        <span
+                          className={`text-xs tracking-tighter drop-shadow-md ${isFiveStar ? "text-pink-400" : "text-yellow-400"}`}
+                        >
+                          {"★".repeat(card.initial)}
+                        </span>
                       </div>
                     </div>
-                  </div>
 
-                  <p className="text-[10px] sm:text-xs font-bold text-center line-clamp-2 leading-tight min-h-[2.5em] flex items-center justify-center">
-                    {card.title.global || card.title.japanese}
-                  </p>
-                </div>
-              ))}
+                    <p
+                      className={`text-[10px] text-center line-clamp-2 leading-tight w-full px-1 mb-1 ${isFiveStar ? "font-bold text-pink-200" : "text-gray-300"}`}
+                    >
+                      {card.title.global || card.title.japanese}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -312,4 +414,4 @@ const GachaSimulation: React.FC = () => {
   );
 };
 
-export default GachaSimulation;
+export default GachaPage;

@@ -24,6 +24,7 @@ import MaintenanceNotice from "./components/maintenanceNotice";
 import LoveStoryPage from "./pages/LoveStory";
 import IdolyWordlePage from "./pages/IdolyWordlePage";
 import GachaPage from "./pages/GachaPage";
+import GachaSelectPage from "./pages/GachaSelectionPage";
 
 const MainLayout = () => {
   return (
@@ -74,7 +75,9 @@ const App: React.FC = () => {
             <Route path="/messages" element={<MessagePage />} />
             <Route path="/lovestory" element={<LoveStoryPage />} />
             <Route path="/wordle" element={<IdolyWordlePage />} />
-            <Route path="/gacha" element={<GachaPage />} />
+
+            <Route path="/gacha" element={<GachaSelectPage />} />
+            <Route path="/gacha/:id" element={<GachaPage />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}
