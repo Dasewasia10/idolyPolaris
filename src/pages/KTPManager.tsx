@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
 import IDCard from "../components/IDCard"; // Pastikan path import sesuai
 import { Icon } from "../interfaces/Icon"; // Sesuaikan dengan interface Icon kamu
@@ -89,45 +89,32 @@ const KTPManager: React.FC = () => {
     if (!cardRef.current) return;
 
     try {
-      // Tunggu sebentar untuk memastikan aset ter-load
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // 1. Ambil elemen kartu
+      const node = cardRef.current;
 
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2, // Resolusi tinggi (Retina)
-        useCORS: true,
-        allowTaint: true,
-        // PENTING: Opsi ini mencegah gambar terpotong di layar HP
-        windowWidth: 1200,
-        windowHeight: 1200,
-        // PENTING: Memastikan elemen yang di-capture ukurannya normal (scale 1)
-        onclone: (clonedDoc) => {
-          // Cari elemen yang di-capture di dalam DOM tiruan (cloned)
-          // Kita cari berdasarkan class atau struktur, tapi karena kita capture cardRef,
-          // clonedDoc.body akan berisi elemen tersebut.
-
-          // Trik: Kita paksa elemen wrapper di dalam clone untuk reset transform
-          // agar hasil download tetap ukuran asli (tidak mengecil/terpotong)
-          const clonedCard = clonedDoc.querySelector(
-            '[data-card-capture="true"]',
-          );
-          if (clonedCard) {
-            (clonedCard as HTMLElement).style.transform = "none";
-          }
+      // 2. Gunakan dom-to-image untuk generate Blob
+      const blob = await domtoimage.toBlob(node, {
+        quality: 1,
+        // CacheBust penting agar gambar oshi dari API tidak tersangkut cache browser
+        cacheBust: true,
+        style: {
+          // Paksa transform menjadi none agar saat di-download
+          // ukurannya tetap 1:1 (tidak mengecil karena scaler UI)
+          transform: "none",
+          margin: "0",
         },
       });
 
-      canvas.toBlob((blob) => {
-        if (blob) {
-          saveAs(blob, `id_card_${managerName || "manager"}.png`);
-          setToastMessage("ID Card downloaded successfully!");
-          setIsSuccess(true);
-          setUnsavedChanges(false);
-        }
-      });
+      // 3. Simpan menggunakan file-saver
+      if (blob) {
+        saveAs(blob, `id_card_${managerName || "manager"}.png`);
+        setToastMessage("ID Card downloaded successfully!");
+        setIsSuccess(true);
+        setUnsavedChanges(false);
+      }
     } catch (error) {
       console.error("Download failed:", error);
-      setToastMessage("Failed to generate image");
+      setToastMessage("Failed to generate image. Try again.");
       setIsSuccess(false);
     }
   };

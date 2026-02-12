@@ -103,9 +103,9 @@ const IDCard: React.FC<IDCardProps> = ({
         <div className="absolute -bottom-8 left-24 w-8 h-8">
           <img
             src={groupImageUrl}
-            crossOrigin="anonymous"
             alt="idolgroup"
             className="w-full h-full object-contain"
+            crossOrigin="anonymous"
             onError={(e) => {
               (e.target as HTMLImageElement).src = `${
                 import.meta.env.BASE_URL
@@ -177,8 +177,8 @@ const IDCard: React.FC<IDCardProps> = ({
               <div key={index} className="relative group">
                 <img
                   src={icon.src || `${getPlaceholderImageUrl("square")}`}
-                  crossOrigin="anonymous"
                   alt={`oshi${index + 1}`}
+                  crossOrigin="anonymous"
                   className="h-12 w-12 rounded-full object-cover border-2 border-white/80 shadow-md transition-transform group-hover:scale-110"
                 />
               </div>
