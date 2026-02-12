@@ -103,6 +103,7 @@ const IDCard: React.FC<IDCardProps> = ({
         <div className="absolute -bottom-8 left-24 w-8 h-8">
           <img
             src={groupImageUrl}
+            crossOrigin="anonymous"
             alt="idolgroup"
             className="w-full h-full object-contain"
             onError={(e) => {
@@ -176,6 +177,7 @@ const IDCard: React.FC<IDCardProps> = ({
               <div key={index} className="relative group">
                 <img
                   src={icon.src || `${getPlaceholderImageUrl("square")}`}
+                  crossOrigin="anonymous"
                   alt={`oshi${index + 1}`}
                   className="h-12 w-12 rounded-full object-cover border-2 border-white/80 shadow-md transition-transform group-hover:scale-110"
                 />
@@ -190,7 +192,7 @@ const IDCard: React.FC<IDCardProps> = ({
                   >
                     <span className="text-white/50 text-2xl">+</span>
                   </div>
-                )
+                ),
               )}
           </div>
         </div>
