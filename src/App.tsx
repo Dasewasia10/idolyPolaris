@@ -26,6 +26,7 @@ import IdolyWordlePage from "./pages/IdolyWordlePage";
 import GachaPage from "./pages/GachaPage";
 import GachaSelectPage from "./pages/GachaSelectionPage";
 import BeatmapPage from "./pages/BeatmapPage";
+import ManaDiary from "./pages/ManaDiary";
 
 const MainLayout = () => {
   return (
@@ -81,6 +82,8 @@ const App: React.FC = () => {
             <Route path="/gacha/:id" element={<GachaPage />} />
 
             <Route path="/beatmaps" element={<BeatmapPage />} />
+
+            <Route path="/diary" element={<ManaDiary />} />
           </Route>
 
           {/* <Route path="/bookreader" element={<BookReader />} /> */}

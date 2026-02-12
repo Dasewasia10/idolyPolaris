@@ -295,7 +295,7 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
       </div>
 
       {/* Scrollable Area (Ini yang akan di-screenshot) */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-700 custom-scrollbar relative">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 relative">
         {/* 1. WRAPPER BARU (Pindahkan ref ke sini) */}
         {/* Kita beri padding-top (pt-24) untuk memberi ruang bagi Header yang posisinya -top-xx */}
         <div

@@ -325,7 +325,7 @@ const LoveStoryPage: React.FC = () => {
           <Map size={20} />
         </button>
 
-        <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-700">
+        <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
           {events.map((event) => (
             <div key={event.id} className="mb-2">
               <button

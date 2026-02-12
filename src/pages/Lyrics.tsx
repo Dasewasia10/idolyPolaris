@@ -328,7 +328,7 @@ const Lyrics: React.FC = () => {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
+        <div className="flex-1 overflow-y-auto p-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
           {loading ? (
             <div className="flex justify-center p-10">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-pink-500"></div>
