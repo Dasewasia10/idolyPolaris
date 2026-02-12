@@ -43,6 +43,13 @@ const KTPManager: React.FC = () => {
         );
         // Proses response untuk mendapatkan array icon
         // Contoh sederhana:
+
+        let snowMiku = response.data.name("snow");
+
+        if (snowMiku) {
+          snowMiku = snowMiku.toString.toLowerCase().replace("snow", "snowmiku")
+        } 
+
         const processedIcons = response.data.map(
           (char: any, index: number) => ({
             id: index,
