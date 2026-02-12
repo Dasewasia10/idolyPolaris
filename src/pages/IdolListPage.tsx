@@ -10,13 +10,30 @@ import {
   getGroupImageUrl,
 } from "../utils/imageUtils";
 import { QnASource } from "../interfaces/QnA";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Mic2,
+  MapPin,
+  Award,
+  Heart,
+  MessageCircle,
+  BarChart2,
+  Image as ImageIcon,
+} from "lucide-react";
 
 const getCharacterImageUrl = (
   characterName: string,
   type: "icon" | "sprite1" | "sprite2" | "banner",
 ) => {
+  // 1. Ubah nama menjadi lowercase untuk pengecekan
+  const lowerName = characterName.toLowerCase();
+
+  // 2. Cek apakah namanya "snow". Jika iya, ganti jadi "smiku". Jika tidak, tetap pakai nama aslinya.
+  const finalName = lowerName === "snow" ? "smiku" : lowerName;
+
   return `https://diveidolypapi.my.id/api/img/character/${type}/${encodeURIComponent(
-    characterName.toLowerCase(),
+    finalName,
   )}`;
 };
 
@@ -36,7 +53,7 @@ const preloadImages = async (imageUrls: string[]) => {
       const img = new Image();
       img.src = src;
       img.onload = resolve;
-      img.onerror = resolve; // Tetap resolve meski error agar tidak memblokir sisa antrian
+      img.onerror = resolve;
     });
   });
   await Promise.all(promises);
@@ -49,18 +66,22 @@ const IdolListPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(0);
   const [selectedIdol, setSelectedIdol] = useState<Character | null>(null);
-
-  const [animationDirection] = useState("right");
-
   const [showQnA, setShowQnA] = useState(false);
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
   const [qnaSources, setQnaSources] = useState<any[]>([]);
-
   const [isRightMenuOpen, setIsRightMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<
-    "profile" | "gifts" | "description"
-  >("description");
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const [activeTab, setActiveTab] = useState<"profile" | "gifts" | "desc">(
+    "desc",
+  );
+
+  // Deteksi Mobile
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   function formatDateToDM(dateString: string): string {
     const [_year, month, day] = dateString.split("-");
@@ -78,13 +99,10 @@ const IdolListPage: React.FC = () => {
       "November",
       "December",
     ];
-
     const dayNumber = parseInt(day);
     let suffix = "th";
-
-    if (dayNumber % 100 >= 11 && dayNumber % 100 <= 13) {
-      suffix = "th";
-    } else {
+    if (dayNumber % 100 >= 11 && dayNumber % 100 <= 13) suffix = "th";
+    else {
       switch (dayNumber % 10) {
         case 1:
           suffix = "st";
@@ -100,11 +118,9 @@ const IdolListPage: React.FC = () => {
           break;
       }
     }
-
     return `${monthNames[parseInt(month) - 1]} ${dayNumber}${suffix}`;
   }
 
-  // Group characters by groupName
   const groupBy = <T, K extends keyof any>(
     array: T[],
     keyExtractor: (item: T) => K,
@@ -126,9 +142,7 @@ const IdolListPage: React.FC = () => {
           "https://diveidolypapi.my.id/api/characters",
         );
         if (!response.ok) throw new Error("Failed to fetch characters");
-
         const data: Character[] = await response.json();
-
         const filteredCharacters = data.filter((idol) =>
           allowedGroups.includes(idol.groupName),
         );
@@ -142,33 +156,22 @@ const IdolListPage: React.FC = () => {
           (groupName) => groups[groupName],
         );
 
-        if (orderedGroupNames.length > 0) {
+        if (orderedGroupNames.length > 0)
           setSelectedIdol(groups[orderedGroupNames[0]][0]);
-        }
-
         setLoading(false);
 
-        // 1. Kumpulkan semua URL gambar sprite2 (gambar besar)
         const spriteUrls = filteredCharacters.map((char) =>
           getCharacterImageUrl(char.name, "sprite2"),
         );
-
-        // 2. Kumpulkan URL banner (untuk navigasi bawah agar tidak blank saat scroll)
         const bannerUrls = filteredCharacters.map((char) =>
           getCharacterImageUrl(char.name, "banner"),
         );
-
-        // 3. Jalankan preloading di background (tanpa await agar UI tidak freeze)
-        preloadImages([...spriteUrls, ...bannerUrls]).then(() => {
-          console.log("All character assets preloaded!");
-        });
-        // ----------------------------------------
+        preloadImages([...spriteUrls, ...bannerUrls]);
       } catch (err) {
         setError((err as Error).message);
         setLoading(false);
       }
     };
-
     fetchCharacters();
   }, []);
 
@@ -176,27 +179,22 @@ const IdolListPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const [charactersRes, qnaRes] = await Promise.all([
-          fetch("https://www.diveidolypapi.my.id/api/characters"),
-          fetch("https://www.diveidolypapi.my.id/api/qnas"),
+          fetch("https://diveidolypapi.my.id/api/characters"),
+          fetch("https://diveidolypapi.my.id/api/qnas"),
         ]);
-
         const charactersData = await charactersRes.json();
         const qnaData = await qnaRes.json();
-
         setAllCharacters(charactersData);
         setQnaSources(Array.isArray(qnaData) ? qnaData : []);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error(error);
       }
     };
-
     fetchData();
   }, []);
 
-  // Title Page Dynamic
   useEffect(() => {
     document.title = "Polaris Idoly | Idol Database";
-
     return () => {
       document.title = "Polaris Idoly";
     };
@@ -206,16 +204,12 @@ const IdolListPage: React.FC = () => {
     setSelectedIdol(idol);
     setShowQnA(true);
   };
-
-  const hasQnAData = (characterName: string, qnaSources: QnASource[]) => {
-    return qnaSources.some(
+  const hasQnAData = (characterName: string, qnaSources: QnASource[]) =>
+    qnaSources.some(
       (source) => source.name.toLowerCase() === characterName.toLowerCase(),
     );
-  };
 
   const groups = groupBy(characters, (character) => character.groupName);
-
-  // Urutkan member dalam setiap group - center pertama
   const sortedGroups = Object.fromEntries(
     Object.entries(groups).map(([groupName, members]) => [
       groupName,
@@ -225,14 +219,12 @@ const IdolListPage: React.FC = () => {
   const groupNames = allowedGroups.filter(
     (groupName) => sortedGroups[groupName],
   );
-
   const currentGroup = groupNames[selectedGroupIndex];
   const currentGroupMembers = sortedGroups[currentGroup] || [];
 
   const nextGroup = () => {
     const newIndex = (selectedGroupIndex + 1) % groupNames.length;
     setSelectedGroupIndex(newIndex);
-    // Auto-select first member of new group
     setSelectedIdol(sortedGroups[groupNames[newIndex]][0]);
   };
 
@@ -240,800 +232,450 @@ const IdolListPage: React.FC = () => {
     const newIndex =
       (selectedGroupIndex - 1 + groupNames.length) % groupNames.length;
     setSelectedGroupIndex(newIndex);
-    // Auto-select first member of new group
     setSelectedIdol(sortedGroups[groupNames[newIndex]][0]);
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
-
-  const isColorDark = (color: string) => {
-    // Remove the hash if present
-    color = color.replace("#", "");
-
-    // Convert to RGB
-    const r = parseInt(color.substring(0, 2), 16);
-    const g = parseInt(color.substring(2, 4), 16);
-    const b = parseInt(color.substring(4, 6), 16);
-
-    // Calculate brightness
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-
-    // Return true if dark, false if light
-    return brightness < 128;
-  };
+  const handleNavigation = (path: string) => navigate(path);
 
   if (loading)
-    return <div className="text-white text-center py-8">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center text-cyan-500 font-mono tracking-widest animate-pulse">
+        LOADING DATABASE...
+      </div>
+    );
   if (error)
-    return <div className="text-red-500 text-center py-8">Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center text-red-500 font-mono">
+        ERROR: {error}
+      </div>
+    );
 
   return (
-    <div className="p-4 z-10 transition-all duration-500 ease-out gap-4 flex flex-col">
-      {/* Group Navigation */}
-      <div className="flex items-center justify-between">
+    <div className="p-4 lg:p-8 min-h-screen bg-[#0f1115] text-white font-sans relative overflow-hidden selection:bg-pink-500 selection:text-white flex flex-col gap-6">
+      {/* Background Texture */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-5 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      ></div>
+
+      {/* --- HEADER NAVIGATION (GROUP SELECTOR) --- */}
+      <div className="flex items-center justify-between bg-[#161b22]/80 backdrop-blur-md border border-white/10 rounded-2xl p-2 shadow-xl z-20 relative">
         <button
           onClick={prevGroup}
-          accessKey="g"
-          className="relative bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-10"
-          title="Alt + G"
+          className="p-3 bg-[#0d1117] hover:bg-[#1f2937] rounded-xl text-gray-400 hover:text-white transition-all border border-white/5 active:scale-95"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          {/* <div className="absolute -bottom-3 -right-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
-            Alt + G
-          </div> */}
+          <ChevronLeft size={24} />
         </button>
 
-        <h2 className="text-2xl font-bold text-white text-center bg-slate-800 mx-6 py-2 w-full">
-          {currentGroup}
-        </h2>
+        <div className="flex-1 text-center">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] block mb-1">
+            Current Unit
+          </span>
+          <h2 className="text-xl lg:text-3xl font-black italic text-white uppercase tracking-tighter drop-shadow-md">
+            {currentGroup}
+          </h2>
+        </div>
 
         <button
           onClick={nextGroup}
-          accessKey="h"
-          className="relative bg-slate-800 text-white p-2 rounded-full hover:bg-slate-700 transition z-10"
-          title="Alt + H"
+          className="p-3 bg-[#0d1117] hover:bg-[#1f2937] rounded-xl text-gray-400 hover:text-white transition-all border border-white/5 active:scale-95"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-          {/* <div className="absolute -bottom-3 -left-5 bg-slate-500 py-3 px-1 text-white text-xs rounded-full w-12 h-5 flex items-center justify-center">
-            Alt + H
-          </div> */}
+          <ChevronRight size={24} />
         </button>
       </div>
 
-      <div className="flex">
-        {/* Group Members List */}
-        <div className="rounded-lg p-4 absolute z-20 bottom-12 lg:bottom-10 max-w-full">
-          {/* 1. Tambahkan flex-nowrap dan overflow-x-auto. Gunakan scrollbar-minimal agar tampilan rapi */}
-          <div className="flex flex-nowrap gap-3 transition-all duration-500 ease-out py-2 max-w-80 w-screen lg:max-w-screen-xl overflow-x-auto scrollbar-minimal">
-            {currentGroupMembers.map((idol: Character, index: number) => {
-              const accessKey = (index + 1).toString();
-
-              return (
-                <motion.div
-                  key={idol.name}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedIdol(idol)}
-                  // 2. Tambahkan flex-shrink-0 agar item tidak mengecil saat jumlahnya banyak
-                  className="flex-shrink-0 cursor-pointer rounded-lg overflow-hidden relative"
-                  style={{ borderTop: `4px solid ${idol.color}` }}
-                  accessKey={accessKey}
-                  tabIndex={0}
-                  role="button"
-                  title={`Alt + ${accessKey}`}
-                >
+      <div className="flex flex-col lg:flex-row gap-6 relative z-10 flex-1">
+        {/* --- MAIN DISPLAY AREA --- */}
+        <div className="w-full relative min-h-[600px] lg:h-[750px] flex-1 mb-20">
+          {selectedIdol && (
+            <section className="relative h-full w-full">
+              {/* GIFT ICONS (Floating) */}
+              {!isMobile && getGiftItemImageUrl(selectedIdol.name) && (
+                <div className="absolute top-4 right-4 z-30 flex gap-2 p-2 bg-black/40 backdrop-blur-md rounded-xl border border-white/10">
                   <img
-                    src={getCharacterImageUrl(idol.name, "banner")}
-                    alt=""
-                    className="w-12 md:w-16 lg:w-20 h-auto object-cover select-none"
+                    src={getSpecialGiftItemImageUrl(selectedIdol.name)}
+                    alt="Gift"
+                    className="w-10 h-10 object-cover bg-white/10 rounded-lg"
+                  />
+                  <img
+                    src={getGiftItemImageUrl(selectedIdol.name, 1)}
+                    alt="Gift"
+                    className="w-10 h-10 object-cover bg-white/10 rounded-lg"
+                  />
+                  <img
+                    src={getGiftItemImageUrl(selectedIdol.name)}
+                    alt="Gift"
+                    className="w-10 h-10 object-cover bg-white/10 rounded-lg"
+                  />
+                </div>
+              )}
+
+              {/* CARD CONTAINER */}
+              <div
+                className="relative rounded-2xl overflow-hidden h-screen w-full border border-white/10 shadow-2xl bg-[#161b22] transition-all duration-500"
+                style={{
+                  boxShadow: `0 0 30px -10px #${selectedIdol.color}`,
+                  borderColor: `#${selectedIdol.color}40`,
+                }}
+              >
+                {!isMobile && (
+                  <img
+                    src={getCharacter3ImageUrl(selectedIdol.name)}
+                    alt={selectedIdol.name}
+                    className={`absolute w-full h-max object-cover object-top opacity-50 select-none ${
+                      isMobile ? "hidden" : "block"
+                    }`}
                     onContextMenu={(e) => e.preventDefault()}
                     draggable="false"
                     onDragStart={(e) => e.preventDefault()}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src =
-                        "https://diveidolypapi.my.id/api/img/character/sprite2/satomi";
+                      target.src = "/placeholder-idol.png";
                     }}
-                    aria-hidden="true"
                   />
-                  <div className="p-2 bg-slate-900 w-12 md:w-16 lg:w-20 ">
-                    <h3 className="text-xs font-semibold text-white truncate">
-                      {idol.name}
-                    </h3>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
+                )}
+                {/* IDOL SPRITE (BG) */}
+                <div className="absolute inset-0 z-0 -translate-x-96 lg:translate-x-0">
+                  {/* Gradient Overlay based on chara color */}
+                  <div
+                    className="absolute inset-0 opacity-20"
+                    style={{
+                      background: `linear-gradient(135deg, #${selectedIdol.color} 0%, transparent 100%)`,
+                    }}
+                  ></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#161b22] via-transparent to-transparent opacity-90"></div>
 
-        {/* Idol Detail View - Now always shows at least the first member */}
-        <div className="w-full h-[30rem] z-0">
-          {selectedIdol && (
-            <section className="relative flex flex-col items-center">
-              {!isMobile && getGiftItemImageUrl(selectedIdol.name) && (
-                <div className="absolute w-20 h-20 p-2 flex flex-row gap-2 top-12 left-40 transition-all duration-500 ease-out z-20">
-                  <img
-                    src={getSpecialGiftItemImageUrl(selectedIdol.name)}
-                    alt="Give 40pt"
-                    title="Give 40pt"
-                    className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable="false"
-                    onDragStart={(e) => e.preventDefault()}
-                    onError={(e) => {
-                      e.currentTarget.src = `${
-                        import.meta.env.BASE_URL
-                      }assets/default_image.png`;
-                      e.currentTarget.alt = "Image not available";
-                    }}
-                  />
-                  <img
-                    src={getGiftItemImageUrl(selectedIdol.name, 1)}
-                    alt="Give 100pt"
-                    title="Give 100pt"
-                    className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable="false"
-                    onDragStart={(e) => e.preventDefault()}
-                    onError={(e) => {
-                      e.currentTarget.src = `${
-                        import.meta.env.BASE_URL
-                      }assets/default_image.png`;
-                      e.currentTarget.alt = "Image not available";
-                    }}
-                  />
-                  <img
-                    src={getGiftItemImageUrl(selectedIdol.name)}
-                    alt="Give 40pt"
-                    title="Give 40pt"
-                    className="w-full h-full object-cover rounded-lg shadow-lg bg-white"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable="false"
-                    onDragStart={(e) => e.preventDefault()}
-                    onError={(e) => {
-                      e.currentTarget.src = `${
-                        import.meta.env.BASE_URL
-                      }assets/default_image.png`;
-                      e.currentTarget.alt = "Image not available";
-                    }}
-                  />
+                  {/* Character Sprite */}
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={selectedIdol.name}
+                      src={getCharacterImageUrl(selectedIdol.name, "sprite2")}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.4 }}
+                      className={`absolute w-auto h-[120%] max-w-none object-cover select-none z-0
+                            ${isMobile ? "left-1/2 -translate-x-1/2 top-10" : "right-[-10%] top-[-10%]"}
+                        `}
+                      draggable="false"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://diveidolypapi.my.id/api/img/character/sprite2/satomi";
+                      }}
+                    />
+                  </AnimatePresence>
                 </div>
-              )}
-              <div
-                style={{
-                  backgroundColor: `#${selectedIdol.color}`,
-                  color: `${
-                    isColorDark(selectedIdol.color || "#000000")
-                      ? "#FFFFFF"
-                      : "#000000"
-                  }`,
-                }}
-                className={`relative rounded-lg shadow-lg border-4 border-slate-900 overflow-hidden transition-all duration-500 ease-out w-full ${
-                  isMobile ? "h-[25rem]" : "h-auto"
-                }`}
-              >
-                {/* Gambar akan mengikuti lebar parent dan height auto */}
-                <img
-                  src={getCharacter3ImageUrl(selectedIdol.name)}
-                  alt={selectedIdol.name}
-                  className={`absolute w-full h-max -translate-y-40 object-cover object-top opacity-50 select-none ${
-                    isMobile ? "hidden" : "block"
-                  }`}
-                  onContextMenu={(e) => e.preventDefault()}
-                  draggable="false"
-                  onDragStart={(e) => e.preventDefault()}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/placeholder-idol.png";
-                  }}
-                />
+
+                {/* --- SIDEBAR BUTTONS (DESKTOP) --- */}
                 {!isMobile && (
-                  <div className="absolute top-4 left-4 text-slate-900 justify-self-center z-[50] flex flex-col gap-4">
+                  <div className="absolute top-8 left-8 z-40 flex flex-col gap-3">
                     {hasQnAData(selectedIdol.name, qnaSources) && (
                       <button
                         onClick={() => openQnA(selectedIdol)}
-                        className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
+                        className="group flex items-center gap-3 bg-black/60 hover:bg-pink-600/80 backdrop-blur-md text-white pl-3 pr-5 py-2 rounded-full border border-white/10 transition-all hover:border-pink-500"
                       >
-                        <span className="font-semibold px-2">QnA</span>
+                        <MessageCircle size={18} />{" "}
+                        <span className="text-xs font-bold uppercase tracking-wider">
+                          Interview
+                        </span>
                       </button>
                     )}
                     <button
                       onClick={() => handleNavigation("/stat")}
-                      className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
+                      className="group flex items-center gap-3 bg-black/60 hover:bg-cyan-600/80 backdrop-blur-md text-white pl-3 pr-5 py-2 rounded-full border border-white/10 transition-all hover:border-cyan-500"
                     >
-                      <span className="font-semibold px-2">Idol Stat</span>
+                      <BarChart2 size={18} />{" "}
+                      <span className="text-xs font-bold uppercase tracking-wider">
+                        Statistics
+                      </span>
                     </button>
-                    <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
-                      <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                        <img
-                          src={`${import.meta.env.BASE_URL}assets/lock-16.png`}
-                          onContextMenu={(e) => e.preventDefault()}
-                          draggable="false"
-                          onDragStart={(e) => e.preventDefault()}
-                          alt="locked"
-                        />
-                      </div>
-                      <span className="font-semibold px-2">Gallery</span>
-                    </button>
-                    <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
-                      <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                        <img
-                          src={`${import.meta.env.BASE_URL}assets/lock-16.png`}
-                          onContextMenu={(e) => e.preventDefault()}
-                          draggable="false"
-                          onDragStart={(e) => e.preventDefault()}
-                          alt="locked"
-                        />
-                      </div>
-                      <span className="font-semibold px-2">Trivia</span>
+                    <button className="group flex items-center gap-3 bg-black/40 text-gray-500 pl-3 pr-5 py-2 rounded-full border border-white/5 cursor-not-allowed">
+                      <ImageIcon size={18} />{" "}
+                      <span className="text-xs font-bold uppercase tracking-wider">
+                        Gallery
+                      </span>
                     </button>
                   </div>
                 )}
-                {!isMobile && selectedIdol.introduction && (
-                  <div className="absolute top-40 left-40 z-[50] max-w-xs transition-all duration-500 ease-out ring-2 rounded-lg">
-                    {/* Container utama bubble dengan ekor */}
-                    <div className="relative">
-                      {/* Bubble utama */}
-                      <div className="px-4 py-2 bg-slate-700 text-white rounded-lg">
-                        <div className="whitespace-pre-line">
-                          {(selectedIdol.introduction ?? []).join("\n")}
-                        </div>
-                      </div>
 
-                      {/* Ekor bubble (arah kanan atas) */}
-                      <div className="absolute top-4 -right-1 w-4 h-4 bg-slate-700 transform rotate-45 origin-bottom-left" />
+                {/* --- INTRODUCTION BUBBLE --- */}
+                {!isMobile && selectedIdol.introduction && (
+                  <div className="absolute top-1/3 left-12 z-30 max-w-sm animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
+                    <div className="relative bg-black/70 backdrop-blur-md border border-white/10 text-gray-200 px-5 py-4 rounded-xl rounded-tl-none shadow-lg">
+                      <p className="text-sm italic leading-relaxed font-medium">
+                        "{(selectedIdol.introduction ?? []).join(" ")}"
+                      </p>
+                      <div className="absolute -top-[1px] -left-[1px] w-3 h-3 border-t border-l border-white/30 rounded-tl-none"></div>
                     </div>
                   </div>
                 )}
-                <div className="absolute w-2/3 h-full clip-trapezoid-with-gap right-0">
-                  <div className="absolute w-full h-full clip-trapezoid-outer bg-[radial-gradient(circle_at_center,_var(--dot-color)_var(--dot-size),_transparent_var(--dot-size))] [background-size:var(--spacing)_var(--spacing)] [--dot-color:#E0E1EC] [--dot-size:3px] [--spacing:12px]" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white translate-x-40" />
+
+                {/* --- GROUP LOGO (Watermark) --- */}
+                <div className="absolute bottom-40 right-[-50px] opacity-10 pointer-events-none rotate-12 z-0">
                   <img
-                    className={`w-auto h-max object-cover justify-center rounded-lg absolute opacity-20 transition-all duration-300 ease-out select-none ${
-                      selectedIdol.groupName === "Tsuki no Tempest"
-                        ? "top-8 -right-52"
-                        : selectedIdol.groupName === "TRINITYAiLE"
-                          ? "top-0 -right-52"
-                          : selectedIdol.groupName === "LizNoir"
-                            ? "top-2 -right-52"
-                            : "top-12 -right-52"
-                    }`}
                     src={getGroupImageUrl(selectedIdol.groupName)}
-                    alt="groupLogo"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable="false"
-                    onDragStart={(e) => e.preventDefault()}
+                    alt="logo"
+                    className="w-96 h-auto grayscale invert"
                   />
                 </div>
-                {!isMobile && (
-                  <div className="flex flex-col md:flex-row gap-6 p-6">
-                    {/* Idol Info */}
-                    <div className="relative flex-grow h-[28rem] z-30 items-end flex flex-col">
-                      <h1 className="text-3xl font-bold capitalize text-slate-900">
-                        {selectedIdol.name} {selectedIdol.familyName}{" "}
-                        {selectedIdol.japaneseName
-                          ? `(${selectedIdol.japaneseName})`
-                          : ""}
-                      </h1>
-                      <div className="text-center flex gap-2 my-3">
-                        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white flex items-center">
-                          <img
-                            className="inline w-4 h-4 mr-2 -ml-1"
-                            src={`${
-                              import.meta.env.BASE_URL
-                            }assets/icons8-podcast-24.png`}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="CV"
-                          />
-                          CV :{" "}
-                          {selectedIdol.japaneseSeiyuuName
-                            ? selectedIdol.japaneseSeiyuuName
-                            : selectedIdol.seiyuuName}
-                        </span>
-                        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white flex items-center">
-                          <img
-                            className="inline w-4 h-4 mr-2 -ml-1"
-                            src={`${
-                              import.meta.env.BASE_URL
-                            }assets/icons8-location-24.png`}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="school"
-                          />
-                          {selectedIdol.school
-                            ? selectedIdol.school
-                            : "Unknown"}
-                        </span>
-                        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-slate-700 text-white flex items-center">
-                          <img
-                            className="inline w-4 h-4 mr-2"
-                            src={`${
-                              import.meta.env.BASE_URL
-                            }assets/icons8-badge-24.png`}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="badge"
-                          />
-                          {selectedIdol.badge
-                            ? selectedIdol.badge +
-                              " (" +
-                              selectedIdol.japaneseBadge +
-                              ")"
-                            : "Unknown"}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-10 w-full my-4">
-                        <span className="col-start-7 col-span-4 px-4 py-2 text-black rounded-lg font-semibold text-justify border-slate-900 border-b-2 shadow-xl bg-white bg-opacity-10">
-                          {selectedIdol.desc}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
-                        <div className="col-start-6 rounded-lg p-4 font-bold flex items-end transition-all duration-300 ease-out w-24">
-                          <div
-                            style={{
-                              backgroundColor: `#${selectedIdol.color}`,
-                            }}
-                            className="select-none"
-                          >
-                            <div className="text-xs mt-1">
-                              #{selectedIdol.color}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-start-7 col-span-2 text-black rounded-lg p-4 font-bold">
-                          <h3 className="text-lg font-bold mb-2">Profile</h3>
-                          <div className="space-y-1 font-normal">
-                            <p>
-                              <span className="font-medium">Birthday:</span>{" "}
-                              {formatDateToDM(selectedIdol.birthdayDate) || "-"}
-                            </p>
-                            <p>
-                              <span className="font-medium">Height:</span>{" "}
-                              {selectedIdol.numeralStat.height || "-"} cm
-                            </p>
-                            <p>
-                              <span className="font-medium">Weight:</span>{" "}
-                              {selectedIdol.numeralStat.weight || "-"} kg
-                            </p>
-                            <p>
-                              <span className="font-medium">B/W/H:</span>{" "}
-                              {selectedIdol.numeralStat.bust || "-"}/
-                              {selectedIdol.numeralStat.waist || "-"}/
-                              {selectedIdol.numeralStat.hip || "-"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="col-start-9 col-span-2 text-black rounded-lg font-semibold p-4">
-                          <h3 className="text-lg font-bold mb-2 ">Details</h3>
-                          <div className="space-y-1 font-normal">
-                            <p>
-                              <span className="font-medium">Like:</span>{" "}
-                              {selectedIdol.like}
-                            </p>
-                            <p>
-                              <span className="font-medium">Dislike:</span>{" "}
-                              {selectedIdol.dislike}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {isMobile && (
-                  <div className="flex flex-col md:flex-row gap-3 p-3">
-                    {/* Idol Info */}
-                    <div className="relative flex-grow h-auto items-end flex flex-col">
-                      <h1 className="text-3xl font-bold capitalize text-slate-900">
-                        {selectedIdol.name} {selectedIdol.familyName}{" "}
-                        {selectedIdol.japaneseName
-                          ? `(${selectedIdol.japaneseName})`
-                          : ""}
-                      </h1>
-                      <div className="text-center flex flex-col gap-1 z-10 bg-blend-multiply w-32 mt-2">
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-700 text-white flex items-center">
-                          <img
-                            className="inline w-4 h-4 mr-2 -ml-1"
-                            src={`${
-                              import.meta.env.BASE_URL
-                            }assets/icons8-podcast-24.png`}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="CV"
-                          />
-                          CV :{" "}
-                          {selectedIdol.japaneseSeiyuuName
-                            ? selectedIdol.japaneseSeiyuuName
-                            : selectedIdol.seiyuuName}
-                        </span>
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-700 text-white flex items-center">
-                          <img
-                            className="inline w-4 h-4 mr-2 -ml-1"
-                            src={`${
-                              import.meta.env.BASE_URL
-                            }assets/icons8-location-24.png`}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="school"
-                          />
-                          {selectedIdol.school
-                            ? selectedIdol.school
-                            : "Unknown"}
-                        </span>
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-700 text-white flex items-center">
-                          <img
-                            className="inline w-4 h-4 mr-2"
-                            src={`${
-                              import.meta.env.BASE_URL
-                            }assets/icons8-badge-24.png`}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="badge"
-                          />
-                          {selectedIdol.badge
-                            ? selectedIdol.badge +
-                              " (" +
-                              selectedIdol.japaneseBadge +
-                              ")"
-                            : "Unknown"}
-                        </span>
-                      </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
-                        <div className="col-start-6 rounded-lg p-4 font-bold flex items-end transition-all duration-300 ease-out w-24">
-                          <div
-                            style={{
-                              backgroundColor: `#${selectedIdol.color}`,
-                            }}
-                            className="select-none"
-                          >
-                            <div className="text-xs mt-1">
-                              #{selectedIdol.color}
-                            </div>
-                          </div>
-                        </div>
+                {/* --- INFO PANEL (Overlay Bottom) --- */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent pt-32 pb-8 px-6 lg:px-10 z-20">
+                  {/* Name & Header */}
+                  <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-white/10 pb-4 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-white border border-white/10 uppercase tracking-wider">
+                          {selectedIdol.groupName}
+                        </span>
+                        <div className="h-px w-10 bg-white/20"></div>
+                      </div>
+                      <h1
+                        className="text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-none"
+                        style={{
+                          textShadow: `0 0 30px #${selectedIdol.color}`,
+                        }}
+                      >
+                        {selectedIdol.name}{" "}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-600">
+                          {selectedIdol.familyName}
+                        </span>
+                      </h1>
+                      {selectedIdol.japaneseName && (
+                        <p className="text-sm text-gray-500 font-mono mt-1 tracking-widest">
+                          {selectedIdol.japaneseName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Badges CV/School */}
+                    <div className="flex gap-2">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1f2937] border border-white/10 text-xs text-gray-300">
+                        <Mic2 size={14} className="text-pink-500" />
+                        <span className="font-bold">
+                          CV:{" "}
+                          {selectedIdol.japaneseSeiyuuName ||
+                            selectedIdol.seiyuuName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1f2937] border border-white/10 text-xs text-gray-300">
+                        <MapPin size={14} className="text-blue-500" />
+                        <span>{selectedIdol.school || "Unknown"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1f2937] border border-white/10 text-xs text-gray-300">
+                        <Award size={14} className="text-yellow-500" />
+                        <span>
+                          {selectedIdol.badge
+                            ? `${selectedIdol.badge} (${selectedIdol.japaneseBadge})`
+                            : "Unknown"}
+                        </span>
                       </div>
                     </div>
                   </div>
-                )}
+
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-sm">
+                    {/* Column 1: Description */}
+                    <div className="lg:col-span-1 hidden lg:block">
+                      <p
+                        className="text-gray-400 leading-relaxed text-xs line-clamp-4 border-l-2 pl-3"
+                        style={{ borderColor: `#${selectedIdol.color}` }}
+                      >
+                        {selectedIdol.desc}
+                      </p>
+                    </div>
+
+                    {/* Column 2: Physical Stats */}
+                    <div className="lg:col-span-1 grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-gray-500 text-xs uppercase">
+                          Birthday
+                        </span>{" "}
+                        <span className="font-mono">
+                          {formatDateToDM(selectedIdol.birthdayDate) || "-"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-gray-500 text-xs uppercase">
+                          Height
+                        </span>{" "}
+                        <span className="font-mono">
+                          {selectedIdol.numeralStat.height || "-"} cm
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-gray-500 text-xs uppercase">
+                          Weight
+                        </span>{" "}
+                        <span className="font-mono">
+                          {selectedIdol.numeralStat.weight || "-"} kg
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-gray-500 text-xs uppercase">
+                          B-W-H
+                        </span>{" "}
+                        <span className="font-mono">
+                          {selectedIdol.numeralStat.bust}/
+                          {selectedIdol.numeralStat.waist}/
+                          {selectedIdol.numeralStat.hip}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Column 3: Likes/Dislikes */}
+                    <div className="lg:col-span-1 space-y-2">
+                      <div>
+                        <span className="text-[10px] font-bold text-green-400 uppercase tracking-wider flex items-center gap-1">
+                          <Heart size={10} /> Likes
+                        </span>
+                        <p className="text-gray-300">{selectedIdol.like}</p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">
+                          Dislikes
+                        </span>
+                        <p className="text-gray-300">{selectedIdol.dislike}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              {!isMobile && (
-                <div className="absolute w-full h-[calc(100vh-3rem)] overflow-hidden -top-32 border-b-4 border-slate-900 rounded-lg">
-                  <div className="relative w-full h-full transition-all duration-500 ease-out">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={selectedIdol.name}
-                        custom={animationDirection}
-                        initial={{
-                          x: animationDirection === "right" ? 300 : -300,
-                          opacity: 0,
-                        }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{
-                          x: animationDirection === "right" ? -300 : 300,
-                          opacity: 0,
-                        }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 30,
-                        }}
-                      >
-                        <motion.img
-                          src={getCharacterImageUrl(
-                            selectedIdol.name,
-                            "sprite2",
-                          )}
-                          initial={{ x: 100 }}
-                          animate={{ x: 0 }}
-                          transition={{ duration: 0.2 }}
-                          style={{
-                            willChange: "transform",
-                          }}
-                          alt={selectedIdol.name}
-                          className={`w-auto h-auto max-w-full max-h-full z-10 select-none transition-transform duration-300 ${
-                            selectedIdol.name.toLowerCase() === "snow"
-                              ? "-mt-32"
-                              : "mt-0"
-                          }`}
-                          onContextMenu={(e) => e.preventDefault()}
-                          draggable="false"
-                          onDragStart={(e) => e.preventDefault()}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src =
-                              "https://diveidolypapi.my.id/api/img/character/sprite2/satomi";
-                          }}
-                        />
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                </div>
-              )}
-              {isMobile && (
-                <div className="absolute max-w-[66rem] max-h-[66rem] overflow-hidden rounded-lg -left-28">
-                  <div className="relative w-full h-full transition-all duration-500 ease-out">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={selectedIdol.name}
-                        custom={animationDirection}
-                        initial={{
-                          x: animationDirection === "right" ? 300 : -300,
-                          opacity: 0,
-                        }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{
-                          x: animationDirection === "right" ? -300 : 300,
-                          opacity: 0,
-                        }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 30,
-                        }}
-                      >
-                        <motion.img
-                          src={getCharacterImageUrl(
-                            selectedIdol.name,
-                            "sprite2",
-                          )}
-                          initial={{ x: 100 }}
-                          animate={{ x: 0 }}
-                          transition={{ duration: 0.2 }}
-                          style={{
-                            willChange: "transform",
-                          }}
-                          alt={selectedIdol.name}
-                          className="w-full h-full z-10 select-none"
-                          onContextMenu={(e) => e.preventDefault()}
-                          draggable="false"
-                          onDragStart={(e) => e.preventDefault()}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "/placeholder-idol.png";
-                          }}
-                        />
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                </div>
-              )}
             </section>
           )}
         </div>
-        {selectedIdol && isMobile && (
-          <section id="rightConsole" className="absolute z-30">
-            <div
-              className={`fixed right-0 top-0 h-full bg-slate-900 transition-all duration-300 ease-in-out flex mt-20 ${
-                isRightMenuOpen ? "translate-x-0 w-72" : "translate-x-full"
-              }`}
-            >
+
+        {/* --- CAROUSEL (BOTTOM) --- */}
+        <div className="fixed bottom-10 left-0 right-0 z-40 p-4 bg-gradient-to-t from-black via-black/90 to-transparent lg:static lg:bg-transparent lg:p-0 lg:w-auto lg:h-[750px] lg:flex lg:flex-col lg:justify-center">
+          <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden scrollbar-minimal p-2 lg:max-h-[600px] lg:w-24">
+            {currentGroupMembers.map((idol: Character, _index: number) => (
               <button
-                onClick={() => setIsRightMenuOpen(!isRightMenuOpen)}
-                className={`absolute top-1/3 h-16 bg-slate-900 text-white rounded-l-md hover:bg-slate-700 transition-all flex items-center justify-center py-10 ${
-                  isRightMenuOpen
-                    ? "w-8 -left-8"
-                    : "w-16 -left-12 animate-[bounce-left_3s_infinite]"
-                }`}
+                key={idol.name}
+                onClick={() => setSelectedIdol(idol)}
+                className={`relative flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 group
+                    ${
+                      selectedIdol?.name === idol.name
+                        ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] scale-110 z-10"
+                        : "border-white/20 opacity-60 hover:opacity-100 hover:scale-105"
+                    }
+                  `}
               >
-                {isRightMenuOpen ? (
-                  ">"
-                ) : (
-                  <span className="inline-flex items-center px-2">
-                    <span className="pr-1">&lt;</span>
-                    <span>Detail here</span>
-                  </span>
-                )}
+                <img
+                  src={getCharacterImageUrl(idol.name, "icon")}
+                  alt={idol.name}
+                  className="w-full h-full object-cover bg-gray-800"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-black/70 text-[8px] text-center text-white font-bold py-0.5 uppercase truncate">
+                  {idol.name}
+                </div>
+                {/* Color Indicator */}
+                <div
+                  className="absolute top-0 right-0 w-3 h-3 rounded-bl-lg"
+                  style={{ backgroundColor: `#${idol.color}` }}
+                ></div>
               </button>
+            ))}
+          </div>
+        </div>
 
-              <div className="w-full bg-slate-900 p-4 overflow-y-auto max-w-72">
-                <h2 className="flex font-bold text-3xl text-white py-2">
-                  {selectedIdol.name}
-                </h2>
-                <div className="flex flex-col gap-4 bg-white p-4 rounded-md">
-                  <div className="flex gap-2 border-b border-gray-300 text-sm">
-                    {["description", "profile", "gifts"].map((tab) => (
-                      <button
-                        key={tab}
-                        className={`px-4 py-2 font-semibold capitalize w-fit ${
-                          activeTab === tab
-                            ? "border-b-4 border-blue-500 text-blue-600"
-                            : "text-gray-600 truncate"
-                        }`}
-                        onClick={() =>
-                          setActiveTab(
-                            tab as "profile" | "gifts" | "description",
-                          )
-                        }
-                      >
-                        {tab}
-                      </button>
-                    ))}
+        {/* --- MOBILE DRAWER (DETAILS) --- */}
+        {selectedIdol && isMobile && (
+          <div
+            className={`fixed inset-y-0 right-0 w-80 bg-[#161b22] border-l border-white/10 shadow-2xl z-50 transform transition-transform duration-300 ${isRightMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+          >
+            <button
+              onClick={() => setIsRightMenuOpen(!isRightMenuOpen)}
+              className="absolute top-1/2 -left-8 w-8 h-16 bg-[#161b22] border-l border-y border-white/10 rounded-l-lg flex items-center justify-center text-white"
+            >
+              {isRightMenuOpen ? <ChevronRight /> : <ChevronLeft />}
+            </button>
+
+            <div className="h-full overflow-y-auto p-6">
+              <h2 className="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-4">
+                {selectedIdol.name}
+              </h2>
+
+              {/* Tabs Mobile */}
+              <div className="flex gap-2 mb-6 mt-40">
+                {["desc", "profile"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab as any)}
+                    className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg border ${activeTab === tab ? "bg-white text-black border-white" : "text-gray-400 border-white/10"}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {activeTab === "desc" && (
+                <p className="text-sm text-gray-300 leading-relaxed">
+                  {selectedIdol.desc}
+                </p>
+              )}
+
+              {activeTab === "profile" && (
+                <div className="space-y-4 text-sm text-gray-300">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-gray-500 text-xs block">
+                        Height
+                      </span>{" "}
+                      {selectedIdol.numeralStat.height} cm
+                    </div>
+                    <div>
+                      <span className="text-gray-500 text-xs block">
+                        Weight
+                      </span>{" "}
+                      {selectedIdol.numeralStat.weight} kg
+                    </div>
                   </div>
-
                   <div>
-                    {activeTab === "description" && (
-                      <div className="overflow-auto max-h-[40vh] scrollbar-minimal">
-                        <div className="flex flex-col gap-4">
-                          <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                            <h3 className="text-center font-bold mb-2">
-                              Description
-                            </h3>
-                            <p>{selectedIdol.desc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {activeTab === "profile" && (
-                      <div className="overflow-auto max-h-[40vh] scrollbar-minimal space-y-4">
-                        <div className="flex flex-col gap-4">
-                          <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                            <h3 className="text-center font-bold mb-2">
-                              Profile
-                            </h3>
-                            <div className="space-y-1 font-normal">
-                              <p>
-                                <span className="font-medium">Birthday:</span>{" "}
-                                {formatDateToDM(selectedIdol.birthdayDate) ||
-                                  "-"}
-                              </p>
-                              <p>
-                                <span className="font-medium">Height:</span>{" "}
-                                {selectedIdol.numeralStat.height || "-"} cm
-                              </p>
-                              <p>
-                                <span className="font-medium">Weight:</span>{" "}
-                                {selectedIdol.numeralStat.weight || "-"} kg
-                              </p>
-                              <p>
-                                <span className="font-medium">B/W/H:</span>{" "}
-                                {selectedIdol.numeralStat.bust || "-"}/
-                                {selectedIdol.numeralStat.waist || "-"}/
-                                {selectedIdol.numeralStat.hip || "-"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col bg-gray-200 p-4 rounded-md">
-                            <h3 className="text-center font-bold mb-2">
-                              Details
-                            </h3>
-                            <div className="space-y-1 font-normal">
-                              <p>
-                                <span className="font-medium">Like:</span>{" "}
-                                {selectedIdol.like}
-                              </p>
-                              <p>
-                                <span className="font-medium">Dislike:</span>{" "}
-                                {selectedIdol.dislike}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-4">
-                          {hasQnAData(selectedIdol.name, qnaSources) && (
-                            <button
-                              onClick={() => openQnA(selectedIdol)}
-                              className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
-                            >
-                              <span className="font-semibold px-2">QnA</span>
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleNavigation("/stat")}
-                            className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400"
-                          >
-                            <span className="font-semibold px-2">
-                              Idol Stat
-                            </span>
-                          </button>
-                          <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
-                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                              <img
-                                src={`${
-                                  import.meta.env.BASE_URL
-                                }assets/lock-16.png`}
-                                onContextMenu={(e) => e.preventDefault()}
-                                draggable="false"
-                                onDragStart={(e) => e.preventDefault()}
-                                alt="locked"
-                              />
-                            </div>
-                            <span className="font-semibold px-2">Gallery</span>
-                          </button>
-                          <button className="px-4 py-2 bg-slate-700 text-white rounded-full transition-all duration-300 ease-out hover:bg-slate-900 hover:ring-2 hover:ring-slate-400 cursor-not-allowed overflow-hidden relative">
-                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                              <img
-                                src={`${
-                                  import.meta.env.BASE_URL
-                                }assets/lock-16.png`}
-                                onContextMenu={(e) => e.preventDefault()}
-                                draggable="false"
-                                onDragStart={(e) => e.preventDefault()}
-                                alt="locked"
-                              />
-                            </div>
-                            <span className="font-semibold px-2">Trivia</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {activeTab === "gifts" && (
-                      <div className="flex flex-col gap-4">
-                        <div className="flex justify-center gap-4">
-                          <img
-                            src={getSpecialGiftItemImageUrl(selectedIdol.name)}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="Give 150pt"
-                            className="w-16 h-16 object-cover rounded-lg shadow-lg bg-white"
-                          />
-                          <img
-                            src={getGiftItemImageUrl(selectedIdol.name, 1)}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="Give 100pt"
-                            className="w-16 h-16 object-cover rounded-lg shadow-lg bg-white"
-                          />
-                          <img
-                            src={getGiftItemImageUrl(selectedIdol.name)}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            onDragStart={(e) => e.preventDefault()}
-                            alt="Give 40pt"
-                            className="w-16 h-16 object-cover rounded-lg shadow-lg bg-white"
-                          />
-                        </div>
-                      </div>
-                    )}
+                    <span className="text-gray-500 text-xs block">
+                      Birthday
+                    </span>{" "}
+                    {formatDateToDM(selectedIdol.birthdayDate)}
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs block">Likes</span>{" "}
+                    {selectedIdol.like}
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs block">
+                      Dislikes
+                    </span>{" "}
+                    {selectedIdol.dislike}
                   </div>
                 </div>
+              )}
+
+              <div className="mt-8 flex flex-col gap-3">
+                {hasQnAData(selectedIdol.name, qnaSources) && (
+                  <button
+                    onClick={() => openQnA(selectedIdol)}
+                    className="w-full py-3 bg-slate-800 rounded-lg text-sm font-bold text-white border border-white/10"
+                  >
+                    OPEN Q&A
+                  </button>
+                )}
+                <button
+                  onClick={() => handleNavigation("/stat")}
+                  className="w-full py-3 bg-slate-800 rounded-lg text-sm font-bold text-white border border-white/10"
+                >
+                  VIEW STATS
+                </button>
               </div>
             </div>
-          </section>
+          </div>
         )}
       </div>
+
       {showQnA && selectedIdol && (
-        <div className="fixed inset-0 flex z-50 translate-y-8 transition-all duration-500 ease-linear">
+        <div className="z-[60] flex items-center justify-center p-4">
           <QnAModal
             character={selectedIdol}
             onClose={() => setShowQnA(false)}

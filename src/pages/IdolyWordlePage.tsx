@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ChevronLeft } from "lucide-react"; // Icon yang tidak terpakai sudah dihapus
+import { ChevronLeft, HelpCircle, Trophy, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // --- CONFIG ---
 const API_BASE = "https://diveidolypapi.my.id/api/wordle";
 
-// Keyboard Layout
 const KEYBOARD_ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
@@ -25,55 +24,39 @@ const IdolyWordlePage: React.FC = () => {
     "playing",
   );
   const [message, setMessage] = useState("");
-
   const [isRevealing, setIsRevealing] = useState(false);
 
-  // Load Game Data
+  // Load Game
   useEffect(() => {
     const fetchDailyWord = async () => {
       try {
-        // --- LOGIC HARI LOKAL ---
-        // Ambil waktu sekarang di perangkat user
         const now = new Date();
-        // Buat objek Date baru yang menunjuk ke jam 00:00:00 waktu lokal hari ini
         const localMidnight = new Date(
           now.getFullYear(),
           now.getMonth(),
           now.getDate(),
         );
-        // Hitung index hari (Epoch ms dibagi ms dalam sehari)
-        // Ini akan menghasilkan angka integer unik untuk setiap tanggal lokal
         const localDayIndex = Math.floor(localMidnight.getTime() / 86400000);
 
-        // Request ke API dengan parameter ?day=
         const res = await axios.get(`${API_BASE}/daily?day=${localDayIndex}`);
-
-        // Decode Base64
         const decodedWord = atob(res.data.hash);
 
         setSolution(decodedWord);
         setWordLength(res.data.length);
 
-        // --- CEK LOCAL STORAGE ---
         const savedData = localStorage.getItem("idolyWordleState");
         if (savedData) {
           const parsed = JSON.parse(savedData);
-
-          // Bandingkan dayIndex yang tersimpan dengan hari ini
-          // Jika sama, berarti user melanjutkan game hari ini
           if (parsed.dayIndex === localDayIndex) {
             setGuesses(parsed.guesses);
             setGameStatus(parsed.status);
           } else {
-            // Jika beda (misal user main kemarin), reset untuk hari baru
             localStorage.removeItem("idolyWordleState");
           }
         }
       } catch (err) {
-        console.error("Error fetching wordle:", err);
-        setMessage(
-          "Failed to load today's word. Please try again later or contact the dev.",
-        );
+        console.error("Error:", err);
+        setMessage("Connection Error. Please refresh.");
       }
     };
     fetchDailyWord();
@@ -82,19 +65,15 @@ const IdolyWordlePage: React.FC = () => {
   // Save Progress
   useEffect(() => {
     if (solution) {
-      // Hitung lagi index hari untuk disimpan (agar konsisten saat load)
       const now = new Date();
-      const localMidnight = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
+      const localDayIndex = Math.floor(
+        new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() /
+          86400000,
       );
-      const localDayIndex = Math.floor(localMidnight.getTime() / 86400000);
-
       localStorage.setItem(
         "idolyWordleState",
         JSON.stringify({
-          dayIndex: localDayIndex, // Simpan ID hari, bukan tanggal string
+          dayIndex: localDayIndex,
           guesses,
           status: gameStatus,
         }),
@@ -102,7 +81,7 @@ const IdolyWordlePage: React.FC = () => {
     }
   }, [guesses, gameStatus, solution]);
 
-  // --- LOGIC ---
+  // Logic
   const handleKey = (key: string) => {
     if (gameStatus !== "playing" || isRevealing) return;
 
@@ -113,7 +92,7 @@ const IdolyWordlePage: React.FC = () => {
 
     if (key === "ENTER") {
       if (currentGuess.length !== wordLength) {
-        showMessage("Huruf kurang!");
+        showMessage("Not enough letters!");
         return;
       }
       submitGuess();
@@ -129,30 +108,22 @@ const IdolyWordlePage: React.FC = () => {
     const newGuesses = [...guesses, currentGuess];
     setGuesses(newGuesses);
     setCurrentGuess("");
-
-    // Blokir input segera
     setIsRevealing(true);
 
     if (currentGuess === solution) {
-      // Menang: Tunggu 2 detik baru muncul overlay
       setTimeout(() => {
         setGameStatus("won");
-        setIsRevealing(false); // Buka blokir (walau game sudah selesai)
-        showMessage("CONGRATULATIONS! 🎉");
+        setIsRevealing(false);
       }, 2000);
     } else if (newGuesses.length >= 6) {
-      // Kalah: Tunggu 2 detik baru muncul overlay
       setTimeout(() => {
         setGameStatus("lost");
         setIsRevealing(false);
-        showMessage(`Jawaban: ${solution}`);
       }, 2000);
     } else {
-      // Belum selesai: Beri jeda sedikit untuk efek visual (opsional, misal 0.5d)
-      // atau langsung lanjut
       setTimeout(() => {
-        setIsRevealing(false); // Izinkan ngetik lagi
-      }, 1000); // Saya set 1 detik agar user sempat lihat warna kotaknya dulu
+        setIsRevealing(false);
+      }, 1500);
     }
   };
 
@@ -161,52 +132,33 @@ const IdolyWordlePage: React.FC = () => {
     setTimeout(() => setMessage(""), 3000);
   };
 
-  // Keyboard Event Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toUpperCase();
-      if (key === "ENTER" || key === "BACKSPACE") {
+      if (key === "ENTER" || key === "BACKSPACE")
         handleKey(key === "BACKSPACE" ? "DEL" : "ENTER");
-      } else if (/^[A-Z]$/.test(key)) {
-        handleKey(key);
-      }
+      else if (/^[A-Z]$/.test(key)) handleKey(key);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentGuess, gameStatus, wordLength, isRevealing]);
-  
-  // --- HELPER: CHECK COLORS (FIXED) ---
 
-  // 1. Disederhanakan: Hapus parameter 'word' yang tidak terpakai
+  // Colors Logic
   const getLetterStatus = (letter: string, index: number) => {
-    const correctLetter = solution[index];
-
-    if (letter === correctLetter) return "correct"; // Hijau
-    if (solution.includes(letter)) return "present"; // Kuning
-    return "absent"; // Abu
+    if (letter === solution[index]) return "correct";
+    if (solution.includes(letter)) return "present";
+    return "absent";
   };
 
-  // 2. Logic Keyboard Diperbaiki (Priority Check)
   const getKeyStatus = (key: string) => {
     let bestStatus = "";
-
-    // Loop semua tebakan yang sudah ada
     for (const guess of guesses) {
       for (let i = 0; i < guess.length; i++) {
-        // Jika huruf di tebakan ini sama dengan tombol keyboard yg dicek
         if (guess[i] === key) {
-          const currentStatus = getLetterStatus(key, i);
-
-          // Prioritas: CORRECT (Hijau) > PRESENT (Kuning) > ABSENT (Abu)
-          if (currentStatus === "correct") {
-            return "correct"; // Langsung return jika sudah pernah hijau
-          }
-          if (currentStatus === "present") {
-            bestStatus = "present"; // Simpan kuning, tapi lanjut cek siapa tau ada hijau di tebakan lain
-          }
-          if (currentStatus === "absent" && bestStatus === "") {
-            bestStatus = "absent";
-          }
+          const s = getLetterStatus(key, i);
+          if (s === "correct") return "correct";
+          if (s === "present") bestStatus = "present";
+          if (s === "absent" && bestStatus === "") bestStatus = "absent";
         }
       }
     }
@@ -214,32 +166,48 @@ const IdolyWordlePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white font-sans flex flex-col items-center">
+    <div className="min-h-screen bg-[#0f1115] text-white font-sans flex flex-col items-center relative overflow-hidden selection:bg-pink-500 selection:text-white">
+      {/* Background Decor */}
+      <div className="absolute inset-0 pointer-events-none opacity-10">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-600/30 blur-[100px] rounded-full"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/30 blur-[100px] rounded-full"></div>
+      </div>
+
       {/* HEADER */}
-      <header className="w-full max-w-lg flex items-center justify-between p-4 border-b border-gray-800">
+      <header className="w-full max-w-lg flex items-center justify-between p-6 z-10">
         <button
           onClick={() => navigate("/")}
-          className="p-2 hover:bg-gray-800 rounded-full text-gray-400"
+          className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition"
         >
           <ChevronLeft />
         </button>
-        <h1 className="font-bold text-xl tracking-widest bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-          IDOLY WORDLE
-        </h1>
-        <div className="w-8"></div>
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] font-bold text-pink-500 tracking-[0.3em] uppercase">
+            Daily Challenge
+          </span>
+          <h1 className="font-black text-2xl tracking-tighter italic bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            IDOLY WORDLE&nbsp;
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <button className="p-2 hover:bg-white/10 rounded-full text-gray-400">
+            <HelpCircle size={20} />
+          </button>
+        </div>
       </header>
 
-      {/* MESSAGE TOAST */}
+      {/* TOAST MESSAGE */}
       {message && (
-        <div className="fixed top-20 z-50 bg-white text-black font-bold px-6 py-3 rounded-lg shadow-xl animate-bounce">
+        <div className="fixed top-24 z-50 bg-white/90 backdrop-blur text-black font-bold px-6 py-3 rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] animate-in fade-in slide-in-from-top-4">
           {message}
         </div>
       )}
 
       {/* GAME BOARD */}
-      <main className="flex-1 flex flex-col items-center justify-center w-full max-w-lg p-2">
+      <main className="flex-1 flex flex-col items-center justify-center w-full max-w-lg p-4 z-10">
         <div
-          className="grid gap-1 mb-4"
+          className="grid gap-2 mb-4 w-full aspect-[5/6] max-h-[450px]"
           style={{
             gridTemplateRows: `repeat(6, 1fr)`,
             gridTemplateColumns: `repeat(${wordLength}, 1fr)`,
@@ -255,32 +223,48 @@ const IdolyWordlePage: React.FC = () => {
 
               if (guess) {
                 letter = guess[colIndex];
-                // Panggil getLetterStatus tanpa parameter ke-3
                 status = getLetterStatus(letter, colIndex);
               } else if (isCurrentRow) {
                 letter = currentGuess[colIndex] || "";
                 status = "active";
               }
 
-              let bgClass = "bg-gray-900 border-gray-700";
-              if (status === "correct")
-                bgClass = "bg-green-600 border-green-600";
-              if (status === "present")
-                bgClass = "bg-yellow-600 border-yellow-600";
-              if (status === "absent") bgClass = "bg-gray-700 border-gray-700";
-              if (status === "active" && letter)
-                bgClass = "bg-gray-800 border-pink-500 animate-pulse";
+              // IDOLY STYLE TILES
+              let borderClass = "border-2 border-white/10 bg-white/5";
+              let textClass = "text-white";
+              let glowClass = "";
+
+              if (status === "correct") {
+                borderClass = "border-green-500 bg-green-500/20";
+                textClass =
+                  "text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.8)]";
+                glowClass = "shadow-[0_0_15px_rgba(74,222,128,0.3)]";
+              } else if (status === "present") {
+                borderClass = "border-yellow-500 bg-yellow-500/20";
+                textClass =
+                  "text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]";
+                glowClass = "shadow-[0_0_15px_rgba(250,204,21,0.3)]";
+              } else if (status === "absent") {
+                borderClass = "border-gray-700 bg-black/40";
+                textClass = "text-gray-600";
+              } else if (status === "active" && letter) {
+                borderClass = "border-pink-500 bg-pink-500/10";
+                textClass =
+                  "text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]";
+                glowClass = "shadow-[0_0_10px_rgba(236,72,153,0.4)]";
+              }
 
               return (
                 <div
                   key={colIndex}
                   className={`
-                                w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center 
-                                border-2 font-bold text-xl sm:text-2xl rounded 
-                                transition-all duration-300 transform 
-                                ${bgClass}
-                                ${status && status !== "active" ? "flip-in-hor-bottom" : ""}
-                              `}
+                    flex items-center justify-center 
+                    text-3xl font-black rounded-lg
+                    transition-all duration-500 transform
+                    ${borderClass} ${textClass} ${glowClass}
+                    ${status && status !== "active" ? "flip-in-hor-bottom" : ""}
+                    ${status === "active" && letter ? "scale-105" : "scale-100"}
+                  `}
                 >
                   {letter}
                 </div>
@@ -291,32 +275,33 @@ const IdolyWordlePage: React.FC = () => {
       </main>
 
       {/* KEYBOARD */}
-      <div className="w-full max-w-2xl p-2 pb-8">
+      <div className="w-full max-w-2xl p-2 pb-8 z-10">
         {KEYBOARD_ROWS.map((row, i) => (
-          <div key={i} className="flex justify-center gap-1 mb-1">
+          <div key={i} className="flex justify-center gap-1.5 mb-2">
             {row.map((key) => {
               const status = getKeyStatus(key);
 
-              // Logic warna tombol keyboard
-              let bgClass = "bg-gray-600 hover:bg-gray-500";
+              let bgClass =
+                "bg-[#1f2937] text-gray-300 border-b-4 border-[#111827] hover:bg-gray-600 hover:border-gray-800"; // Default Key
               if (status === "correct")
-                bgClass = "bg-green-600"; // Hijau
+                bgClass = "bg-green-600 text-white border-b-4 border-green-800";
               else if (status === "present")
-                bgClass = "bg-yellow-600"; // Kuning
+                bgClass =
+                  "bg-yellow-600 text-white border-b-4 border-yellow-800";
               else if (status === "absent")
-                bgClass = "bg-gray-800 text-gray-500"; // Abu
+                bgClass = "bg-black text-gray-700 border-b-4 border-black/50";
 
               return (
                 <button
                   key={key}
                   onClick={() => handleKey(key)}
                   className={`
-                                  h-12 rounded font-bold text-sm sm:text-base transition-colors
-                                  ${key.length > 1 ? "px-3 sm:px-4 text-xs" : "flex-1 max-w-[45px]"}
-                                  ${bgClass}
-                              `}
+                    h-14 rounded-lg font-bold text-sm sm:text-base transition-all active:border-b-0 active:translate-y-1
+                    ${key.length > 1 ? "px-4 text-xs font-black tracking-widest" : "flex-1 max-w-[50px]"}
+                    ${bgClass}
+                  `}
                 >
-                  {key}
+                  {key === "DEL" ? "DEL" : key}
                 </button>
               );
             })}
@@ -324,30 +309,54 @@ const IdolyWordlePage: React.FC = () => {
         ))}
       </div>
 
-      {/* GAME OVER OVERLAY */}
+      {/* RESULT OVERLAY (LIVE RESULT STYLE) */}
       {gameStatus !== "playing" && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-gray-900 p-8 rounded-2xl border border-pink-500 text-center shadow-[0_0_50px_rgba(236,72,153,0.3)]">
-            <h2 className="text-3xl font-bold mb-2">
-              {gameStatus === "won" ? "MANAGER SKILL EXTREME!" : "GAME OVER"}
-            </h2>
-            <p className="text-gray-400 mb-6">
-              The word was:{" "}
-              <span className="text-pink-400 font-bold text-xl">
-                {solution}
-              </span>
-            </p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => navigate("/")}
-                className="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg"
-              >
-                Back to Menu
-              </button>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 animate-in fade-in duration-500">
+          <div className="bg-[#161b22] p-1 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full mx-4 overflow-hidden relative">
+            {/* Banner Header */}
+            <div
+              className={`h-24 flex items-center justify-center relative overflow-hidden rounded-t-[20px] ${gameStatus === "won" ? "bg-gradient-to-r from-pink-600 to-purple-600" : "bg-gray-800"}`}
+            >
+              {/* Pattern */}
+              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')]"></div>
+              <h2 className="text-4xl font-black italic tracking-tighter text-white drop-shadow-md relative z-10">
+                {gameStatus === "won" ? "BIG SUCCESS!" : "FAILED..."}
+              </h2>
             </div>
-            <p className="mt-6 text-xs text-gray-500">
-              Come back tomorrow for a new word!
-            </p>
+
+            <div className="p-8 text-center space-y-6">
+              <div className="space-y-1">
+                <p className="text-xs text-gray-400 font-bold tracking-widest uppercase">
+                  Secret Word
+                </p>
+                <div className="text-3xl font-mono font-bold text-white tracking-widest border-b-2 border-white/20 pb-2 inline-block">
+                  {solution}
+                </div>
+              </div>
+
+              {gameStatus === "won" ? (
+                <div className="flex justify-center gap-2">
+                  <Trophy
+                    size={48}
+                    className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+                  />
+                </div>
+              ) : (
+                <p className="text-gray-400 text-sm">
+                  Don't give up! Try again tomorrow.
+                </p>
+              )}
+
+              <div className="pt-4">
+                <button
+                  onClick={() => navigate("/")}
+                  className="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                >
+                  <RefreshCw size={18} />
+                  RETURN TO MENU
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

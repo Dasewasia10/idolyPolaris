@@ -1,18 +1,15 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Camera } from "lucide-react";
+import { Camera, ZoomIn, ZoomOut } from "lucide-react";
 import html2canvas from "html2canvas";
 
+// --- 1. INTERFACE (SESUAI DATA KAMU) ---
 interface Note {
   id: string;
-  number: number;
-  type: number;
-  position: number;
+  number: number; // Timing
+  type: number; // 1=Tap, 2=Skill, 3=SP
+  position: number; // Lane 1-5
   comboIndex: number;
-  gap?: number; // <--- PROPERTY BARU: Jarak dari note sebelumnya di lane yang sama
-}
-
-interface VisualizerProps {
-  chartId: string | null;
+  gap?: number;
 }
 
 interface ChartData {
@@ -25,35 +22,41 @@ interface VisualizerProps {
   chartId: string | null;
 }
 
-// Tipe Data Atribut (1=Vocal, 2=Dance, 3=Visual)
+// --- 2. STYLING & CONFIG (VISUAL BARU) ---
+
+// Warna Atribut dengan Efek Neon/Tech
 const ATTRIBUTE_COLORS: Record<
   number,
-  { bg: string; border: string; text: string; note: string }
+  { bg: string; border: string; text: string; glow: string }
 > = {
   1: {
-    bg: "bg-pink-900/20",
+    // Vocal (Pink)
+    bg: "bg-pink-500/10",
     border: "border-pink-500/30",
     text: "text-pink-400",
-    note: "bg-pink-500",
-  }, // Vocal
+    glow: "shadow-pink-500/50",
+  },
   2: {
-    bg: "bg-blue-900/20",
+    // Dance (Blue)
+    bg: "bg-blue-500/10",
     border: "border-blue-500/30",
     text: "text-blue-400",
-    note: "bg-blue-500",
-  }, // Dance
+    glow: "shadow-blue-500/50",
+  },
   3: {
-    bg: "bg-orange-900/20",
+    // Visual (Orange)
+    bg: "bg-orange-500/10",
     border: "border-orange-500/30",
     text: "text-orange-400",
-    note: "bg-orange-500",
-  }, // Visual
+    glow: "shadow-orange-500/50",
+  },
   0: {
+    // Unknown
     bg: "bg-gray-800/20",
     border: "border-gray-700/30",
     text: "text-gray-500",
-    note: "bg-gray-500",
-  }, // Unknown
+    glow: "shadow-gray-500/50",
+  },
 };
 
 const ATTRIBUTE_NAMES: Record<number, string> = {
@@ -63,7 +66,7 @@ const ATTRIBUTE_NAMES: Record<number, string> = {
   0: "??",
 };
 
-// Mapping Visual Lane (4-2-1-3-5)
+// Mapping Visual Lane (4-2-1-3-5) agar Center ada di tengah layar
 const VISUAL_LANE_MAP: Record<number, number> = {
   4: 1,
   2: 2,
@@ -71,6 +74,7 @@ const VISUAL_LANE_MAP: Record<number, number> = {
   3: 4,
   5: 5,
 };
+// Mapping kebalikan untuk render background
 const DATA_LANE_MAP_INV: Record<number, number> = {
   1: 4,
   2: 2,
@@ -84,13 +88,13 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(5); // Zoom default
 
-  const [zoom, setZoom] = useState(5);
   const [showAllNotes] = useState(false);
 
-  // Ref untuk area yang akan di-screenshot
   const chartRef = useRef<HTMLDivElement>(null);
 
+  // --- 3. FETCHING DATA (LOGIKA KAMU - TIDAK DIUBAH) ---
   useEffect(() => {
     if (!chartId) return;
 
@@ -103,10 +107,12 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
         );
         if (!res.ok) throw new Error("Chart data not found");
 
-        // Response sekarang formatnya { attributes: [], notes: [] }
         const rawData = await res.json();
 
-        // Parsing Notes
+        // Parsing Notes (Logika Kamu)
+        // Pastikan rawData.notes ada
+        if (!rawData.notes) throw new Error("Invalid chart format");
+
         const validNotes = rawData.notes
           .filter((n: any) => n.type !== 0)
           .sort((a: any, b: any) => a.number - b.number);
@@ -138,24 +144,21 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
     fetchChart();
   }, [chartId]);
 
-  // FITUR DOWNLOAD
+  // Fitur Download
   const handleDownload = async () => {
     if (!chartRef.current) return;
     try {
       setLoading(true);
-      // html2canvas menangkap elemen DOM
       const canvas = await html2canvas(chartRef.current, {
-        backgroundColor: "#111827", // Hex untuk bg-gray-900
-        scale: 2, // Biar HD
+        backgroundColor: "#0a0c10", // Match background
+        scale: 2,
       });
-
       const image = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = image;
-      link.download = `${chartId}-beatmap.png`;
+      link.download = `${chartId}-chart.png`;
       link.click();
     } catch (e) {
-      console.error("Download failed", e);
       alert("Gagal mendownload gambar.");
     } finally {
       setLoading(false);
@@ -168,7 +171,7 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
     return notes.filter((n) => n.type === 2 || n.type === 3);
   }, [notes, showAllNotes]);
 
-  // Statistik Lane (untuk label SP/More/Less)
+  // Statistik Lane (Untuk Label SP/High)
   const laneStats = useMemo(() => {
     const stats: Record<number, { hasSP: boolean; count: number }> = {
       1: { hasSP: false, count: 0 },
@@ -188,170 +191,187 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
   }, [notes]);
 
   if (!chartId)
-    return <div className="text-gray-500 p-10 text-center">Select a song</div>;
+    return (
+      <div className="text-gray-500 p-10 text-center select-none font-mono">
+        SELECT A SONG
+      </div>
+    );
   if (loading && !chartData)
     return (
-      <div className="text-pink-400 p-10 text-center animate-pulse">
-        Loading...
+      <div className="text-pink-400 p-10 text-center animate-pulse font-mono select-none">
+        LOADING SYSTEM...
       </div>
     );
   if (error)
-    return <div className="text-red-400 p-10 text-center">{error}</div>;
+    return (
+      <div className="text-red-400 p-10 text-center font-mono border border-red-900 bg-red-900/10 rounded m-4">
+        {error}
+      </div>
+    );
 
+  // Hitung Tinggi Total
   const lastNoteNum = notes.length > 0 ? notes[notes.length - 1].number : 0;
-  const TOTAL_HEIGHT = lastNoteNum * zoom + 300; // Extra padding bawah
-
-  // RENDER LANES (Dengan Warna Atribut)
-  const renderLanes = () => (
-    <div className="absolute inset-0 flex pointer-events-none">
-      {[1, 2, 3, 4, 5].map((visualLane) => {
-        const originalDataLane = DATA_LANE_MAP_INV[visualLane];
-        const stat = laneStats.data[originalDataLane];
-
-        // Ambil Atribut (Vo/Da/Vi) dari chartData
-        // Ingat: Array attributes di JSON urutannya 0-4 (Lane 1-5)
-        const attrId = chartData?.attributes
-          ? chartData.attributes[originalDataLane - 1]
-          : 0;
-        const attrStyle = ATTRIBUTE_COLORS[attrId] || ATTRIBUTE_COLORS[0];
-
-        // Label Logic
-        let label = "少";
-        let labelColor = "text-gray-600";
-        if (stat.hasSP) {
-          label = "SP";
-          labelColor = "text-pink-500 font-bold drop-shadow-md";
-        } else if (stat.count > laneStats.threshold) {
-          label = "多";
-          labelColor = "text-gray-200";
-        }
-
-        return (
-          <div
-            key={visualLane}
-            className={`flex-1 border-r ${attrStyle.border} ${attrStyle.bg} last:border-r-0 relative`}
-          >
-            {/* Header Label (Vo/Da/Vi) */}
-            <div
-              className={`absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center`}
-            >
-              <span
-                className={`text-xs font-bold px-2 py-0.5 rounded ${attrStyle.bg} ${attrStyle.text} border ${attrStyle.border}`}
-              >
-                {ATTRIBUTE_NAMES[attrId]}
-              </span>
-            </div>
-
-            {/* Stat Label (SP/More/Less) */}
-            <div
-              className={`absolute -top-6 left-1/2 -translate-x-1/2 text-xs ${labelColor} font-mono`}
-            >
-              {label}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+  const TOTAL_HEIGHT = lastNoteNum * zoom + 400;
 
   return (
-    <div className="w-full h-full bg-gray-900 rounded-xl border border-gray-800 relative flex flex-col shadow-inner">
-      {/* HEADER CONTROLS */}
-      <div className="bg-gray-800 p-2 flex flex-wrap justify-between items-center px-4 border-b border-gray-700 z-50">
-        <div className="flex flex-col">
-          <span className="font-mono text-pink-500 font-bold text-xs">
-            {chartId}
-          </span>
-          <span className="text-[10px] text-gray-400">
-            Showing: {visibleNotes.length}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="w-full h-full relative flex flex-col">
+      {/* HUD CONTROLS (Floating Right) */}
+      <div className="absolute top-20 right-6 z-50 flex flex-col gap-2">
+        <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-2 flex flex-col gap-2 shadow-2xl">
           <button
             onClick={handleDownload}
-            className="p-2 bg-green-700 hover:bg-green-600 rounded text-white"
-            title="Download Image"
+            className="p-2 bg-green-600/80 hover:bg-green-500 text-white rounded transition-all shadow-lg"
+            title="Snapshot"
           >
-            <Camera size={14} />
+            <Camera size={18} />
           </button>
-          {/* <button
-            onClick={() => setShowAllNotes(!showAllNotes)}
-            className="p-2 bg-gray-700 hover:bg-gray-600 rounded text-white"
+          <div className="h-[1px] bg-white/20 w-full my-1"></div>
+          <button
+            onClick={() => setZoom(Math.min(zoom + 1, 15))}
+            className="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded transition-all"
           >
-            {showAllNotes ? <Eye size={14} /> : <EyeOff size={14} />}
-          </button> */}
-          <div className="flex items-center gap-1 bg-gray-900/50 px-2 py-1 rounded">
-            <input
-              type="range"
-              min="2"
-              max="15"
-              step="0.5"
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-16 h-1 bg-gray-600 rounded cursor-pointer accent-pink-500"
-            />
+            <ZoomIn size={18} />
+          </button>
+          <button
+            onClick={() => setZoom(Math.max(zoom - 1, 1))}
+            className="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded transition-all"
+          >
+            <ZoomOut size={18} />
+          </button>
+          <div className="text-[10px] font-mono text-center text-gray-500 mt-1">
+            x{zoom}
           </div>
         </div>
       </div>
 
-      {/* Scrollable Area (Ini yang akan di-screenshot) */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 relative">
-        {/* 1. WRAPPER BARU (Pindahkan ref ke sini) */}
-        {/* Kita beri padding-top (pt-24) untuk memberi ruang bagi Header yang posisinya -top-xx */}
+      {/* CHART SCROLL AREA */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-[#0a0c10] relative">
         <div
           ref={chartRef}
-          className="w-full min-h-full bg-gray-900 pt-24 pb-20 flex justify-center"
+          className="w-full min-h-full bg-[#0a0c10] pt-32 pb-20 flex justify-center"
         >
-          {/* 2. INNER CHART (Hapus my-16 dan ref dari sini) */}
-          {/* Hapus margin vertical (my-16) karena sudah dihandle oleh padding wrapper */}
           <div
-            className="relative bg-gray-900"
-            style={{ width: "100%", maxWidth: "500px", height: TOTAL_HEIGHT }}
+            className="relative"
+            style={{ width: "100%", maxWidth: "600px", height: TOTAL_HEIGHT }}
           >
-            {renderLanes()}
+            {/* RENDER LANES (Laser Beam Style) */}
+            <div className="absolute inset-0 flex pointer-events-none">
+              {[1, 2, 3, 4, 5].map((visualLane) => {
+                const originalDataLane = DATA_LANE_MAP_INV[visualLane];
+                const stat = laneStats.data[originalDataLane];
+                const attrId = chartData?.attributes
+                  ? chartData.attributes[originalDataLane - 1]
+                  : 0;
+                const attrStyle =
+                  ATTRIBUTE_COLORS[attrId] || ATTRIBUTE_COLORS[0];
 
-            {/* Start Line */}
-            <div className="absolute top-0 w-full border-t-2 border-pink-500/50 text-center z-0">
-              <span className="bg-pink-900/50 text-pink-200 text-[9px] px-2 py-0.5 rounded-b font-bold tracking-widest">
+                let label = <span className="text-gray-700">少</span>;
+                if (stat.hasSP)
+                  label = (
+                    <span className="text-pink-500 font-black animate-pulse drop-shadow-[0_0_5px_rgba(236,72,153,0.8)]">
+                      SP
+                    </span>
+                  );
+                else if (stat.count > laneStats.threshold)
+                  label = <span className="text-blue-400 font-bold">多</span>;
+
+                return (
+                  <div
+                    key={visualLane}
+                    className={`flex-1 border-r ${attrStyle.border} ${attrStyle.bg} last:border-r-0 relative group`}
+                  >
+                    {/* Lane Highlight on Hover */}
+                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors"></div>
+
+                    {/* Header Label (Floating) */}
+                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+                      <div
+                        className={`text-[10px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wider ${attrStyle.text} border ${attrStyle.border} bg-black`}
+                      >
+                        {ATTRIBUTE_NAMES[attrId]}
+                      </div>
+                      <div className="text-[10px] font-mono tracking-tighter">
+                        {label}
+                      </div>
+                      {/* Lane Beam Connector */}
+                      <div
+                        className={`w-[1px] h-4 ${attrStyle.bg.replace("/10", "/50")}`}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* START LINE */}
+            <div className="absolute top-0 w-full flex items-center justify-center z-0">
+              <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-pink-500 to-transparent shadow-[0_0_10px_#ec4899]"></div>
+              <span className="absolute -top-5 bg-black/80 text-pink-500 text-[10px] px-3 py-0.5 rounded border border-pink-500/30 font-mono tracking-[0.2em]">
                 START
               </span>
             </div>
 
+            {/* RENDER NOTES (Menggunakan data 'number', 'type', 'position' yang kamu minta) */}
             {visibleNotes.map((note, idx) => {
-              // Logic Visual Map (4-2-1-3-5)
+              if (note.type === 0) return null;
+
+              // 1. Posisi Horizontal (Lane Mapping)
               const visualLane = VISUAL_LANE_MAP[note.position] || 3;
               const leftPercent = (visualLane - 1) * 20 + 10;
+
+              // 2. Posisi Vertikal (Menggunakan 'number' * zoom)
               const topPosition = note.number * zoom;
 
-              // Ambil warna berdasarkan atribut lane aslinya
               const attrId = chartData?.attributes
                 ? chartData.attributes[note.position - 1]
                 : 0;
               const colorTheme =
                 ATTRIBUTE_COLORS[attrId] || ATTRIBUTE_COLORS[0];
 
-              let noteClass = "";
-              let content = "";
+              let noteNode;
               let zIndex = 10;
 
               if (note.type === 2) {
-                // A Skill
-                noteClass = `w-8 h-8 ${colorTheme.note} border-2 border-white rounded-full shadow-lg flex items-center justify-center font-bold text-xs text-white`;
-                content = note.comboIndex.toString();
+                // A Skill (Glossy Blue Orb)
                 zIndex = 20;
+                noteNode = (
+                  <div
+                    className={`w-8 h-8 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.6)] flex items-center justify-center bg-gradient-to-b from-blue-400 to-blue-700 relative overflow-hidden`}
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1/2 bg-white/30 rounded-t-full"></div>
+                    <span className="text-[10px] font-black text-white drop-shadow-md relative z-10">
+                      {note.comboIndex}
+                    </span>
+                  </div>
+                );
               } else if (note.type === 3) {
-                // SP Skill
-                noteClass =
-                  "w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 border-2 border-yellow-200 rounded-full shadow-xl flex items-center justify-center font-bold text-sm text-white animate-pulse";
-                content = note.comboIndex.toString() || "SP";
+                // SP Skill (Premium Glowing Diamond/Orb)
                 zIndex = 30;
+                noteNode = (
+                  <div className="relative w-12 h-12 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-pink-500 rounded-full blur-md opacity-50 animate-pulse"></div>
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 rounded-full border-2 border-yellow-200 shadow-2xl flex items-center justify-center relative z-10">
+                      <span className="text-xs font-black text-white italic drop-shadow-md">
+                        {note.comboIndex}
+                        {/* SP */}
+                      </span>
+                    </div>
+                    <div className="absolute top-1 left-2 w-3 h-2 bg-white/60 rounded-full -rotate-45 z-20"></div>
+                  </div>
+                );
               } else {
-                // Tap
-                // Ubah warna tap biar agak kelihatan di background gelap
-                noteClass = "w-2 h-2 bg-white/60 rounded-full";
+                // Tap (Tech Tick)
                 zIndex = 5;
+                noteNode = (
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`w-4 h-1.5 rounded-full bg-white/90 shadow-[0_0_5px_rgba(255,255,255,0.8)]`}
+                    ></div>
+                  </div>
+                );
               }
 
+              // Tooltip untuk Debug/Info
               const tooltipText = [
                 `Combo: #${note.comboIndex}`,
                 `Lane: ${note.position}`,
@@ -361,7 +381,7 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
               return (
                 <div
                   key={`${note.id}-${idx}`}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 select-none hover:scale-110 cursor-help ${noteClass}`}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-help group transition-transform hover:scale-125"
                   style={{
                     left: `${leftPercent}%`,
                     top: `${topPosition}px`,
@@ -369,7 +389,23 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
                   }}
                   title={tooltipText}
                 >
-                  {content}
+                  {noteNode}
+
+                  {/* Tooltip Hover (Tech Style) */}
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden group-hover:flex flex-col bg-black/90 border border-white/20 p-2 rounded text-[10px] whitespace-nowrap z-50 pointer-events-none shadow-xl">
+                    <span className="text-gray-400">
+                      COMBO: <b className="text-white">{note.comboIndex}</b>
+                    </span>
+                    <span className="text-gray-400">
+                      LANE: <b className={colorTheme.text}>{note.position}</b>
+                    </span>
+                    <span className="text-gray-400">
+                      GAP:{" "}
+                      <b className="text-white">
+                        {note.gap ? `+${note.gap}` : "START"}
+                      </b>
+                    </span>
+                  </div>
                 </div>
               );
             })}

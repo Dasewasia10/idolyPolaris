@@ -1,25 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
-import { format, parseISO, startOfDay, differenceInCalendarDays } from "date-fns";
+import {
+  format,
+  parseISO,
+  startOfDay,
+  differenceInCalendarDays,
+} from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { Character } from "../interfaces/Character";
+import { X, Gift } from "lucide-react";
 
 const BirthdayReminder: React.FC = () => {
   const [showReminder, setShowReminder] = useState(false);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState<Character[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(100);
-  
+
   const requestRef = useRef<number>();
   const startTimeRef = useRef<number | null>(null);
-  const DURATION_PER_CHAR = 5000; // 5 detik per karakter
+  const DURATION_PER_CHAR = 5000;
 
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
-        const response = await fetch("https://diveidolypapi.my.id/api/characters");
+        const response = await fetch(
+          "https://diveidolypapi.my.id/api/characters",
+        );
         const data: Character[] = await response.json();
-
-        // Gunakan Waktu JST (Japan Standard Time) sebagai acuan
         const nowInJST = toZonedTime(new Date(), "Asia/Tokyo");
         const todayStart = startOfDay(nowInJST);
 
@@ -28,12 +34,10 @@ const BirthdayReminder: React.FC = () => {
           const bdayThisYear = new Date(
             todayStart.getFullYear(),
             bdayDate.getMonth(),
-            bdayDate.getDate()
+            bdayDate.getDate(),
           );
-
           const diff = differenceInCalendarDays(bdayThisYear, todayStart);
-          // Rentang H-7 sampai H+1 (Kemarin)
-          return diff >= -1 && diff <= 7;
+          return diff >= 0 && diff <= 3; // Fokus 3 hari ke depan saja agar lebih relevan
         });
 
         if (upcoming.length > 0) {
@@ -44,26 +48,24 @@ const BirthdayReminder: React.FC = () => {
         console.error("Error fetching characters:", error);
       }
     };
-
     fetchCharacters();
   }, []);
 
-  // Single Loop Animation Logic
   useEffect(() => {
     if (!showReminder || upcomingBirthdays.length === 0) return;
-
     const animate = (time: number) => {
       if (!startTimeRef.current) startTimeRef.current = time;
       const elapsed = time - startTimeRef.current;
-      
-      const newProgress = Math.max(0, 100 - (elapsed / DURATION_PER_CHAR) * 100);
+      const newProgress = Math.max(
+        0,
+        100 - (elapsed / DURATION_PER_CHAR) * 100,
+      );
       setProgress(newProgress);
 
       if (elapsed >= DURATION_PER_CHAR) {
-        // Jika masih ada karakter berikutnya, pindah index. Jika habis, tutup.
         if (currentIndex < upcomingBirthdays.length - 1) {
-          setCurrentIndex(prev => prev + 1);
-          startTimeRef.current = null; // Reset waktu untuk karakter berikutnya
+          setCurrentIndex((prev) => prev + 1);
+          startTimeRef.current = null;
         } else {
           setShowReminder(false);
         }
@@ -71,7 +73,6 @@ const BirthdayReminder: React.FC = () => {
         requestRef.current = requestAnimationFrame(animate);
       }
     };
-
     requestRef.current = requestAnimationFrame(animate);
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
@@ -80,65 +81,69 @@ const BirthdayReminder: React.FC = () => {
 
   if (!showReminder || upcomingBirthdays.length === 0) return null;
 
-  // Render Data
   const currentCharacter = upcomingBirthdays[currentIndex];
   const bdayDate = parseISO(currentCharacter.birthdayDate);
   const nowInJST = toZonedTime(new Date(), "Asia/Tokyo");
   const todayStart = startOfDay(nowInJST);
-  const bdayThisYear = new Date(todayStart.getFullYear(), bdayDate.getMonth(), bdayDate.getDate());
-  
+  const bdayThisYear = new Date(
+    todayStart.getFullYear(),
+    bdayDate.getMonth(),
+    bdayDate.getDate(),
+  );
   const daysDiff = differenceInCalendarDays(bdayThisYear, todayStart);
 
   const getMessage = () => {
-    if (daysDiff === 0) return `Today is ${currentCharacter.name}'s birthday! 🎉`;
-    if (daysDiff === -1) return `Yesterday was ${currentCharacter.name}'s birthday!`;
-    if (daysDiff === 1) return `${currentCharacter.name}'s birthday is tomorrow!`;
-    return `${currentCharacter.name}'s birthday is in ${daysDiff} days!`;
+    if (daysDiff === 0) return "HAPPY BIRTHDAY!";
+    if (daysDiff === 1) return "BIRTHDAY TOMORROW";
+    return `BIRTHDAY IN ${daysDiff} DAYS`;
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 animate-fade-in-up">
-      <div className="bg-white rounded-lg shadow-xl border border-pink-200 w-72 overflow-hidden">
-        {/* Header */}
-        <div className="bg-pink-500 p-2 text-white font-bold flex justify-between items-center">
-          <span className="text-sm flex items-center gap-1">🎂 Birthday Reminder</span>
-          <button onClick={() => setShowReminder(false)} className="hover:text-pink-200">×</button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 flex items-center gap-3">
-          <img
-            src={`https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(currentCharacter.name.toLowerCase())}`}
-            alt={currentCharacter.name}
-            className="w-14 h-14 rounded-full border-2 border-pink-400 object-cover"
-          />
-          <div className="flex-1">
-            <p className="font-bold text-gray-800 leading-tight">{getMessage()}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {format(bdayThisYear, "MMMM do")}
-            </p>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="h-1.5 w-full bg-gray-100">
+    <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-right duration-500">
+      <div className="bg-[#161b22] border border-pink-500/50 w-72 rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)] overflow-hidden relative group">
+        {/* Progress Bar Top */}
+        <div className="h-1 w-full bg-gray-800">
           <div
-            className="h-full bg-pink-500 transition-none"
+            className="h-full bg-pink-500 transition-linear"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* Pagination Indicator */}
-        {upcomingBirthdays.length > 1 && (
-          <div className="bg-gray-50 p-1.5 flex justify-center gap-1.5">
-            {upcomingBirthdays.map((_, i) => (
-              <div 
-                key={i} 
-                className={`w-1.5 h-1.5 rounded-full ${i === currentIndex ? 'bg-pink-500' : 'bg-gray-300'}`} 
-              />
-            ))}
+        <div className="p-4 flex gap-4 items-center">
+          {/* Avatar with Glow */}
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 bg-pink-500 rounded-full blur opacity-50 animate-pulse"></div>
+            <img
+              src={`https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(currentCharacter.name.toLowerCase())}`}
+              alt={currentCharacter.name}
+              className="w-14 h-14 rounded-full border-2 border-white relative z-10 bg-gray-800 object-cover"
+            />
           </div>
-        )}
+
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-pink-400 tracking-widest uppercase mb-0.5 flex items-center gap-1">
+                <Gift size={10} /> Reminder
+              </span>
+              <button
+                onClick={() => setShowReminder(false)}
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <h4 className="text-white font-bold truncate leading-tight">
+              {currentCharacter.name}
+            </h4>
+            <p className="text-xs font-mono text-pink-200 mt-1">
+              {getMessage()}
+            </p>
+            <p className="text-[10px] text-gray-500 mt-0.5">
+              {format(bdayThisYear, "MMMM do")}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

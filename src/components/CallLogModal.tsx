@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, Phone, X } from "lucide-react"; // Import icon
+import { Trash2, Phone, X, ArrowRight, History, Activity } from "lucide-react";
 import { Icon } from "../interfaces/Icon";
 import { CallLog } from "../interfaces/CallLog";
 
@@ -11,7 +11,6 @@ interface CallLogModalProps {
   icons: Icon[];
   addCallLog: () => void;
   clearCallLog: () => void;
-  // TAMBAHAN: Fungsi untuk menghapus satu log spesifik
   onDeleteLog: (id: number) => void;
 }
 
@@ -19,8 +18,6 @@ const CallLogModal: React.FC<CallLogModalProps> = ({
   isOpen,
   onClose,
   callLogs,
-  selectedIcon, // Tidak dipakai di UI tapi mungkin butuh untuk logic parent
-  icons, // Tidak dipakai di UI tapi mungkin butuh untuk logic parent
   addCallLog,
   clearCallLog,
   onDeleteLog,
@@ -29,116 +26,142 @@ const CallLogModal: React.FC<CallLogModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[99999]"
-      onClick={onClose} // Klik di luar modal akan menutup modal
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 animate-in fade-in duration-200"
+      onClick={onClose}
     >
       <div
-        className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md border border-gray-700"
-        onClick={(e) => e.stopPropagation()} // Mencegah modal tertutup saat diklik isinya
+        className="bg-[#161b22] w-full max-w-lg rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col max-h-[85vh]"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-          <div className="flex items-center gap-2">
-            <Phone className="text-blue-400" size={24} />
-            <h2 className="text-xl font-bold text-white">Call History</h2>
+        {/* --- HEADER --- */}
+        <div className="p-5 border-b border-white/10 bg-gradient-to-r from-purple-900/20 to-transparent flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-600 rounded-lg text-white shadow-[0_0_15px_rgba(147,51,234,0.5)]">
+              <History size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-purple-400 tracking-widest uppercase block">
+                System Log
+              </span>
+              <h2 className="text-lg font-black text-white italic tracking-tighter">
+                COMMUNICATION HISTORY
+              </h2>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors bg-gray-700 hover:bg-gray-600 rounded-full p-1"
+            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="space-y-4">
-          {/* Tombol Add Random */}
+        {/* --- BODY LIST --- */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          {/* Tombol Add (Styled) */}
           <button
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all transform active:scale-[0.98] border border-blue-400/30 mb-4"
             onClick={addCallLog}
           >
-            <Phone size={18} fill="currentColor" />
-            Add Random Call Log
+            <Phone size={16} className="animate-pulse" />
+            GENERATE NEW LOG
           </button>
 
-          {/* List Call Logs */}
-          <div className="max-h-80 overflow-y-auto space-y-3 pr-1 scrollbar-minimal">
-            {callLogs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-gray-500 opacity-50">
-                <Phone size={48} className="mb-2" />
-                <p>No call logs yet</p>
-              </div>
-            ) : (
-              callLogs.map((log) => (
+          {callLogs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-600 border-2 border-dashed border-white/5 rounded-xl">
+              <Activity size={48} className="mb-3 opacity-20" />
+              <p className="font-mono text-xs tracking-widest uppercase">
+                No Data Found
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {callLogs.map((log, index) => (
                 <div
                   key={log.id}
-                  className="bg-gray-700 hover:bg-gray-650 p-3 rounded-lg flex items-center justify-between group transition-colors border border-transparent hover:border-gray-600"
+                  className="group relative bg-[#0d1117] hover:bg-[#1f2937] border border-white/5 hover:border-purple-500/30 rounded-xl p-3 transition-all duration-300 animate-in slide-in-from-bottom-2"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* Kiri: Avatar & Info */}
-                  <div className="flex items-center overflow-hidden">
-                    <div className="flex-shrink-0 flex items-center relative">
-                      {/* Caller */}
-                      <img
-                        src={log.caller.src}
-                        alt={log.caller.name}
-                        className="w-10 h-10 rounded-full border-2 border-gray-800 z-10"
-                      />
-                      {/* Receiver (Overlap dikit biar keren) */}
-                      <img
-                        src={log.receiver.src}
-                        alt={log.receiver.name}
-                        className="w-10 h-10 rounded-full border-2 border-gray-800 -ml-3 z-0 opacity-80"
-                      />
-                    </div>
+                  {/* Background Connection Line */}
+                  <div className="absolute top-1/2 left-8 right-16 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent -z-0"></div>
 
-                    <div className="ml-3 flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white truncate">
-                        {log.caller.name}{" "}
-                        <span className="text-gray-400 text-xs mx-1">to</span>{" "}
-                        {log.receiver.name}
+                  <div className="flex items-center justify-between relative z-10">
+                    {/* Visual Koneksi */}
+                    <div className="flex items-center gap-4 flex-1">
+                      {/* Caller */}
+                      <div className="flex flex-col items-center gap-1 min-w-[3rem]">
+                        <img
+                          src={log.caller.src}
+                          alt={log.caller.name}
+                          className="w-10 h-10 rounded-full border border-white/20 shadow-md object-cover"
+                        />
+                        <span className="text-[9px] text-gray-400 font-bold truncate max-w-[4rem] text-center">
+                          {log.caller.name}
+                        </span>
                       </div>
-                      <div className="text-xs text-gray-400 flex items-center gap-2">
-                        <span>
+
+                      {/* Direction Arrow & Time */}
+                      <div className="flex flex-col items-center justify-center flex-1">
+                        <span className="text-[9px] font-mono text-gray-500 mb-1">
+                          {log.duration}
+                        </span>
+                        <div className="flex items-center text-purple-500/50 group-hover:text-purple-400 transition-colors">
+                          <div className="h-1 w-1 rounded-full bg-current mr-1"></div>
+                          <div className="h-[1px] w-full bg-current min-w-[20px]"></div>
+                          <ArrowRight size={14} />
+                        </div>
+                        <span className="text-[8px] font-mono text-gray-600 mt-1">
                           {new Date(log.timestamp).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
                         </span>
-                        <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                        <span className="text-blue-300">{log.duration}</span>
+                      </div>
+
+                      {/* Receiver */}
+                      <div className="flex flex-col items-center gap-1 min-w-[3rem]">
+                        <img
+                          src={log.receiver.src}
+                          alt={log.receiver.name}
+                          className="w-10 h-10 rounded-full border border-white/20 shadow-md object-cover grayscale-[30%] group-hover:grayscale-0 transition-all"
+                        />
+                        <span className="text-[9px] text-gray-400 font-bold truncate max-w-[4rem] text-center">
+                          {log.receiver.name}
+                        </span>
                       </div>
                     </div>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => onDeleteLog(log.id)}
+                      className="ml-4 p-2 text-gray-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all"
+                      title="Remove Entry"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
-
-                  {/* Kanan: Tombol Hapus per Item */}
-                  <button
-                    onClick={() => onDeleteLog(log.id)}
-                    className="ml-2 text-gray-500 hover:text-red-500 p-2 rounded-full hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    title="Delete Log"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
-              ))
-            )}
-          </div>
-
-          {/* Footer: Clear All */}
-          {callLogs.length > 0 && (
-            <div className="pt-2 border-t border-gray-700">
-              <button
-                className="w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-2"
-                onClick={() => {
-                  if (window.confirm("Clear all call history?")) {
-                    clearCallLog();
-                  }
-                }}
-              >
-                <Trash2 size={14} />
-                Clear All History
-              </button>
+              ))}
             </div>
           )}
         </div>
+
+        {/* --- FOOTER --- */}
+        {callLogs.length > 0 && (
+          <div className="p-4 border-t border-white/10 bg-[#0d1117]">
+            <button
+              className="w-full text-xs font-bold text-red-400 hover:text-red-300 bg-red-900/10 hover:bg-red-900/30 border border-red-900/30 py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+              onClick={() => {
+                if (window.confirm("Purge all communication logs?")) {
+                  clearCallLog();
+                }
+              }}
+            >
+              <Trash2 size={14} />
+              PURGE ALL LOGS
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

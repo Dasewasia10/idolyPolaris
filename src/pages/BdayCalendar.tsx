@@ -8,24 +8,23 @@ import {
   isValid,
 } from "date-fns";
 import { Character } from "../interfaces/Character";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalIcon,
+  Gift,
+  Moon,
+  Sun,
+} from "lucide-react";
 
 const getCharacterImageUrl = (
   characterName: string,
-  type: "icon" | "sprite1" | "sprite2" | "banner"
+  type: "icon" | "sprite1" | "sprite2" | "banner",
 ) => {
   return `https://diveidolypapi.my.id/api/img/character/${type}/${encodeURIComponent(
-    characterName.toLowerCase()
+    characterName.toLowerCase(),
   )}`;
 };
-
-// const allowedGroups = [
-//   "Tsuki no Tempest",
-//   "Sunny Peace",
-//   "TRINITYAiLE",
-//   "LizNoir",
-//   "IIIX",
-//   "Mana Nagase",
-// ];
 
 const CharacterCalendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -33,25 +32,29 @@ const CharacterCalendar: React.FC = () => {
   const [, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
 
+  // --- STATE DARK MODE DENGAN LOCAL STORAGE ---
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Cek localStorage saat pertama kali render
+    const savedTheme = localStorage.getItem("idolyCalendarTheme");
+    return savedTheme === "dark"; // Default false jika null
+  });
+
+  // Efek untuk menyimpan tema setiap kali berubah
+  useEffect(() => {
+    localStorage.setItem("idolyCalendarTheme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
         const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters"
+          "https://diveidolypapi.my.id/api/characters",
         );
         if (!response.ok) throw new Error("Failed to fetch characters");
-
         const data: Character[] = await response.json();
-
-        // const filteredCharacters = data.filter((idol) =>
-        //   allowedGroups.includes(idol.groupName)
-        // );
-        // setCharacters(filteredCharacters);
-
-        const birthdayCharacters = data.filter((char) => 
-          char.birthdayDate && isValid(parseISO(char.birthdayDate))
+        const birthdayCharacters = data.filter(
+          (char) => char.birthdayDate && isValid(parseISO(char.birthdayDate)),
         );
-
         setCharacters(birthdayCharacters);
         setLoading(false);
       } catch (err) {
@@ -59,15 +62,11 @@ const CharacterCalendar: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchCharacters();
   }, []);
 
-
-  // Title Page Dynamic
   useEffect(() => {
     document.title = "Polaris Idoly | Birthday Calendar";
-
     return () => {
       document.title = "Polaris Idoly";
     };
@@ -89,8 +88,18 @@ const CharacterCalendar: React.FC = () => {
     const weeks = [];
     let days = [];
 
+    // Empty cells at start
     for (let i = 0; i < startDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-16 md:h-20 lg:h-24 p-1 border"></div>);
+      days.push(
+        <div
+          key={`empty-${i}`}
+          className={`h-20 lg:h-24 border-r border-b ${
+            isDarkMode
+              ? "bg-gray-900/30 border-gray-800"
+              : "bg-gray-50/50 border-gray-100"
+          }`}
+        ></div>,
+      );
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -104,42 +113,98 @@ const CharacterCalendar: React.FC = () => {
       days.push(
         <div
           key={`day-${day}`}
-          className={`h-16 md:h-20 lg:h-24 p-1 border relative group ${
-            isToday ? "bg-blue-100/30 border-blue-400 border-2" : ""
-          }`}
+          className={`h-20 lg:h-24 p-1 border-r border-b relative group transition-all hover:z-10 
+            ${
+              isDarkMode
+                ? "border-gray-800 bg-gray-900 hover:bg-gray-800 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                : "border-gray-200 bg-white hover:shadow-lg hover:border-blue-300"
+            }
+            ${
+              isToday
+                ? isDarkMode
+                  ? "bg-blue-900/20 shadow-[inset_0_0_20px_rgba(37,99,235,0.2)]"
+                  : "bg-blue-50/50 ring-2 ring-blue-400 ring-inset"
+                : ""
+            }
+          `}
         >
-          <div className={`text-right text-xs md:text-sm ${isToday ? "font-bold text-blue-800" : ""}`}>
-            {day}
+          {/* Day Number */}
+          <div className="flex justify-end">
+            <span
+              className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                isToday
+                  ? "bg-blue-600 text-white font-bold"
+                  : isDarkMode
+                    ? "text-gray-400 group-hover:text-white"
+                    : "text-gray-500"
+              }`}
+            >
+              {day}
+            </span>
           </div>
-          <div className="flex flex-wrap gap-0.5 md:gap-1 mt-1">
+
+          {/* Character Icons */}
+          <div className="flex flex-wrap content-end gap-1 h-full pb-4 px-1">
             {birthdayChars.map((char) => (
-              <div key={char.id} className="relative group/avatar">
+              <div
+                key={char.id}
+                className="relative group/avatar transition-transform hover:scale-125 hover:z-20"
+              >
                 <img
                   src={getCharacterImageUrl(char.name, "icon")}
                   alt={char.name}
-                  className="w-6 h-6 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full border border-gray-200"
+                  className={`w-12 h-12 rounded-full border-2 object-cover ${
+                    isDarkMode
+                      ? "border-gray-700 bg-gray-800"
+                      : "border-white bg-gray-100 shadow-md"
+                  }`}
                 />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 hidden group-hover/avatar:block bg-black/80 text-white p-1 rounded text-[10px] whitespace-nowrap z-50">
+                {/* Tooltip */}
+                <div
+                  className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/avatar:block px-2 py-1 rounded text-[10px] whitespace-nowrap z-50 font-bold shadow-xl ${
+                    isDarkMode
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-900 text-white"
+                  }`}
+                >
                   {char.name}
+                  <div
+                    className={`absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent ${
+                      isDarkMode ? "border-t-blue-600" : "border-t-gray-900"
+                    }`}
+                  ></div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </div>,
       );
 
       if ((day + startDay) % 7 === 0 || day === daysInMonth) {
-        // Pad the last week with empty cells if necessary
+        // Pad end
         if (day === daysInMonth && (day + startDay) % 7 !== 0) {
-            const remaining = 7 - ((day + startDay) % 7);
-            for(let j = 0; j < remaining; j++) {
-                days.push(<div key={`empty-end-${j}`} className="h-16 md:h-20 lg:h-24 p-1 border"></div>);
-            }
+          const remaining = 7 - ((day + startDay) % 7);
+          for (let j = 0; j < remaining; j++) {
+            days.push(
+              <div
+                key={`empty-end-${j}`}
+                className={`h-20 lg:h-24 border-r border-b ${
+                  isDarkMode
+                    ? "bg-gray-900/30 border-gray-800"
+                    : "bg-gray-50/50 border-gray-100"
+                }`}
+              ></div>,
+            );
+          }
         }
         weeks.push(
-          <div key={`week-${day}`} className="grid grid-cols-7">
+          <div
+            key={`week-${day}`}
+            className="grid grid-cols-7 border-l border-t"
+            style={{ borderColor: isDarkMode ? "#1f2937" : "#e5e7eb" }}
+          >
             {days}
-          </div>
+          </div>,
         );
         days = [];
       }
@@ -149,79 +214,249 @@ const CharacterCalendar: React.FC = () => {
   };
 
   const changeMonth = (months: number) => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + months, 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + months, 1),
+    );
   };
 
   return (
-    <div className="flex gap-2 lg:gap-6 z-10 w-full mx-auto p-4 bg-white rounded-lg shadow-md max-w-6xl max-h-[90vh] relative overflow-hidden flex-col lg:flex-row">
-      {/* Background & Decoration (Sama seperti sebelumnya) */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]" />
-
-      {/* Background dengan pola dots */}
+    <div
+      className={`transition-colors duration-500 min-h-screen p-4 flex flex-col items-center ${isDarkMode ? "bg-[#0f1115]" : "bg-gray-100"}`}
+    >
       <div
-        className="absolute w-full h-[36rem] clip-trapezoid-outer 
-          bg-[radial-gradient(circle_at_center,_var(--dot-color)_var(--dot-size),_transparent_var(--dot-size))] 
-          [background-size:var(--spacing)_var(--spacing)] 
-          [--dot-color:#E0E1EC] 
-          [--dot-size:3px] [--spacing:12px]"
-      />
+        className={`flex gap-4 lg:gap-8 z-10 w-full mx-auto p-6 rounded-2xl shadow-xl max-w-7xl max-h-[90vh] relative overflow-hidden flex-col lg:flex-row font-sans transition-colors duration-500 ${
+          isDarkMode
+            ? "bg-[#161b22] text-gray-200 border border-white/10"
+            : "bg-white text-gray-800"
+        }`}
+      >
+        {/* --- TOGGLE DARK MODE --- */}
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`absolute top-4 right-4 z-50 p-2 rounded-full transition-all duration-300 ${
+            isDarkMode
+              ? "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
+              : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+          }`}
+          title="Toggle Theme"
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white" />
+        {/* --- BACKGROUND ELEMENTS --- */}
+        {/* Grid Pattern */}
+        <div
+          className={`absolute inset-0 opacity-10 pointer-events-none transition-opacity duration-500 ${isDarkMode ? "opacity-5" : "opacity-10"}`}
+          style={{
+            backgroundImage: isDarkMode
+              ? "radial-gradient(#ffffff 1px, transparent 1px)"
+              : "radial-gradient(#e5e7eb 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+          }}
+        />
 
-      {/* Pinggir kiri */}
-      <div className="absolute inset-0 bottom-0 left-0 w-8 h-full bg-blue-400" />
+        {/* Trapezoid Decoration */}
+        <div
+          className={`absolute w-full h-[36rem] clip-trapezoid-outer 
+            [background-size:var(--spacing)_var(--spacing)] 
+            [--dot-size:3px] [--spacing:12px] transition-all duration-500`}
+          style={{
+            backgroundImage: `radial-gradient(circle at center, var(--dot-color) var(--dot-size), transparent var(--dot-size))`,
+            // @ts-ignore
+            "--dot-color": isDarkMode ? "#374151" : "#E0E1EC",
+          }}
+        />
 
-      {/* Segitiga kanan atas */}
-      <div className="absolute top-0 right-0 w-24 h-24">
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <polygon points="100,0 100,100 0,0" className="fill-blue-400" />
-        </svg>
-      </div>
-      
-      <div className="flex flex-col lg:flex-row gap-4 w-full overflow-y-auto pr-2">
-        <section className="flex flex-col flex-[3] z-10">
-          <div className="flex justify-between items-center mb-4 bg-gray-800 p-2 rounded-xl">
-            <button onClick={() => changeMonth(-1)} className="px-3 py-1 bg-white shadow-sm rounded-lg hover:bg-gray-100 transition-colors">&lt; Prev</button>
-            <h2 className="text-lg font-bold text-gray-200">{format(currentDate, "MMMM yyyy")}</h2>
-            <button onClick={() => changeMonth(1)} className="px-3 py-1 bg-white shadow-sm rounded-lg hover:bg-gray-100 transition-colors">Next &gt;</button>
-          </div>
+        {/* Gradient Overlay */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-r pointer-events-none transition-colors duration-500 ${
+            isDarkMode
+              ? "from-[#161b22] via-transparent to-[#161b22]"
+              : "from-white via-transparent to-white"
+          }`}
+        />
 
-          <div className="grid grid-cols-7 text-center text-xs font-bold text-gray-500 mb-2">
-            {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(d => <div key={d}>{d}</div>)}
-          </div>
+        {/* Side Accent */}
+        <div className="absolute inset-0 bottom-0 left-0 w-2 h-full bg-blue-500" />
 
-          <div className="border rounded-xl overflow-hidden shadow-inner bg-gray-50/50">
-            {renderCalendar()}
-          </div>
-        </section>
+        {/* Top Right Triangle */}
+        <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none opacity-20">
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <polygon points="100,0 100,100 0,0" className="fill-blue-400" />
+          </svg>
+        </div>
 
-        <aside className="flex flex-col flex-1 z-20 min-w-[250px]">
-          <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">Birthdays This Month:</h3>
-          <div className="flex flex-col gap-2 overflow-y-auto">
-            {characters
-              .filter(char => parseISO(char.birthdayDate).getMonth() === currentDate.getMonth())
-              .sort((a, b) => parseISO(a.birthdayDate).getDate() - parseISO(b.birthdayDate).getDate())
-              .map((char) => (
-                <div key={char.id} className="flex items-center gap-3 p-2 hover:bg-pink-50 rounded-xl transition-all border border-transparent hover:border-pink-100">
-                  <div className="relative">
+        <div className="flex flex-col lg:flex-row gap-6 w-full overflow-hidden relative z-10">
+          {/* --- MAIN CALENDAR SECTION --- */}
+          <section className="flex flex-col flex-[3] h-full overflow-hidden">
+            {/* Header Controls */}
+            <div
+              className={`flex justify-between items-center mb-6 p-4 rounded-xl shadow-lg border transition-colors duration-300 ${
+                isDarkMode
+                  ? "bg-[#0d1117] border-white/10"
+                  : "bg-gray-900 text-white border-gray-700"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-600 rounded-lg text-white shadow-md">
+                  <CalIcon size={20} />
+                </div>
+                <div>
+                  <h2
+                    className={`text-xl font-bold tracking-tight uppercase ${isDarkMode ? "text-white" : "text-white"}`}
+                  >
+                    {format(currentDate, "MMMM yyyy")}
+                  </h2>
+                  <span className="text-[10px] text-gray-400 font-mono tracking-widest">
+                    SCHEDULE SYSTEM
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className={`flex gap-1 p-1 rounded-lg border transition-colors ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700"
+                    : "bg-gray-800 border-gray-700"
+                }`}
+              >
+                <button
+                  onClick={() => changeMonth(-1)}
+                  className="p-2 hover:bg-gray-700 rounded transition-colors text-gray-300 hover:text-white"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="w-[1px] bg-gray-700 my-1"></div>
+                <button
+                  onClick={() => changeMonth(1)}
+                  className="p-2 hover:bg-gray-700 rounded transition-colors text-gray-300 hover:text-white"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Weekday Header */}
+            <div className="grid grid-cols-7 text-center mb-2">
+              {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d, i) => (
+                <div
+                  key={d}
+                  className={`text-xs font-black tracking-widest py-2 rounded-t-md ${
+                    i === 0
+                      ? "text-red-500"
+                      : i === 6
+                        ? "text-blue-500"
+                        : isDarkMode
+                          ? "text-gray-500"
+                          : "text-gray-400"
+                  }`}
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar Grid Container */}
+            <div
+              className={`border rounded-xl shadow-inner scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent flex-1 transition-colors duration-300 ${
+                isDarkMode
+                  ? "bg-[#0d1117] border-gray-800"
+                  : "bg-white border-gray-200"
+              }`}
+            >
+              {renderCalendar()}
+            </div>
+          </section>
+
+          {/* --- SIDEBAR LIST --- */}
+          <aside
+            className={`flex flex-col flex-1 min-w-[280px] border rounded-xl p-4 shadow-lg h-full overflow-hidden transition-colors duration-300 ${
+              isDarkMode
+                ? "bg-[#0d1117] border-white/10"
+                : "bg-gray-50 border-gray-200"
+            }`}
+          >
+            <div
+              className={`flex items-center gap-2 mb-4 pb-3 border-b ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
+            >
+              <Gift className="text-pink-500" size={20} />
+              <h3
+                className={`font-bold uppercase tracking-wide text-sm ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+              >
+                Birthdays List
+              </h3>
+            </div>
+
+            <div className="flex flex-col gap-3 overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+              {characters
+                .filter(
+                  (char) =>
+                    parseISO(char.birthdayDate).getMonth() ===
+                    currentDate.getMonth(),
+                )
+                .sort(
+                  (a, b) =>
+                    parseISO(a.birthdayDate).getDate() -
+                    parseISO(b.birthdayDate).getDate(),
+                )
+                .map((char) => (
+                  <div
+                    key={char.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all border shadow-sm hover:shadow-md group ${
+                      isDarkMode
+                        ? "bg-[#161b22] border-white/5 hover:border-blue-500/30 hover:bg-[#1f2937]"
+                        : "bg-white border-gray-100 hover:border-blue-200 hover:bg-blue-50"
+                    }`}
+                  >
+                    {/* Date Badge */}
+                    <div
+                      className={`flex flex-col items-center justify-center min-w-[3rem] h-12 rounded-lg transition-colors ${
+                        isDarkMode
+                          ? "bg-gray-800 text-gray-400 group-hover:bg-blue-900/30 group-hover:text-blue-400"
+                          : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
+                      }`}
+                    >
+                      <span className="text-lg font-black leading-none">
+                        {parseISO(char.birthdayDate).getDate()}
+                      </span>
+                      <span className="text-[9px] uppercase font-bold opacity-60">
+                        {format(parseISO(char.birthdayDate), "MMM")}
+                      </span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`font-bold text-sm truncate ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+                      >
+                        {char.name}
+                      </p>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-mono mt-0.5">
+                        Idoly Pride
+                      </p>
+                    </div>
+
+                    {/* Mini Avatar */}
                     <img
                       src={getCharacterImageUrl(char.name, "icon")}
                       alt={char.name}
-                      className="w-10 h-10 rounded-full border-2 border-pink-200"
+                      className={`w-8 h-8 rounded-full border bg-gray-50 ${isDarkMode ? "border-gray-600" : "border-gray-200"}`}
                     />
-                    <div className="absolute -bottom-1 -right-1 bg-pink-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
-                      {parseISO(char.birthdayDate).getDate()}
-                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-800 text-sm leading-none">{char.name}</p>
-                    <p className="text-xs text-gray-500 mt-1">{format(parseISO(char.birthdayDate), "MMMM do")}</p>
-                  </div>
+                ))}
+
+              {characters.filter(
+                (char) =>
+                  parseISO(char.birthdayDate).getMonth() ===
+                  currentDate.getMonth(),
+              ).length === 0 && (
+                <div className="text-center py-10 text-gray-400 text-sm italic">
+                  No birthdays this month.
                 </div>
-              ))}
-          </div>
-        </aside>
+              )}
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import VideoModal from "../components/videoYoutube";
 import SearchBar from "../components/searchBar";
 import {
   Play,
-  ChevronRight,
   ArrowLeft,
   Languages,
   Info,
@@ -16,6 +15,9 @@ import {
   Mic2,
   Music,
   User,
+  Disc,
+  ListMusic,
+  Mic,
 } from "lucide-react";
 
 const API_BASE_URL = "https://diveidolypapi.my.id/api";
@@ -61,7 +63,7 @@ const matchWithCharacters = (
     return { ...source, data: matchedData };
   });
 
-// --- COMPONENT: Song Info Modal (NEW) ---
+// --- COMPONENT: Song Info Modal (Tech Style) ---
 const SongInfoModal = ({
   isOpen,
   onClose,
@@ -74,93 +76,94 @@ const SongInfoModal = ({
   if (!isOpen || !song) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-gray-900 border border-gray-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200 mt-5"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[#161b22] border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
+
         {/* Header Modal */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-800 bg-gray-900 sticky top-0">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Info size={20} className="text-blue-400" />
-            Song Details
+        <div className="flex justify-between items-center p-5 border-b border-white/10 bg-[#0d1117]">
+          <h3 className="text-lg font-black text-white flex items-center gap-3 italic tracking-tighter">
+            <div className="p-1.5 bg-cyan-900/30 rounded border border-cyan-500/30 text-cyan-400">
+              <Info size={18} />
+            </div>
+            METADATA INFO
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
+            className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+        <div className="overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
           {/* 1. Titles */}
-          <div className="text-center space-y-1">
-            <h2 className="text-2xl font-bold text-white leading-tight">
+          <div className="text-center space-y-2 border-b border-white/5 pb-6">
+            <h2 className="text-2xl font-bold text-white leading-tight font-jp">
               {song.title}
             </h2>
             {song.jpTitle && (
-              <p className="text-gray-400 font-jp">{song.jpTitle}</p>
+              <p className="text-gray-400 text-sm font-jp tracking-wide">
+                {song.jpTitle}
+              </p>
             )}
             {song.alternateTitle && (
-              <p className="text-sm text-gray-500 italic">
-                ({song.alternateTitle})
+              <p className="text-xs text-cyan-500/70 font-mono mt-1">
+                ALT: {song.alternateTitle}
               </p>
             )}
           </div>
 
           {/* 2. Credits Grid */}
-          <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div className="flex flex-col gap-1">
-              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
-                <Calendar size={12} /> Release Date
-              </span>
-              <span className="text-gray-200 font-medium">
-                {song.releaseDate || "-"}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
-                <Mic2 size={12} /> Lyricist
-              </span>
-              <span className="text-gray-200 font-medium">
-                {song.lyricist || "-"}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
-                <Music size={12} /> Composer
-              </span>
-              <span className="text-gray-200 font-medium">
-                {song.composer || "-"}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-gray-500 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
-                <User size={12} /> Arranger
-              </span>
-              <span className="text-gray-200 font-medium">
-                {song.arranger || "-"}
-              </span>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "RELEASE", val: song.releaseDate, icon: Calendar },
+              { label: "LYRICIST", val: song.lyricist, icon: Mic2 },
+              { label: "COMPOSER", val: song.composer, icon: Music },
+              { label: "ARRANGER", val: song.arranger, icon: User },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="bg-[#0d1117] p-3 rounded-lg border border-white/5 flex flex-col gap-1"
+              >
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <item.icon size={10} /> {item.label}
+                </span>
+                <span
+                  className="text-sm font-medium text-gray-200 truncate"
+                  title={item.val || "-"}
+                >
+                  {item.val || "N/A"}
+                </span>
+              </div>
+            ))}
           </div>
 
           {/* 3. Group & Artists */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold text-gray-400 border-b border-gray-800 pb-1">
-              PERFORMED BY
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
+              VOCAL UNIT
             </h4>
             <div className="flex flex-col items-center gap-4">
-              {/* Group Image (Logic dari snippet kamu) */}
+              {/* Group Image */}
               {song.altGroup && (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 rounded-full bg-gray-800 p-1 border border-gray-700 shadow-lg">
+                <div className="flex items-center gap-4 bg-gray-800/50 pr-4 rounded-full border border-white/5">
+                  <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-500 to-purple-500">
                     <img
                       src={`https://api.diveidolypapi.my.id/idolGroup/group-${song.altGroup}-circle.png`}
                       alt={song.group}
-                      className="w-full h-full object-contain rounded-full"
+                      className="w-full h-full object-contain rounded-full bg-[#161b22]"
                       onError={(e) => (e.currentTarget.style.display = "none")}
                     />
                   </div>
-                  <span className="text-sm font-bold text-gray-300">
+                  <span className="text-sm font-bold text-white uppercase tracking-wider">
                     {song.group}
                   </span>
                 </div>
@@ -171,12 +174,14 @@ const SongInfoModal = ({
                 {song.matchedCharacters.map((charObj, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 bg-gray-800 pr-3 rounded-full border border-gray-700"
+                    className="flex items-center gap-2 bg-[#0d1117] pr-3 py-1 pl-1 rounded-full border border-white/10 hover:border-cyan-500/50 transition-colors"
                   >
                     <div
-                      className="w-8 h-8 rounded-full border border-gray-600 overflow-hidden bg-gray-700"
+                      className="w-6 h-6 rounded-full overflow-hidden bg-gray-700"
                       style={{
-                        backgroundColor: charObj.character?.color || "#374151",
+                        backgroundColor: charObj.character?.color
+                          ? `#${charObj.character.color}`
+                          : "#374151",
                       }}
                     >
                       <img
@@ -185,7 +190,7 @@ const SongInfoModal = ({
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <span className="text-xs text-gray-300 font-medium">
+                    <span className="text-xs text-gray-300 font-bold">
                       {charObj.name}
                     </span>
                   </div>
@@ -201,10 +206,10 @@ const SongInfoModal = ({
                 href={song.source}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-all hover:shadow-lg shadow-blue-500/20"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-wide shadow-lg transition-all"
               >
-                <ExternalLink size={18} />
-                View Source of Lyric
+                <ExternalLink size={16} />
+                EXTERNAL SOURCE
               </a>
             </div>
           )}
@@ -225,7 +230,7 @@ const Lyrics: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Modals State
-  const [isInfoOpen, setIsInfoOpen] = useState(false); // New State for Info Modal
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [videoSrc, setVideoSrc] = useState("");
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [isVideoSmall, setIsVideoSmall] = useState(false);
@@ -235,7 +240,7 @@ const Lyrics: React.FC = () => {
     kanji: true,
     romaji: true,
     english: true,
-    indonesian: true, // Asumsi ada field indonesian
+    indonesian: true,
   });
 
   // --- FETCH DATA ---
@@ -258,13 +263,19 @@ const Lyrics: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    document.title = "Polaris Idoly | Lyrics Database";
+    return () => {
+      document.title = "Polaris Idoly";
+    };
+  }, []);
+
   // Process Data
   const processedData = useMemo(
     () => matchWithCharacters(lyricsData, characters),
     [lyricsData, characters],
   );
 
-  // Flatten & Filter
   const allSongs = useMemo(() => {
     return processedData.flatMap((group) =>
       group.data.map((song) => ({
@@ -307,20 +318,64 @@ const Lyrics: React.FC = () => {
     setActiveColumns((prev) => ({ ...prev, [column]: !prev[column] }));
   };
 
+  // --- HELPER: Parse Markdown ---
+  const parseLyrics = (text: string) => {
+    if (!text) return "";
+
+    // 1. Bold: **teks** -> <b>teks</b>
+    // Kita beri warna lebih terang/putih untuk bold agar kontras
+    const boldRegex = /\*\*(.+?)\*\*/g;
+
+    // 2. Italic: *teks* -> <i>teks</i>
+    // Kita beri warna aksen (misal pink/cyan) agar terlihat beda
+    const italicRegex = /\*(.+?)\*/g;
+
+    // 3. Underline: __teks__ -> <u>teks</u> (Opsional)
+    const underlineRegex = /__(.+?)__/g;
+
+    return text
+      .replace(boldRegex, '<b class="text-white font-extrabold">$1</b>')
+      .replace(italicRegex, '<i class="text-pink-400 not-italic">$1</i>') // Saya pakai warna pink biar estetik, hapus class jika ingin italic miring biasa
+      .replace(underlineRegex, "<u>$1</u>");
+  };
+
   // --- RENDER ---
   return (
-    <div className="flex h-screen bg-gray-950 text-white font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#0f1115] text-white font-sans overflow-hidden relative selection:bg-cyan-500 selection:text-white">
+      {/* Background Texture */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-5 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      ></div>
+
       {/* SIDEBAR LIST */}
       <aside
         className={`
-        flex-col w-full md:w-[350px] lg:w-[400px] border-r border-gray-800 bg-gray-900/50 backdrop-blur-sm z-20
+        flex-col w-full md:w-[350px] lg:w-[420px] border-r border-white/10 bg-[#161b22]/95 backdrop-blur-md z-30 transition-transform duration-300
         ${selectedSong ? "hidden md:flex" : "flex"} 
       `}
       >
-        <div className="p-4 border-b border-gray-800 bg-gray-900 sticky top-0 z-10">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            Song Lyrics
-          </h1>
+        <div className="p-5 border-b border-white/10 bg-gradient-to-r from-cyan-900/10 to-transparent sticky top-0 z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-cyan-600 rounded text-black shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+              <ListMusic size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] text-cyan-400 font-bold tracking-[0.2em] uppercase block">
+                Database
+              </span>
+              <h1 className="text-xl font-black italic tracking-tighter text-white">
+                LYRICS{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                  ARCHIVE&nbsp;
+                </span>
+              </h1>
+            </div>
+          </div>
           <SearchBar
             searchTerm={searchTerm}
             onSearchChange={(e) => setSearchTerm(e.target.value)}
@@ -328,44 +383,60 @@ const Lyrics: React.FC = () => {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
           {loading ? (
-            <div className="flex justify-center p-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-pink-500"></div>
+            <div className="flex flex-col items-center justify-center p-10 text-cyan-500 animate-pulse gap-2">
+              <Disc className="animate-spin" size={24} />
+              <span className="text-xs font-mono tracking-widest">
+                LOADING TRACKS...
+              </span>
             </div>
           ) : filteredSongs.length > 0 ? (
             filteredSongs.map((song, idx) => (
               <div
                 key={idx}
                 onClick={() => handleSongClick(song)}
-                className={`group p-3 rounded-lg cursor-pointer transition-all border border-transparent hover:border-gray-700 hover:bg-gray-800 ${selectedSong?.title === song.title ? "bg-gray-800 border-pink-500/50 shadow-md" : ""}`}
+                className={`group p-3 rounded-lg cursor-pointer transition-all border relative overflow-hidden ${
+                  selectedSong?.title === song.title
+                    ? "bg-gradient-to-r from-cyan-900/30 to-transparent border-cyan-500/50 shadow-[inset_3px_0_0_#06b6d4]"
+                    : "bg-transparent border-transparent hover:bg-white/5 hover:border-white/10"
+                }`}
               >
-                <div className="flex justify-between items-start">
-                  <div>
+                <div className="flex justify-between items-start relative z-10">
+                  <div className="flex-1 min-w-0 pr-2">
                     <h3
-                      className={`font-bold text-sm mb-1 ${selectedSong?.title === song.title ? "text-pink-400" : "text-gray-200 group-hover:text-white"}`}
+                      className={`font-bold text-sm mb-0.5 truncate ${selectedSong?.title === song.title ? "text-cyan-400" : "text-gray-300 group-hover:text-white"}`}
                     >
                       {song.title}
                     </h3>
                     <p className="text-xs text-gray-500 font-mono truncate">
-                      {song.jpTitle}
+                      {song.jpTitle || "No JP Title"}
                     </p>
                   </div>
-                  <ChevronRight
-                    size={16}
-                    className={`mt-1 text-gray-600 ${selectedSong?.title === song.title ? "text-pink-500" : "group-hover:text-gray-400"}`}
-                  />
+                  {selectedSong?.title === song.title && (
+                    <div className="flex gap-[2px] items-end h-4">
+                      <div className="w-0.5 bg-cyan-500 animate-[bounce_1s_infinite] h-2"></div>
+                      <div className="w-0.5 bg-cyan-500 animate-[bounce_1.2s_infinite] h-3"></div>
+                      <div className="w-0.5 bg-cyan-500 animate-[bounce_0.8s_infinite] h-1.5"></div>
+                    </div>
+                  )}
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-700/50 text-gray-400 border border-gray-600/30">
+                <div className="mt-2 flex flex-wrap gap-1 relative z-10">
+                  <span
+                    className={`text-[9px] px-1.5 py-0.5 rounded border uppercase font-bold tracking-wider ${
+                      selectedSong?.title === song.title
+                        ? "bg-cyan-950 text-cyan-300 border-cyan-500/30"
+                        : "bg-[#0d1117] text-gray-500 border-white/10"
+                    }`}
+                  >
                     {song.group}
                   </span>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center text-gray-500 py-10 text-sm">
-              No songs found.
+            <div className="text-center text-gray-600 py-10 text-xs font-mono">
+              NO TRACKS FOUND
             </div>
           )}
         </div>
@@ -374,69 +445,69 @@ const Lyrics: React.FC = () => {
       {/* MAIN CONTENT */}
       <main
         className={`
-        flex-1 flex flex-col bg-gray-950 relative overflow-hidden
-        ${!selectedSong ? "hidden md:flex" : "flex fixed inset-0 md:static z-30"}
+        flex-1 flex flex-col bg-[#0a0c10] relative overflow-hidden z-20
+        ${!selectedSong ? "hidden md:flex" : "flex fixed inset-0 md:static"}
       `}
       >
         {selectedSong ? (
           <>
-            <header className="flex-shrink-0 bg-gray-900/90 backdrop-blur border-b border-gray-800 p-4 flex flex-col gap-4 shadow-lg z-20">
+            {/* Player Header */}
+            <header className="flex-shrink-0 bg-[#161b22]/95 backdrop-blur-md border-b border-white/10 p-4 md:p-6 flex flex-col gap-4 shadow-xl relative z-30">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <button
                     onClick={() => setSelectedSong(null)}
-                    className="md:hidden p-2 -ml-2 hover:bg-gray-800 rounded-full text-gray-300"
+                    className="md:hidden p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white border border-transparent hover:border-white/10"
                   >
                     <ArrowLeft size={20} />
                   </button>
 
                   <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-white leading-tight">
+                    <h2 className="text-xl md:text-3xl font-black text-white leading-none italic tracking-tight">
                       {selectedSong.title}
                     </h2>
-                    <p className="text-sm text-gray-400 font-medium mt-1">
+                    <p className="text-sm text-gray-400 font-medium mt-1 font-jp tracking-wide">
                       {selectedSong.jpTitle}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex gap-2">
-                  {/* TOMBOL INFO BARU */}
                   <button
                     onClick={() => setIsInfoOpen(true)}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-full font-bold text-sm transition-all"
-                    title="Song Details"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#0d1117] hover:bg-[#1f2937] text-gray-300 border border-white/10 rounded-lg font-bold text-xs uppercase tracking-wider transition-all"
                   >
-                    <Info size={18} />
-                    <span className="hidden sm:inline">Info</span>
+                    <Info size={16} />
+                    <span className="hidden sm:inline">Details</span>
                   </button>
 
                   {selectedSong.video && (
                     <button
                       onClick={() => openVideo(selectedSong.video)}
-                      className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-full font-bold text-sm shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                      className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-lg font-bold text-xs uppercase tracking-wider shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95"
                     >
                       <Play size={16} fill="currentColor" />
-                      <span className="hidden sm:inline">Play Video</span>
+                      <span className="hidden sm:inline">Play MV</span>
                     </button>
                   )}
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
-                {/* Singers List */}
-                <div className="flex -space-x-2 overflow-hidden py-1">
+                {/* Artist Icons */}
+                <div className="flex -space-x-2 overflow-hidden py-1 pl-1">
                   {selectedSong.matchedCharacters.length > 0 ? (
                     selectedSong.matchedCharacters.map((charObj, idx) => (
                       <div
                         key={idx}
-                        className="relative group/char cursor-help"
+                        className="relative group/char cursor-help transition-transform hover:-translate-y-1 hover:z-10"
                       >
                         <div
-                          className="w-8 h-8 rounded-full border-2 border-gray-900 bg-gray-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden"
+                          className="w-10 h-10 rounded-full border-2 border-[#161b22] bg-gray-800 flex items-center justify-center overflow-hidden shadow-lg"
                           style={{
-                            backgroundColor:
-                              charObj.character?.color || "#374151",
+                            backgroundColor: charObj.character?.color
+                              ? `#${charObj.character.color}`
+                              : "#374151",
                           }}
                         >
                           <img
@@ -447,7 +518,7 @@ const Lyrics: React.FC = () => {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/char:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                        <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[9px] px-2 py-0.5 rounded opacity-0 group-hover/char:opacity-100 whitespace-nowrap pointer-events-none transition-opacity font-bold uppercase tracking-wider border border-white/10">
                           {charObj.name}
                         </div>
                       </div>
@@ -459,10 +530,11 @@ const Lyrics: React.FC = () => {
                   )}
                 </div>
 
-                {/* Language Toggles */}
-                <div className="flex items-center gap-2 bg-gray-800/50 p-1 rounded-lg border border-gray-700/50 self-start sm:self-auto">
-                  <Languages size={16} className="ml-2 text-gray-400" />
-                  <div className="h-4 w-px bg-gray-700 mx-1"></div>
+                {/* View Options */}
+                <div className="flex items-center bg-[#0d1117] p-1 rounded-lg border border-white/5">
+                  <div className="px-3 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1 border-r border-white/5">
+                    <Languages size={14} /> View
+                  </div>
                   {(
                     Object.keys(activeColumns) as Array<
                       keyof typeof activeColumns
@@ -471,121 +543,148 @@ const Lyrics: React.FC = () => {
                     <button
                       key={lang}
                       onClick={() => toggleColumn(lang)}
-                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
                         activeColumns[lang]
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "text-gray-400 hover:text-white hover:bg-gray-700"
+                          ? "bg-cyan-900/40 text-cyan-400 shadow-inner"
+                          : "text-gray-500 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                      {lang === "indonesian" ? "INDO" : lang.toUpperCase()}
                     </button>
                   ))}
                 </div>
               </div>
             </header>
 
-            {/* Lyrics Content (Table) */}
-            <div className="flex-1 overflow-auto bg-gray-950 relative scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+            {/* Lyrics Table Container */}
+            <div className="flex-1 overflow-auto relative scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-[#0a0c10]">
               <div className="min-w-full inline-block align-middle">
-                <div className="border-t border-gray-800">
-                  <table className="min-w-full divide-y divide-gray-800">
-                    <thead className="bg-gray-900 sticky top-0 z-10 shadow-lg">
-                      <tr>
+                <table className="min-w-full divide-y divide-white/5">
+                  <thead className="bg-[#0f1115] sticky top-0 z-10 shadow-lg after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-cyan-500/30">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest w-12 text-center font-mono"
+                      >
+                        Line
+                      </th>
+                      {activeColumns.kanji && (
                         <th
                           scope="col"
-                          className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-12 text-center"
+                          className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest min-w-[200px]"
                         >
-                          #
+                          ORIGINAL
                         </th>
+                      )}
+                      {activeColumns.romaji && (
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-[10px] font-bold text-pink-400 uppercase tracking-widest min-w-[200px]"
+                        >
+                          ROMAJI
+                        </th>
+                      )}
+                      {activeColumns.english && (
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-[10px] font-bold text-blue-400 uppercase tracking-widest min-w-[200px]"
+                        >
+                          ENGLISH
+                        </th>
+                      )}
+                      {activeColumns.indonesian && (
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-[10px] font-bold text-green-400 uppercase tracking-widest min-w-[200px]"
+                        >
+                          INDONESIAN
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 bg-[#0a0c10]">
+                    {Array.from({
+                      length: Math.max(
+                        selectedSong.kanji?.length || 0,
+                        selectedSong.romaji?.length || 0,
+                        selectedSong.english?.length || 0,
+                      ),
+                    }).map((_, index) => (
+                      <tr
+                        key={index}
+                        className="hover:bg-white/[0.03] transition-colors duration-150 group"
+                      >
+                        <td className="px-4 py-4 whitespace-nowrap text-xs text-center text-gray-700 font-mono group-hover:text-cyan-500">
+                          {(index + 1).toString().padStart(2, "0")}
+                        </td>
+
+                        {/* KANJI COLUMN */}
                         {activeColumns.kanji && (
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider min-w-[200px]"
-                          >
-                            Kanji / Original
-                          </th>
+                          <td
+                            className="px-6 py-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap font-jp font-medium selection:bg-white/20"
+                            dangerouslySetInnerHTML={{
+                              __html: parseLyrics(
+                                selectedSong.kanji?.[index] || "",
+                              ),
+                            }}
+                          />
                         )}
+
+                        {/* ROMAJI COLUMN */}
                         {activeColumns.romaji && (
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-bold text-pink-400 uppercase tracking-wider min-w-[200px]"
-                          >
-                            Romaji
-                          </th>
+                          <td
+                            className="px-6 py-4 text-sm text-pink-100/80 leading-relaxed whitespace-pre-wrap font-medium selection:bg-pink-500/20"
+                            dangerouslySetInnerHTML={{
+                              __html: parseLyrics(
+                                selectedSong.romaji?.[index] || "",
+                              ),
+                            }}
+                          />
                         )}
+
+                        {/* ENGLISH COLUMN */}
                         {activeColumns.english && (
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-bold text-blue-400 uppercase tracking-wider min-w-[200px]"
-                          >
-                            English
-                          </th>
+                          <td
+                            className="px-6 py-4 text-sm text-blue-100/70 leading-relaxed whitespace-pre-wrap italic selection:bg-blue-500/20"
+                            dangerouslySetInnerHTML={{
+                              __html: parseLyrics(
+                                selectedSong.english?.[index] || "",
+                              ),
+                            }}
+                          />
                         )}
+
+                        {/* INDONESIAN COLUMN */}
                         {activeColumns.indonesian && (
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-bold text-green-400 uppercase tracking-wider min-w-[200px]"
-                          >
-                            Indonesian
-                          </th>
+                          <td
+                            className="px-6 py-4 text-sm text-green-100/70 leading-relaxed whitespace-pre-wrap italic selection:bg-green-500/20"
+                            dangerouslySetInnerHTML={{
+                              __html: parseLyrics(
+                                (selectedSong as any).indonesian?.[index] || "",
+                              ),
+                            }}
+                          />
                         )}
                       </tr>
-                    </thead>
-                    <tbody className="bg-gray-950 divide-y divide-gray-800/50">
-                      {Array.from({
-                        length: Math.max(
-                          selectedSong.kanji?.length || 0,
-                          selectedSong.romaji?.length || 0,
-                          selectedSong.english?.length || 0,
-                        ),
-                      }).map((_, index) => (
-                        <tr
-                          key={index}
-                          className="hover:bg-white/5 transition-colors duration-150 group"
-                        >
-                          <td className="px-4 py-4 whitespace-nowrap text-xs text-center text-gray-600 font-mono group-hover:text-pink-500">
-                            {index + 1}
-                          </td>
-                          {activeColumns.kanji && (
-                            <td className="px-6 py-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap font-jp">
-                              {selectedSong.kanji?.[index] || ""}
-                            </td>
-                          )}
-                          {activeColumns.romaji && (
-                            <td className="px-6 py-4 text-sm text-pink-100/90 leading-relaxed whitespace-pre-wrap font-medium">
-                              {selectedSong.romaji?.[index] || ""}
-                            </td>
-                          )}
-                          {activeColumns.english && (
-                            <td className="px-6 py-4 text-sm text-blue-100/80 leading-relaxed whitespace-pre-wrap italic">
-                              {selectedSong.english?.[index] || ""}
-                            </td>
-                          )}
-                          {activeColumns.indonesian && (
-                            <td className="px-6 py-4 text-sm text-green-100/80 leading-relaxed whitespace-pre-wrap italic">
-                              {(selectedSong as any).indonesian?.[index] || ""}
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="h-20 md:h-0"></div>
+              <div className="h-24 md:h-0"></div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-600 p-8 text-center">
-            <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mb-6 shadow-inner">
-              <MusicIcon />
+          /* EMPTY STATE */
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-600 p-8 text-center select-none">
+            <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-800 flex items-center justify-center mb-6 animate-pulse">
+              <Mic size={64} className="opacity-20" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-400 mb-2">
-              Select a Song
+            <h2 className="text-xl font-bold text-gray-500 mb-2 tracking-widest uppercase">
+              No Track Selected
             </h2>
-            <p className="max-w-xs mx-auto">
-              Choose a song from the list to view lyrics, translations, and play
-              the music video.
+            <p className="max-w-xs mx-auto text-xs text-gray-600 font-mono">
+              Please select a song from the database to load lyric data and
+              media resources.
             </p>
           </div>
         )}
@@ -608,23 +707,5 @@ const Lyrics: React.FC = () => {
     </div>
   );
 };
-
-const MusicIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="40"
-    height="40"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M9 18V5l12-2v13"></path>
-    <circle cx="6" cy="18" r="3"></circle>
-    <circle cx="18" cy="16" r="3"></circle>
-  </svg>
-);
 
 export default Lyrics;

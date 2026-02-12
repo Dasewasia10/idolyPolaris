@@ -7,6 +7,10 @@ import {
   ChevronDown,
   ImageIcon,
   Sparkles,
+  Layers,
+  Settings,
+  PenTool,
+  X,
 } from "lucide-react";
 import axios from "axios";
 
@@ -78,7 +82,7 @@ const CardDesign: React.FC = () => {
       500,
   );
 
-  // Skill Levels (Skill 1, 2, 3, Yell)
+  // Skill Levels (Skill 1, 2, 3, 4, Yell)
   const [skillLevels, setSkillLevels] = useState([1, 1, 1, 1, 1]);
 
   // UI State
@@ -232,123 +236,175 @@ const CardDesign: React.FC = () => {
   );
 
   return (
-    <div className="h-auto bg-gray-900 text-white p-4 lg:p-8 flex flex-col lg:flex-row gap-8 font-sans">
-      {/* --- LEFT COLUMN: CONTROLS --- */}
-      <div className="w-full lg:w-1/3 space-y-6 overflow-y-auto no-scrollbar">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-          Card Designer
-        </h1>
+    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 flex flex-col lg:flex-row gap-8 font-sans relative selection:bg-cyan-500 selection:text-black">
+      {/* Background Texture (Sama seperti halaman lain) */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-5 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      ></div>
 
-        {/* 1. Card Selector */}
-        <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-          <label className="block text-sm text-gray-400 mb-2">
-            Select Base Card
+      {/* --- LEFT COLUMN: CONTROLS (Updated Design) --- */}
+      <div className="w-full lg:w-1/3 space-y-6 relative z-10">
+        {/* Header Title */}
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-600 rounded text-black shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+            <PenTool size={20} />
+          </div>
+          <div>
+            <span className="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase block">
+              Card Maker
+            </span>
+            <h1 className="text-2xl font-black italic tracking-tighter text-white">
+              CARD{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                DESIGNER&nbsp;
+              </span>
+            </h1>
+          </div>
+        </div>
+
+        {/* 1. Card Selector (Tech Dropdown) */}
+        <div className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-lg relative overflow-hidden">
+          {/* Accent Line */}
+          <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <Layers size={14} /> Base Card Asset
           </label>
           <button
             onClick={() => setShowSelector(true)}
-            className="w-full bg-gray-700 hover:bg-gray-600 p-3 rounded-lg flex items-center justify-between transition-colors"
+            className="w-full bg-black/40 border border-white/20 hover:border-blue-500 p-3 rounded-lg flex items-center justify-between transition-all group"
           >
-            <span className="truncate">
-              {selectedCard
-                ? `${selectedCard.sourceName} - ${selectedCard.title.global}`
-                : "Choose a card..."}
-            </span>
-            <ChevronDown size={18} />
+            <div className="flex items-center gap-3 overflow-hidden">
+              {selectedCard && (
+                <img
+                  src={selectedCard.images.icon}
+                  className="w-8 h-8 rounded border border-white/20"
+                />
+              )}
+              <span
+                className={`truncate text-sm ${selectedCard ? "text-white font-bold" : "text-gray-500 italic"}`}
+              >
+                {selectedCard
+                  ? `${selectedCard.sourceName} - ${selectedCard.title.global}`
+                  : "Select a card to begin..."}
+              </span>
+            </div>
+            <ChevronDown
+              size={18}
+              className="text-gray-500 group-hover:text-blue-400"
+            />
           </button>
         </div>
 
         {/* 2. Visual Settings */}
         {selectedCard && (
-          <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 space-y-4">
-            <h3 className="font-bold text-lg border-b border-gray-700 pb-2">
-              Visual Settings
+          <div className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-lg relative">
+            <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-white/5 pb-2">
+              <ImageIcon size={14} /> Visual Parameters
             </h3>
 
-            {/* Art Toggle */}
-            {selectedCard.hasAwakening && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Use Evolved Art</span>
-                <button
-                  onClick={() => setUseEvolvedArt(!useEvolvedArt)}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors ${useEvolvedArt ? "bg-blue-600" : "bg-gray-600"}`}
-                >
-                  <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${useEvolvedArt ? "translate-x-6" : ""}`}
-                  />
-                </button>
-              </div>
-            )}
-
-            {/* Stars */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                Rarity (Stars)
-              </label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((s) => (
+            <div className="space-y-5">
+              {/* Art Toggle */}
+              {selectedCard.hasAwakening && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300 font-medium">
+                    Evolved Art
+                  </span>
                   <button
-                    key={s}
-                    onClick={() => setStars(s)}
-                    className={`w-8 h-8 rounded flex items-center justify-center font-bold transition-all ${
-                      stars >= s
-                        ? "bg-yellow-500 text-black shadow-[0_0_10px_rgba(234,179,8,0.5)]"
-                        : "bg-gray-700 text-gray-500"
-                    }`}
+                    onClick={() => setUseEvolvedArt(!useEvolvedArt)}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${useEvolvedArt ? "bg-purple-600" : "bg-gray-700"}`}
                   >
-                    ★
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${useEvolvedArt ? "translate-x-6" : ""}`}
+                    />
                   </button>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
 
-            {/* Custom Name */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                Player Name (Watermark)
-              </label>
-              <input
-                type="text"
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 focus:border-blue-500 outline-none"
-                placeholder="e.g. Manager-san"
-              />
+              {/* Stars */}
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">
+                  Rarity (Stars)
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setStars(s)}
+                      className={`w-8 h-8 rounded border transition-all flex items-center justify-center font-bold text-sm ${
+                        stars >= s
+                          ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.3)]"
+                          : "bg-black/40 border-white/10 text-gray-600"
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Name */}
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">
+                  Manager Name (Watermark)
+                </label>
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none transition-colors font-mono"
+                  placeholder="e.g. Manager-san"
+                />
+              </div>
             </div>
           </div>
         )}
 
         {/* 3. Stats & Skills */}
         {selectedCard && (
-          <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 space-y-4">
-            <h3 className="font-bold text-lg border-b border-gray-700 pb-2">
-              Stats & Levels
+          <div className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-lg relative">
+            <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-white/5 pb-2">
+              <Settings size={14} /> Stats & Config
             </h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-gray-400">Level</label>
+                <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">
+                  Level
+                </label>
                 <input
                   type="number"
                   value={level}
                   onChange={(e) => setLevel(Number(e.target.value))}
-                  className="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1"
+                  className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center"
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-400">Photo Quality</label>
+                <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">
+                  Photo Quality
+                </label>
                 <input
                   type="number"
                   value={photoQuality}
                   onChange={(e) => setPhotoQuality(Number(e.target.value))}
-                  className="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1"
+                  className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               {Object.keys(stats).map((key) => (
                 <div key={key}>
-                  <label className="text-xs text-gray-400 capitalize">
+                  <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">
                     {key}
                   </label>
                   <input
@@ -357,15 +413,15 @@ const CardDesign: React.FC = () => {
                     onChange={(e) =>
                       setStats({ ...stats, [key]: Number(e.target.value) })
                     }
-                    className="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1"
+                    className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-right"
                   />
                 </div>
               ))}
             </div>
 
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">
-                Skill Levels (1, 2, 3, 4, Yell)
+              <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">
+                Skill Levels (1 - 2 - 3 - 4 - Yell)
               </label>
               <div className="flex gap-2">
                 {skillLevels.map((sl, idx) => (
@@ -378,7 +434,7 @@ const CardDesign: React.FC = () => {
                       newLevels[idx] = Number(e.target.value);
                       setSkillLevels(newLevels);
                     }}
-                    className="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-center"
+                    className="w-full bg-black/40 border border-white/20 rounded px-1 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center"
                   />
                 ))}
               </div>
@@ -389,36 +445,58 @@ const CardDesign: React.FC = () => {
         <button
           onClick={handleDownload}
           disabled={!selectedCard}
-          className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all transform active:scale-95"
         >
-          <Download size={20} /> Export Image
+          <Download size={20} /> INITIALIZE EXPORT
         </button>
       </div>
 
-      {/* --- RIGHT COLUMN: PREVIEW CANVAS --- */}
+      {/* --- RIGHT COLUMN: PREVIEW CANVAS (UPDATED CONTAINER ONLY) --- */}
       <div
-        className="w-full lg:w-2/3 bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-700 flex flex-col items-center justify-start p-4 relative"
-        ref={containerRef} // Reference untuk menghitung width
+        className="w-full lg:w-2/3 bg-[#0a0c10] rounded-3xl border border-white/10 flex flex-col items-center justify-center p-8 relative overflow-hidden group shadow-2xl z-10"
+        ref={containerRef}
       >
+        {/* Decorative Grid on Preview Background */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-20"
+          style={{
+            backgroundImage:
+              "linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }}
+        ></div>
+
+        {/* HUD Elements */}
+        <div className="absolute top-4 left-4 text-[10px] font-mono text-gray-500 tracking-widest">
+          PREVIEW MODE // SCALE: {scale.toFixed(2)}
+        </div>
+
         {!selectedCard ? (
-          <div className="self-center my-auto text-center text-gray-500">
-            <ImageIcon size={48} className="mx-auto mb-2 opacity-50" />
-            <p>Select a card to start designing</p>
+          <div className="relative z-10 flex flex-col items-center justify-center text-gray-600 animate-pulse">
+            <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-700 flex items-center justify-center mb-4">
+              <ImageIcon size={48} />
+            </div>
+            <p className="font-mono text-sm tracking-[0.2em] uppercase">
+              NO SIGNAL INPUT
+            </p>
+            <p className="text-xs mt-2 text-gray-700">
+              Please select a card data source
+            </p>
           </div>
         ) : (
-          /* CONTAINER SCALING DINAMIS */
-          /* Kita set height container secara eksplisit berdasarkan scale
-             agar container parent tidak collapse atau memiliki scrollbar berlebih.
-             Height = (Tinggi Asli * Scale) + padding
-          */
+          /* CONTAINER SCALING DINAMIS (LOGIKA TIDAK BERUBAH, HANYA STYLE WRAPPER) */
           <div
             style={{
               width: 2048 * scale,
               height: 1152 * scale,
             }}
-            className="relative overflow-hidden shadow-2xl rounded-3xl" // Rounded di sini untuk tampilan preview
+            className="relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-2xl ring-1 ring-white/10"
           >
-            {/* CANVAS UTAMA */}
+            {/* ================================================================
+                CORE CARD DESIGN - DO NOT TOUCH
+                START OF PROTECTED ZONE 
+                ================================================================
+            */}
             <div
               ref={cardRef}
               id="card-canvas-target"
@@ -426,7 +504,7 @@ const CardDesign: React.FC = () => {
                 width: 2048,
                 height: 1152,
                 transform: `scale(${scale})`,
-                transformOrigin: "top left", // Penting agar scaling mulai dari pojok kiri atas container
+                transformOrigin: "top left",
               }}
               className="absolute top-0 left-0 bg-gray-900 text-white"
             >
@@ -467,9 +545,7 @@ const CardDesign: React.FC = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    // Ganti warna di sini (text-yellow-400)
                     className="w-16 h-16 text-yellow-400"
-                    // Style filter ini dibaca sempurna oleh html2canvas untuk shadow
                     style={{
                       filter: "drop-shadow(0px 4px 4px rgba(0,0,0,0.6))",
                     }}
@@ -607,34 +683,42 @@ const CardDesign: React.FC = () => {
                 Polaris Idoly
               </div>
             </div>
+            {/* ================================================================
+                END OF PROTECTED ZONE 
+                ================================================================
+            */}
           </div>
         )}
       </div>
 
-      {/* --- MODAL SELECTOR --- */}
+      {/* --- MODAL SELECTOR (UPDATED) --- */}
       {showSelector && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 w-full max-w-4xl h-[80vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
-            <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900">
-              <h2 className="text-xl font-bold">Select a Card</h2>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-[#161b22] border border-white/10 w-full max-w-4xl h-[80vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-blue-900/20 to-transparent">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Search size={20} className="text-blue-400" /> Select Base Card
+              </h2>
               <button
                 onClick={() => setShowSelector(false)}
-                className="text-gray-400 hover:text-white"
+                className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
-            <div className="p-4 bg-gray-800 border-b border-gray-700">
+            {/* Search Bar */}
+            <div className="p-4 bg-[#0d1117] border-b border-white/10">
               <div className="relative">
                 <Search
-                  className="absolute left-3 top-3 text-gray-500"
-                  size={20}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                  size={18}
                 />
                 <input
                   type="text"
-                  placeholder="Search by name or title..."
-                  className="w-full bg-gray-900 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none text-white"
+                  placeholder="Search by name, title, or character..."
+                  className="w-full bg-black/40 border border-white/10 rounded-lg pl-12 pr-4 py-3 focus:ring-1 focus:ring-blue-500 outline-none text-white transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
@@ -642,10 +726,11 @@ const CardDesign: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-thin">
+            {/* Grid Content */}
+            <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
               {loading ? (
-                <p className="col-span-full text-center py-10">
-                  Loading cards...
+                <p className="col-span-full text-center py-10 text-gray-500 font-mono animate-pulse">
+                  ACCESSING DATABASE...
                 </p>
               ) : (
                 filteredCards.slice(0, 50).map((card) => (
@@ -655,18 +740,22 @@ const CardDesign: React.FC = () => {
                       setSelectedCard(card);
                       setShowSelector(false);
                     }}
-                    className="flex flex-col items-center bg-gray-700 hover:bg-gray-600 rounded-lg p-2 transition-all hover:scale-105"
+                    className="flex flex-col items-center bg-[#1f2937]/50 border border-white/5 hover:border-blue-500/50 hover:bg-[#1f2937] rounded-xl p-3 transition-all hover:scale-[1.02] group"
                   >
-                    <img
-                      src={card.images.icon}
-                      className="w-20 h-20 rounded-md object-cover mb-2"
-                      loading="lazy"
-                      crossOrigin="anonymous"
-                    />
-                    <span className="text-xs text-center font-bold text-blue-300 truncate w-full">
+                    <div className="relative mb-2">
+                      <img
+                        src={card.images.icon}
+                        className="w-20 h-20 rounded-lg object-cover shadow-lg group-hover:shadow-blue-500/20"
+                        loading="lazy"
+                        crossOrigin="anonymous"
+                      />
+                      <div className="absolute top-0 right-0 -mr-1 -mt-1 w-2 h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </div>
+
+                    <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">
                       {card.sourceName}
                     </span>
-                    <span className="text-[10px] text-center text-gray-300 line-clamp-2 leading-tight">
+                    <span className="text-xs text-center font-bold text-gray-200 line-clamp-2 leading-tight group-hover:text-blue-300">
                       {card.title.global}
                     </span>
                   </button>

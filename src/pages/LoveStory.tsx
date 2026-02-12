@@ -7,15 +7,19 @@ import {
   Pause,
   SkipForward,
   Map,
+  Menu,
+  X,
+  History,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 import StrategyGuide from "../components/MoshikoiTimelineGuide";
+import LogModal from "../components/LogModal";
 
 // --- TYPES ---
 interface ChoiceOption {
   text: string;
-  route: ScriptLine[]; // Nested script
+  route: ScriptLine[];
 }
 
 interface ScriptLine {
@@ -25,7 +29,7 @@ interface ScriptLine {
   iconUrl?: string | null;
   text?: string;
   voiceUrl?: string | null;
-  choices?: ChoiceOption[]; // Untuk type: choice_selection
+  choices?: ChoiceOption[];
   nextLabel?: string;
   labelName?: string;
 }
@@ -93,16 +97,19 @@ const LoveStoryPage: React.FC = () => {
   const [events, setEvents] = useState<EventGroup[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-  // --- STACK-BASED ENGINE STATE ---
-  // Kita menyimpan array of context. [MainStory, SubRoute, SubSubRoute...]
+  // Stack-Based Engine
   const [executionStack, setExecutionStack] = useState<StackFrame[]>([]);
   const [currentEpisodeTitle, setCurrentEpisodeTitle] = useState("");
 
-  // Helper: Get Current Line from Top of Stack
   const currentFrame = executionStack[executionStack.length - 1];
   const currentLine = currentFrame
     ? currentFrame.script[currentFrame.index]
     : undefined;
+
+  /// --- LOG & HISTORY STATE (BARU) ---
+  const [history, setHistory] = useState<ScriptLine[]>([]);
+  const [showLog, setShowLog] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   // Typewriter State
   const [displayedText, setDisplayedText] = useState("");
@@ -114,7 +121,7 @@ const LoveStoryPage: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const typeIntervalRef = useRef<number | null>(null);
 
-  const [showGuide, setShowGuide] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(true); // Toggle Sidebar
 
   // --- 1. FETCH INDEX ---
   useEffect(() => {
@@ -127,8 +134,8 @@ const LoveStoryPage: React.FC = () => {
   // --- 2. LOAD EPISODE ---
   const loadEpisode = async (episodeId: string, title: string) => {
     try {
-      // Reset State
-      setExecutionStack([]); // Clear stack
+      setExecutionStack([]);
+      setHistory([]);
       setIsAutoPlay(false);
       setIsTyping(false);
       setDisplayedText("");
@@ -138,67 +145,54 @@ const LoveStoryPage: React.FC = () => {
       }
 
       const res = await axios.get(`${API_BASE}/stories/${episodeId}.json`);
-
-      // Init Stack dengan Main Script
       setExecutionStack([{ script: res.data.script, index: 0 }]);
       setCurrentEpisodeTitle(title);
+      // Auto close sidebar on mobile when playing
+      if (window.innerWidth < 1024) setSidebarOpen(false);
     } catch (err) {
       console.error("Story Load Error:", err);
     }
   };
 
-  // --- 3. ENGINE LOGIC: ADVANCE ---
+  // --- 3. ENGINE LOGIC ---
   const advance = () => {
     if (executionStack.length === 0) return;
-
-    // Clone stack agar immutable update
     const newStack = [...executionStack];
     const top = newStack[newStack.length - 1];
     const line = top.script[top.index];
 
-    // Block jika sedang di Choice (User wajib memilih)
     if (line && line.type === "choice_selection") return;
 
-    // Cek apakah masih bisa maju di frame ini?
     if (top.index < top.script.length - 1) {
       top.index++;
       setExecutionStack(newStack);
     } else {
-      // End of current frame (Route selesai)
       if (newStack.length > 1) {
-        // Jika ini sub-route, POP stack (kembali ke parent)
         newStack.pop();
-        // Parent saat ini masih menunjuk ke 'choice_selection' yang memicu route ini
-        // Kita harus majukan parent 1 langkah agar tidak looping memilih lagi
         const parent = newStack[newStack.length - 1];
         parent.index++;
         setExecutionStack(newStack);
       } else {
-        // End of Main Story
         console.log("End of Story");
-        // Bisa tambahkan UI "End" di sini
       }
     }
   };
 
-  // --- 4. ENGINE LOGIC: HANDLE CHOICE ---
   const handleChoice = (route: ScriptLine[]) => {
-    // Push Route Baru ke Stack
     setExecutionStack([...executionStack, { script: route, index: 0 }]);
   };
 
-  // --- 5. EFFECT: PLAY LINE (Audio & Text) ---
+  // --- EFFECT: PLAY LINE & UPDATE HISTORY ---
   useEffect(() => {
     if (!currentLine) return;
 
-    // Reset Audio & Typing saat baris berubah
+    // Audio Handling
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
     setIsPlayingAudio(false);
 
-    // Play Audio
     if (currentLine.voiceUrl) {
       const audio = new Audio(currentLine.voiceUrl);
       audioRef.current = audio;
@@ -208,12 +202,11 @@ const LoveStoryPage: React.FC = () => {
       audio.onerror = () => setIsPlayingAudio(false);
     }
 
-    // Typewriter Effect
+    // Typewriter & Text Handling
     if (currentLine.type === "dialogue") {
       const fullText = currentLine.text || "";
       setDisplayedText("");
       setIsTyping(true);
-
       if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
 
       let charIndex = 0;
@@ -224,9 +217,23 @@ const LoveStoryPage: React.FC = () => {
           if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
           setIsTyping(false);
         }
-      }, 25); // Speed typing
+      }, 25);
+
+      // --- ADD TO HISTORY (LOGIC BARU) ---
+      // Cek agar tidak duplikat (misal karena re-render React)
+      setHistory((prev) => {
+        // Jangan tambahkan jika baris terakhir sama persis (untuk mencegah duplikat saat dev mode)
+        const last = prev[prev.length - 1];
+        if (
+          last &&
+          last.text === currentLine.text &&
+          last.speakerName === currentLine.speakerName
+        ) {
+          return prev;
+        }
+        return [...prev, currentLine];
+      });
     } else {
-      // Untuk choice/jump/anchor tidak perlu ngetik
       setIsTyping(false);
       setDisplayedText("");
     }
@@ -234,9 +241,50 @@ const LoveStoryPage: React.FC = () => {
     return () => {
       if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
     };
-  }, [currentLine]); // Dependency: saat currentLine berubah (karena stack/index berubah)
+  }, [currentLine]);
 
-  // --- 6. AUTO PLAY & SKIP LOGIC ---
+  useEffect(() => {
+    if (!currentLine) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setIsPlayingAudio(false);
+
+    if (currentLine.voiceUrl) {
+      const audio = new Audio(currentLine.voiceUrl);
+      audioRef.current = audio;
+      setIsPlayingAudio(true);
+      audio.play().catch(() => setIsPlayingAudio(false));
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => setIsPlayingAudio(false);
+    }
+
+    if (currentLine.type === "dialogue") {
+      const fullText = currentLine.text || "";
+      setDisplayedText("");
+      setIsTyping(true);
+      if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+
+      let charIndex = 0;
+      typeIntervalRef.current = window.setInterval(() => {
+        charIndex++;
+        setDisplayedText(fullText.slice(0, charIndex));
+        if (charIndex >= fullText.length) {
+          if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+          setIsTyping(false);
+        }
+      }, 25);
+    } else {
+      setIsTyping(false);
+      setDisplayedText("");
+    }
+
+    return () => {
+      if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+    };
+  }, [currentLine]);
+
   useEffect(() => {
     if (!isAutoPlay || !currentLine) return;
     if (currentLine.type === "choice_selection") return;
@@ -249,10 +297,9 @@ const LoveStoryPage: React.FC = () => {
     }
   }, [isAutoPlay, isTyping, isPlayingAudio, currentLine]);
 
-  // Handle Box Click (Finish Type / Advance)
   const handleBoxClick = () => {
     if (!currentLine) return;
-    if (currentLine.type === "choice_selection") return; // Klik tidak efek saat choice
+    if (currentLine.type === "choice_selection") return;
 
     if (isTyping) {
       if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
@@ -263,31 +310,24 @@ const LoveStoryPage: React.FC = () => {
     }
   };
 
-  // Logic Skip (Cerdas)
   const handleSkip = () => {
     setIsAutoPlay(false);
-
-    // Kita perlu mencari 'choice_selection' di frame aktif
     const top = executionStack[executionStack.length - 1];
     const nextChoiceIndex = top.script.findIndex(
       (line, idx) => idx > top.index && line.type === "choice_selection",
     );
 
     if (nextChoiceIndex !== -1) {
-      // Lompat ke pilihan
       const newStack = [...executionStack];
       newStack[newStack.length - 1].index = nextChoiceIndex;
       setExecutionStack(newStack);
     } else {
-      // Tidak ada pilihan lagi di frame ini, lompat ke akhir frame
-      // (Nanti advance() akan handle pop stack)
       const newStack = [...executionStack];
       newStack[newStack.length - 1].index = top.script.length - 1;
       setExecutionStack(newStack);
     }
   };
 
-  // --- HELPER UI ---
   const getSpriteUrl = (code?: string | null) => {
     if (!code) return null;
     const lower = code.toLowerCase();
@@ -299,55 +339,79 @@ const LoveStoryPage: React.FC = () => {
     return `${R2_DOMAIN}/spriteCharacter/sprite-${filename}-02.png`;
   };
 
-  // --- RENDER ---
   return (
-    <div className="flex h-screen bg-black text-white font-sans overflow-hidden relative">
+    <div className="flex h-screen bg-[#0f1115] text-white font-sans overflow-hidden relative selection:bg-pink-500 selection:text-white">
+      {/* BACKGROUND TEXTURE (Scanlines/Grid) */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-5 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      ></div>
+
       {/* SIDEBAR */}
-      <aside className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col z-50 shadow-xl flex-shrink-0">
-        <div className="p-4 bg-gray-950 border-b border-gray-800 flex items-center gap-3">
+      <aside
+        className={`fixed lg:relative z-50 h-full bg-[#161b22]/95 backdrop-blur-md border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out shadow-2xl ${isSidebarOpen ? "w-80 translate-x-0" : "w-0 -translate-x-full lg:w-0 lg:-translate-x-0"}`}
+      >
+        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-pink-900/20 to-transparent">
+          <div>
+            <div className="flex items-center gap-2 text-pink-400 mb-1">
+              <Volume2 size={16} />
+              <span className="text-[10px] tracking-[0.2em] font-bold uppercase">
+                Visual Novel
+              </span>
+            </div>
+            <h1 className="font-black italic text-2xl tracking-tighter text-white">
+              MOSHIKOI{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                STORIES&nbsp;
+              </span>
+            </h1>
+          </div>
           <button
             onClick={() => navigate("/")}
-            className="p-2 hover:bg-gray-800 rounded-full transition text-gray-400 hover:text-white"
+            className="text-white/50 hover:text-white transition"
           >
-            <ChevronLeft size={20} />
+            <X size={20} />
           </button>
-          <h1 className="font-bold text-lg bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-            Moshikoi Stories
-          </h1>
         </div>
 
-        {/* Tombol Buka Guide */}
-        <button
-          onClick={() => setShowGuide(!showGuide)}
-          className={`p-2 rounded-full transition ${showGuide ? "bg-pink-600 text-white" : "hover:bg-gray-800 text-gray-400"}`}
-          title="Strategy Guide"
-        >
-          <Map size={20} />
-        </button>
-
-        <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {events.map((event) => (
-            <div key={event.id} className="mb-2">
+            <div key={event.id} className="group">
               <button
                 onClick={() =>
                   setSelectedEventId(
                     selectedEventId === event.id ? null : event.id,
                   )
                 }
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex justify-between items-center ${selectedEventId === event.id ? "bg-pink-900/30 text-pink-300" : "hover:bg-gray-800 text-gray-300"}`}
+                className={`w-full text-left px-4 py-3 rounded-none border-l-2 transition-all flex justify-between items-center ${
+                  selectedEventId === event.id
+                    ? "border-pink-500 bg-white/5 text-white"
+                    : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
               >
-                {event.title}
-                <span className="text-xs bg-gray-800 px-2 py-1 rounded-full text-gray-500">
-                  {event.episodes.length} Eps
+                <span className="font-bold text-sm tracking-wide">
+                  {event.title}
+                </span>
+                <span className="text-[10px] bg-black/40 px-2 py-0.5 rounded text-gray-500 border border-white/10 font-mono">
+                  {event.episodes.length}
                 </span>
               </button>
+
               {selectedEventId === event.id && (
-                <div className="mt-1 ml-2 border-l-2 border-gray-700 pl-2 space-y-1 animate-in slide-in-from-left-2 duration-200">
+                <div className="bg-black/20 py-2">
                   {event.episodes.map((ep) => (
                     <button
                       key={ep.id}
                       onClick={() => loadEpisode(ep.id, ep.title)}
-                      className={`block w-full text-left text-sm px-3 py-2 rounded transition ${currentEpisodeTitle === ep.title ? "bg-pink-600 text-white shadow-md" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}
+                      className={`block w-full text-left text-xs px-6 py-2 transition-all border-l-4 ${
+                        currentEpisodeTitle === ep.title
+                          ? "border-pink-500 text-pink-300 bg-pink-500/10 font-bold"
+                          : "border-transparent text-gray-500 hover:text-white hover:pl-7"
+                      }`}
                     >
                       {ep.title}
                     </button>
@@ -357,19 +421,55 @@ const LoveStoryPage: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-white/10 flex justify-between items-center bg-[#0d1117]">
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-pink-400 transition"
+          >
+            <Map size={14} /> STRATEGY GUIDE
+          </button>
+        </div>
       </aside>
 
+      {/* TOGGLE BUTTON (Mobile/Collapsed) */}
+      {!isSidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="absolute top-4 left-4 z-50 p-3 bg-black/50 backdrop-blur border border-white/10 text-white hover:bg-pink-600 hover:border-pink-500 transition-all rounded-none skew-x-[-12deg]"
+        >
+          <Menu size={20} className="skew-x-[12deg]" />
+        </button>
+      )}
+
       {/* MAIN STAGE */}
-      <main className="flex-1 relative bg-gray-950 flex flex-col items-center justify-center overflow-hidden">
+      <main className="flex-1 relative bg-black flex flex-col items-center justify-center overflow-hidden">
+        {/* Toggle Sidebar Button (Desktop inside) */}
+        {isSidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="absolute top-1/2 left-0 z-50 p-1 bg-gray-800 text-gray-500 hover:text-white rounded-r-full shadow-lg border border-gray-700 hidden lg:block"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        )}
+
         {!currentLine ? (
           <div className="flex flex-col items-center justify-center h-full opacity-30 select-none animate-pulse">
-            <div className="text-6xl mb-4">💌</div>
-            <p className="text-xl tracking-widest">SELECT A STORY TO BEGIN</p>
+            <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center mb-6">
+              <Play size={32} className="ml-1" />
+            </div>
+            <p className="text-xl tracking-[0.5em] font-light text-white/50">
+              SELECT EPISODE
+            </p>
           </div>
         ) : (
           <>
             {/* BACKGROUND */}
-            <div className="absolute inset-0 bg-[url('/assets/bg_school.jpg')] bg-cover bg-center opacity-40 transition-opacity duration-1000"></div>
+            <div className="absolute inset-0 bg-[url('/assets/bg_school.jpg')] bg-cover bg-center transition-all duration-1000 ease-in-out">
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 opacity-80"></div>
+            </div>
 
             {/* SPRITE LAYER */}
             {currentLine.speakerCode &&
@@ -379,25 +479,25 @@ const LoveStoryPage: React.FC = () => {
                     key={currentLine.speakerCode}
                     src={getSpriteUrl(currentLine.speakerCode)!}
                     alt={currentLine.speakerCode}
-                    className="h-[80%] lg:h-[90%] object-contain drop-shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-700"
+                    className="h-[85%] lg:h-[95%] object-contain drop-shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500"
                   />
                 </div>
               )}
 
             {/* CHOICE SELECTION OVERLAY */}
             {currentLine.type === "choice_selection" && currentLine.choices && (
-              <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-6 animate-in fade-in duration-300">
-                <p className="text-pink-300 font-bold tracking-[0.2em] text-lg mb-2 drop-shadow-md">
-                  MAKE A CHOICE
-                </p>
+              <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
+                <div className="text-pink-400 font-bold tracking-[0.3em] text-sm mb-4 border-b border-pink-500/50 pb-2">
+                  DECISION POINT
+                </div>
                 {currentLine.choices.map((choice, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleChoice(choice.route)}
-                    className="w-[90%] max-w-2xl bg-gradient-to-r from-gray-900/90 to-gray-800/90 border border-pink-500/30 hover:border-pink-400 text-white text-lg px-8 py-6 rounded-xl font-medium transition-all transform hover:scale-105 hover:shadow-[0_0_25px_rgba(236,72,153,0.5)] active:scale-95 group relative overflow-hidden"
+                    className="w-[90%] max-w-xl group relative overflow-hidden bg-gray-900 border border-white/20 px-8 py-6 transition-all hover:border-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] skew-x-[-12deg]"
                   >
-                    <div className="absolute inset-0 bg-pink-600/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                    <span className="relative z-10">
+                    <div className="absolute inset-0 w-1 bg-pink-500 -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
+                    <span className="relative z-10 text-lg font-medium text-white/90 group-hover:text-white block skew-x-[12deg] text-center">
                       {choice.text.replace("text=", " ")}
                     </span>
                   </button>
@@ -405,79 +505,105 @@ const LoveStoryPage: React.FC = () => {
               </div>
             )}
 
-            {/* TEXT BOX */}
+            {/* DIALOGUE UI */}
             {currentLine.type === "dialogue" && (
               <div
                 onClick={handleBoxClick}
-                className="absolute bottom-4 left-4 right-4 lg:bottom-8 lg:left-32 lg:right-32 h-[30vh] max-h-[250px] z-40 cursor-pointer group"
+                className="absolute bottom-0 w-full z-40 cursor-pointer group flex justify-center pb-6 lg:pb-10 px-4"
               >
-                <div className="w-full h-full bg-gray-900/95 border-2 border-gray-700 rounded-2xl p-6 lg:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md hover:border-pink-500/30 transition-colors">
-                  {/* Name Tag */}
+                <div className="w-full max-w-5xl relative">
+                  {/* Speaker Name Tag - Geometric & Floating */}
                   {currentLine.speakerName && (
-                    <div className="absolute -top-[1px] -left-[1px] bg-gradient-to-r from-pink-600 to-purple-600 px-8 py-2 rounded-br-2xl shadow-lg z-10 flex items-center gap-3">
-                      {currentLine.iconUrl && (
-                        <img
-                          src={currentLine.iconUrl}
-                          alt="icon"
-                          className="w-6 h-6 rounded-full border border-white/50"
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              getPlaceholderImageUrl("square");
-                          }}
-                        />
-                      )}
-                      <span className="font-bold text-white tracking-wider text-lg lg:text-xl">
-                        {currentLine.speakerName}
-                      </span>
-                      {isPlayingAudio && (
-                        <Volume2
-                          size={18}
-                          className="text-white animate-pulse"
-                        />
-                      )}
+                    <div className="absolute -top-6 left-0 lg:left-8 z-50">
+                      <div className="relative bg-white text-black px-8 py-1.5 transform skew-x-[-12deg] border-l-[6px] border-pink-600 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+                        <div className="transform skew-x-[12deg] flex items-center gap-2">
+                          {currentLine.iconUrl && (
+                            <img
+                              src={currentLine.iconUrl}
+                              className="w-5 h-5 rounded-full border border-black/20"
+                              alt="icon"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  getPlaceholderImageUrl("square");
+                              }}
+                            />
+                          )}
+                          <span className="font-bold tracking-wider text-base uppercase">
+                            {currentLine.speakerName}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   )}
 
-                  {/* Text Content */}
+                  {/* Main Text Box - Glassmorphism, Sharp Edges */}
                   <div
-                    className={`relative z-10 mt-6 h-full overflow-y-auto scrollbar-hide ${!currentLine.speakerName ? "mt-2 italic text-gray-300 text-center flex items-center justify-center h-full" : ""}`}
+                    className="relative bg-[#0f131a]/90 backdrop-blur-lg border-t border-white/10 shadow-2xl p-6 lg:p-8 min-h-[160px] lg:min-h-[180px]"
+                    style={{
+                      clipPath:
+                        "polygon(0 0, 100% 0, 100% 85%, 98% 100%, 0 100%)", // Potongan sudut kanan bawah
+                    }}
                   >
-                    <p className="text-xl lg:text-2xl leading-relaxed text-gray-100 whitespace-pre-line drop-shadow-md font-medium">
-                      {displayedText}
-                      {isTyping && (
-                        <span className="inline-block w-2 h-6 bg-pink-500 ml-1 animate-pulse align-middle" />
-                      )}
-                    </p>
-                  </div>
+                    {/* Decorative Top Line */}
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
 
-                  {!isTyping && (
-                    <div className="absolute bottom-4 right-6 text-pink-500 animate-bounce">
-                      ▼
+                    {/* Text Content */}
+                    <div
+                      className={`relative z-10 h-full ${!currentLine.speakerName ? "flex items-center justify-center italic text-gray-400" : ""}`}
+                    >
+                      <p className="text-lg lg:text-xl font-medium leading-relaxed text-gray-100 whitespace-pre-line drop-shadow-md">
+                        {displayedText}
+                        {isTyping && (
+                          <span className="inline-block w-2 h-5 bg-pink-500 ml-1 animate-pulse align-sub"></span>
+                        )}
+                      </p>
                     </div>
-                  )}
-                </div>
 
-                {/* CONTROLS */}
-                <div className="absolute -top-12 right-0 flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsAutoPlay(!isAutoPlay);
-                    }}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm shadow-lg transition-all ${isAutoPlay ? "bg-green-600 text-white hover:bg-green-500" : "bg-gray-800 text-gray-400 hover:bg-gray-700"}`}
-                  >
-                    {isAutoPlay ? <Pause size={14} /> : <Play size={14} />}
-                    AUTO
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSkip();
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm bg-gray-800 text-gray-400 hover:bg-gray-700 shadow-lg"
-                  >
-                    SKIP <SkipForward size={14} />
-                  </button>
+                    {/* Next Indicator */}
+                    {!isTyping && (
+                      <div className="absolute bottom-4 right-8 animate-bounce text-pink-500">
+                        <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-pink-500"></div>
+                      </div>
+                    )}
+
+                    {/* Control Buttons (Floating inside/near box) */}
+                    <div className="absolute top-0 right-0 flex">
+                      <div className="bg-black/60 px-4 py-1 flex gap-4 rounded-bl-xl border-l border-b border-white/10 backdrop-blur">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowLog(true);
+                          }}
+                          className="text-[10px] font-bold text-gray-400 hover:text-white flex items-center gap-1 uppercase tracking-wider"
+                        >
+                          <History size={12} /> Log
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsAutoPlay(!isAutoPlay);
+                          }}
+                          className={`text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider transition ${isAutoPlay ? "text-green-400 animate-pulse" : "text-gray-400 hover:text-white"}`}
+                        >
+                          {isAutoPlay ? (
+                            <Pause size={12} />
+                          ) : (
+                            <Play size={12} />
+                          )}{" "}
+                          Auto
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSkip();
+                          }}
+                          className="text-[10px] font-bold text-gray-400 hover:text-pink-400 flex items-center gap-1 uppercase tracking-wider"
+                        >
+                          Skip <SkipForward size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -485,12 +611,17 @@ const LoveStoryPage: React.FC = () => {
         )}
       </main>
 
-      {/* RENDER STRATEGY GUIDE OVERLAY */}
+      {/* STRATEGY GUIDE OVERLAY */}
       {showGuide && selectedEventId && (
         <StrategyGuide
           eventId={selectedEventId}
           onClose={() => setShowGuide(false)}
         />
+      )}
+
+      {/* RENDER LOG MODAL (Full Screen Overlay) */}
+      {showLog && (
+        <LogModal history={history} onClose={() => setShowLog(false)} />
       )}
     </div>
   );

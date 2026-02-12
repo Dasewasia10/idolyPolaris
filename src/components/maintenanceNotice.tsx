@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
+import { AlertTriangle, X } from "lucide-react";
 
 const MaintenanceNotice: React.FC = () => {
   const [showNotice, setShowNotice] = useState(true);
   const [progress, setProgress] = useState(100);
-  
+
   const requestRef = useRef<number>();
   const startTimeRef = useRef<number | null>(null);
-  const DURATION = 8000; // 8 detik agar user sempat membaca pesan yang agak panjang
+  const DURATION = 8000;
 
   useEffect(() => {
     const animate = (time: number) => {
       if (!startTimeRef.current) startTimeRef.current = time;
       const elapsed = time - startTimeRef.current;
-      
       const newProgress = Math.max(0, 100 - (elapsed / DURATION) * 100);
       setProgress(newProgress);
 
@@ -22,7 +22,6 @@ const MaintenanceNotice: React.FC = () => {
         requestRef.current = requestAnimationFrame(animate);
       }
     };
-
     requestRef.current = requestAnimationFrame(animate);
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
@@ -32,43 +31,39 @@ const MaintenanceNotice: React.FC = () => {
   if (!showNotice) return null;
 
   return (
-    // Posisi di kiri (left-4)
-    <div className="fixed bottom-4 left-4 z-50 animate-fade-in-up">
-      <div className="bg-white rounded-lg shadow-xl border border-blue-200 w-80 overflow-hidden">
-        
-        {/* Header - Biru Cantik */}
-        <div className="bg-blue-600 p-2 text-white font-bold flex justify-between items-center">
-          <span className="text-sm flex items-center gap-2">
-            <span className="animate-pulse">🛠️</span> System Update
-          </span>
-          <button onClick={() => setShowNotice(false)} className="hover:text-blue-200 text-xl leading-none">×</button>
-        </div>
+    <div className="fixed bottom-6 left-6 z-[100] animate-in slide-in-from-left duration-500">
+      <div className="bg-[#0f1115] border border-yellow-500/50 w-80 rounded-lg shadow-[0_0_20px_rgba(234,179,8,0.2)] overflow-hidden relative">
+        {/* Striped Background Pattern */}
+        <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')] pointer-events-none"></div>
 
-        {/* Content */}
-        <div className="p-4 flex items-start gap-3">
-          {/* Gambar/Icon di sisi kiri teks */}
-          <div className="flex-shrink-0 mt-1">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center border border-blue-300">
-               {/* Kamu bisa ganti <img> jika ada icon spesifik */}
-               <span className="text-2xl">🚧</span>
-            </div>
+        <div className="p-4 flex gap-3 relative z-10">
+          <div className="shrink-0 p-2 bg-yellow-500/20 rounded border border-yellow-500/50 text-yellow-500 h-fit">
+            <AlertTriangle size={24} />
           </div>
-          
+
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700 leading-snug">
-              All card pages & related features will be in maintenance mode. 
-              Expect some bugs or glitches, but bear with me!
-            </p>
-            <p className="text-[10px] text-blue-500 font-bold mt-2 uppercase tracking-wider">
-              Thank you for your patience!
+            <div className="flex justify-between items-start mb-1">
+              <h3 className="text-sm font-bold text-yellow-100 uppercase tracking-wide">
+                System Maintenance
+              </h3>
+              <button
+                onClick={() => setShowNotice(false)}
+                className="text-gray-500 hover:text-white"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Card database is currently undergoing scheduled maintenance. Some
+              data may be unavailable.
             </p>
           </div>
         </div>
 
-        {/* Progress Bar - Biru */}
-        <div className="h-1.5 w-full bg-gray-100">
+        {/* Progress Bar */}
+        <div className="h-1 w-full bg-gray-800">
           <div
-            className="h-full bg-blue-500 transition-none"
+            className="h-full bg-yellow-500 transition-none"
             style={{ width: `${progress}%` }}
           />
         </div>

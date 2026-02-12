@@ -6,13 +6,13 @@ import {
   ChevronRight,
   MessageCircle,
   X,
-  GitBranch,
   CheckCircle2,
+  MoreVertical,
+  Phone,
 } from "lucide-react";
 import Toast from "../components/Toast";
 
-// --- Interfaces ---
-// (Interface MessageHeader & MessageGroup tetap sama, tidak perlu diubah)
+// --- Interfaces (Tetap Sama) ---
 interface MessageHeader {
   id: string;
   title: string;
@@ -50,7 +50,6 @@ interface MessageData {
   details: ChatDetail[];
 }
 
-// Interface baru untuk grouping di frontend
 type ProcessedMessage =
   | { type: "normal"; data: ChatDetail }
   | { type: "choice_group"; items: ChatDetail[] };
@@ -65,18 +64,16 @@ const MessagePage: React.FC = () => {
     null,
   );
   const [messageData, setMessageData] = useState<MessageData | null>(null);
-
-  // State untuk menyimpan pilihan user: { [index_group]: index_item_yang_dipilih }
   const [selectedChoices, setSelectedChoices] = useState<
     Record<number, number>
   >({});
 
-  // UI State
   const [isSidebarOpen, setSidebarOpen] = useState(
     () => window.innerWidth >= 1024,
   );
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+
   // --- FETCH INDEX ---
   useEffect(() => {
     const fetchGroups = async () => {
@@ -98,7 +95,7 @@ const MessagePage: React.FC = () => {
     const fetchDetail = async () => {
       setLoading(true);
       setMessageData(null);
-      setSelectedChoices({}); // Reset pilihan saat ganti pesan
+      setSelectedChoices({});
       try {
         const res = await axios.get(
           `${API_BASE_URL}/detail/${selectedMessageId}.json`,
@@ -118,124 +115,136 @@ const MessagePage: React.FC = () => {
     fetchDetail();
   }, [selectedMessageId]);
 
-  // --- LOGIC GROUPING MESSAGE ---
-  // Menggabungkan pesan choice yang berurutan menjadi satu grup
+  // --- LOGIC GROUPING ---
   const processedMessages = useMemo(() => {
     if (!messageData) return [];
-
     const result: ProcessedMessage[] = [];
     let currentChoiceGroup: ChatDetail[] = [];
 
     messageData.details.forEach((msg) => {
       if (msg.isChoice) {
-        // Jika ini pesan pilihan, masukkan ke buffer grup sementara
         currentChoiceGroup.push(msg);
       } else {
-        // Jika ketemu pesan biasa, tapi buffer grup masih ada isinya, simpan dulu grupnya
         if (currentChoiceGroup.length > 0) {
           result.push({ type: "choice_group", items: [...currentChoiceGroup] });
           currentChoiceGroup = [];
         }
-        // Simpan pesan biasa
         result.push({ type: "normal", data: msg });
       }
     });
 
-    // Cek sisa buffer di akhir loop
     if (currentChoiceGroup.length > 0) {
       result.push({ type: "choice_group", items: [...currentChoiceGroup] });
     }
-
     return result;
   }, [messageData]);
 
   useEffect(() => {
-    document.title = "Polaris Idoly | Idol Messages";
+    document.title = "Polaris Idoly | Messages";
     return () => {
       document.title = "Polaris Idoly";
     };
   }, []);
 
-  // --- HELPER: Parse Text ---
   const parseText = (text: string) => {
     if (!text) return "";
     return text.replace(/\n/g, "<br/>");
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans">
-      {/* --- MOBILE OVERLAY BACKDROP --- */}
-      {/* Ini akan muncul hanya di mobile ketika sidebar terbuka */}
+    <div className="flex h-screen bg-[#0f1115] text-white overflow-hidden font-sans relative selection:bg-cyan-500 selection:text-black">
+      {/* Background Texture (Grid Halus) */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-5 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      ></div>
+
+      {/* --- MOBILE OVERLAY --- */}
       {isSidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity"
         />
       )}
-      {/* --- SIDEBAR (Tetap sama) --- */}
+
+      {/* --- SIDEBAR --- */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-80 bg-gray-800 border-r border-gray-700 transform transition-transform duration-300 ease-in-out
+          fixed inset-y-0 left-0 z-50 w-80 bg-[#161b22]/95 backdrop-blur-md border-r border-white/10 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:relative lg:translate-x-0
         `}
       >
-        <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <MessageCircle className="text-blue-400" />
-            Messages
-          </h2>
+        <div className="p-5 border-b border-white/10 flex justify-between items-center bg-[#0d1117]">
+          <div>
+            <span className="text-[10px] text-cyan-400 font-bold tracking-[0.2em] uppercase block mb-1">
+              Communication
+            </span>
+            <h2 className="text-xl font-black italic tracking-tighter text-white flex items-center gap-2">
+              <MessageCircle size={20} className="text-cyan-500" /> MESSAGES
+            </h2>
+          </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-400"
+            className="lg:hidden text-gray-400 hover:text-white transition"
           >
-            <X />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="overflow-y-auto h-[calc(100vh-64px)] scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-500">
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {groups.map((group) => (
-            <div key={group.id} className="border-b border-gray-700/50">
+            <div key={group.id} className="border-b border-white/5">
               <button
                 onClick={() =>
                   setSelectedGroup(selectedGroup === group.id ? null : group.id)
                 }
-                className={`w-full flex items-center gap-3 p-4 hover:bg-gray-700 transition-colors text-left ${selectedGroup === group.id ? "bg-gray-700/50" : ""}`}
+                className={`w-full flex items-center gap-3 p-4 transition-all text-left group hover:bg-white/5 ${selectedGroup === group.id ? "bg-white/5" : ""}`}
               >
-                <img
-                  src={group.groupIcon || "/assets/icon/chara-avatar.png"}
-                  alt={group.title}
-                  className="w-10 h-10 rounded-full object-cover border border-gray-600"
-                  onError={(e) =>
-                    (e.currentTarget.src = "/assets/icon/chara-avatar.png")
-                  }
-                />
-                <span className="font-semibold flex-1 truncate">
+                <div className="relative">
+                  <div
+                    className={`absolute -inset-0.5 rounded-full blur-[2px] opacity-0 group-hover:opacity-50 transition-opacity bg-cyan-500`}
+                  ></div>
+                  <img
+                    src={group.groupIcon || "/assets/icon/chara-avatar.png"}
+                    alt={group.title}
+                    className="relative w-10 h-10 rounded-full object-cover border border-white/20 bg-gray-800"
+                    onError={(e) =>
+                      (e.currentTarget.src = "/assets/icon/chara-avatar.png")
+                    }
+                  />
+                </div>
+                <span className="font-bold text-sm text-gray-300 group-hover:text-white flex-1 truncate tracking-wide">
                   {group.title}
                 </span>
                 {selectedGroup === group.id ? (
-                  <ChevronDown size={16} />
+                  <ChevronDown size={14} className="text-cyan-400" />
                 ) : (
-                  <ChevronRight size={16} />
+                  <ChevronRight size={14} className="text-gray-600" />
                 )}
               </button>
 
-              {/* Message List (Dropdown) */}
+              {/* Dropdown List */}
               {selectedGroup === group.id && (
-                <div className="bg-gray-900/50 py-1">
+                <div className="bg-[#0a0c10] py-1 shadow-inner">
                   {group.messages.map((msg) => (
                     <button
                       key={msg.id}
                       onClick={() => {
                         setSelectedMessageId(msg.id);
-                        // --- PERBAIKAN UTAMA: Tutup sidebar otomatis di mobile ---
-                        if (window.innerWidth < 1024) {
-                          setSidebarOpen(false);
-                        }
+                        if (window.innerWidth < 1024) setSidebarOpen(false);
                       }}
                       className={`
-                        w-full text-left py-3 px-4 pl-16 text-sm hover:bg-blue-900/30 transition-colors border-l-4
-                        ${selectedMessageId === msg.id ? "border-blue-500 bg-blue-900/20 text-blue-200" : "border-transparent text-gray-400"}
+                        block w-full text-left py-3 px-4 pl-16 text-xs transition-all border-l-2
+                        ${
+                          selectedMessageId === msg.id
+                            ? "border-cyan-500 bg-cyan-500/10 text-cyan-100 font-bold"
+                            : "border-transparent text-gray-500 hover:text-white hover:pl-17 hover:bg-white/5"
+                        }
                       `}
                     >
                       {msg.title}
@@ -249,196 +258,220 @@ const MessagePage: React.FC = () => {
       </aside>
 
       {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 relative flex flex-col h-full bg-gray-900 scrollbar-thin scrollbar-thumb-gray-600">
+      <main className="flex-1 relative flex flex-col h-full bg-[#0a0c10]">
+        {/* Toggle Button Mobile */}
         {!isSidebarOpen && (
           <button
             onClick={() => setSidebarOpen(true)}
-            className="absolute top-4 left-4 z-40 p-2 bg-gray-800 rounded-full shadow-lg text-white lg:hidden"
+            className="absolute top-4 left-4 z-40 p-2 bg-[#161b22] border border-white/10 rounded text-white shadow-lg lg:hidden"
           >
-            <Menu />
+            <Menu size={20} />
           </button>
         )}
 
+        {/* Chat Canvas */}
         <div className="flex-1 overflow-hidden relative flex flex-col">
           {loading ? (
-            <div className="flex items-center justify-center h-full text-gray-500 animate-pulse">
-              Loading conversation...
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 animate-pulse gap-2">
+              <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs font-mono tracking-widest uppercase">
+                Decrypting Message...
+              </span>
             </div>
           ) : !messageData ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-50 select-none">
-              <MessageCircle size={64} className="mb-4" />
-              <p>Select a message to start reading</p>
+            <div className="flex flex-col items-center justify-center h-full text-white/20 select-none">
+              <div className="w-24 h-24 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center mb-4">
+                <MessageCircle size={48} />
+              </div>
+              <p className="text-sm tracking-[0.2em] uppercase font-bold">
+                No Message Selected
+              </p>
             </div>
           ) : (
             <>
-              {/* Header Info */}
-              <div className="absolute top-0 inset-x-0 z-10 bg-gray-900/90 backdrop-blur-md p-4 border-b border-gray-800 shadow-md flex justify-center">
-                <h1 className="text-lg font-bold text-white shadow-black drop-shadow-md">
-                  {messageData.name}
-                </h1>
+              {/* Header Chat */}
+              <div className="absolute top-0 inset-x-0 z-20 bg-[#161b22]/90 backdrop-blur-md p-3 border-b border-white/10 shadow-lg flex justify-between items-center">
+                <div className="flex-1 text-center lg:text-left lg:pl-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-cyan-500 font-bold uppercase tracking-widest">
+                      Topic
+                    </span>
+                    <h1 className="text-base font-bold text-white tracking-wide">
+                      {messageData.name}
+                    </h1>
+                  </div>
+                </div>
+                <div className="flex gap-3 pr-4 text-gray-500">
+                  <Phone
+                    size={18}
+                    className="hover:text-white cursor-pointer transition"
+                  />
+                  <MoreVertical
+                    size={18}
+                    className="hover:text-white cursor-pointer transition"
+                  />
+                </div>
               </div>
 
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 pt-20 pb-10 space-y-4 scrollbar-minimal bg-[url('/assets/chat-bg.png')] bg-repeat bg-cover bg-center bg-blend-multiply bg-gray-800">
-                {processedMessages.map((item, index) => {
-                  // --- CASE 1: GROUP PILIHAN (CHOICE) ---
-                  if (item.type === "choice_group") {
-                    // Default pilihan pertama jika belum dipilih
-                    const selectedIdx = selectedChoices[index] ?? 0;
+              {/* Messages List */}
+              <div className="flex-1 overflow-y-auto p-4 pt-20 pb-10 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                {/* Wallpaper Overlay (Optional) */}
+                <div className="fixed inset-0 pointer-events-none opacity-20 bg-[url('/assets/chat-bg.png')] bg-cover bg-center mix-blend-overlay z-0"></div>
+
+                <div className="relative z-10 flex flex-col gap-4 max-w-4xl mx-auto">
+                  {processedMessages.map((item, index) => {
+                    // --- TYPE: CHOICE GROUP ---
+                    if (item.type === "choice_group") {
+                      const selectedIdx = selectedChoices[index] ?? 0;
+                      return (
+                        <div
+                          key={index}
+                          className="flex flex-col items-end gap-3 mt-4 mb-2 animate-in slide-in-from-right-4 fade-in duration-300"
+                        >
+                          <div className="flex items-center gap-2 mr-1 opacity-80">
+                            <span className="h-[1px] w-8 bg-cyan-500/50"></span>
+                            <span className="text-[9px] uppercase font-bold tracking-widest text-cyan-400">
+                              Response
+                            </span>
+                          </div>
+
+                          {item.items.map((choice, cIdx) => {
+                            const isSelected = selectedIdx === cIdx;
+                            return (
+                              <button
+                                key={choice.id}
+                                onClick={() =>
+                                  setSelectedChoices((prev) => ({
+                                    ...prev,
+                                    [index]: cIdx,
+                                  }))
+                                }
+                                className={`
+                                  relative px-6 py-3 transition-all duration-300 ease-out text-sm font-medium text-left
+                                  transform skew-x-[-10deg] border
+                                  ${
+                                    isSelected
+                                      ? "bg-cyan-900/40 border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+                                      : "bg-[#1f2937]/60 border-white/10 text-gray-400 hover:bg-[#1f2937] hover:border-white/30"
+                                  }
+                                `}
+                              >
+                                {isSelected && (
+                                  <div className="absolute -left-2 top-1/2 -translate-y-1/2">
+                                    <CheckCircle2
+                                      size={14}
+                                      className="text-cyan-400 drop-shadow-md"
+                                    />
+                                  </div>
+                                )}
+                                <span className="block transform skew-x-[10deg]">
+                                  {choice.text}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+
+                    // --- TYPE: NORMAL MESSAGE ---
+                    const msg = item.data;
+                    const isPlayer = msg.speaker.isPlayer;
+
+                    // Sequence Logic
+                    const prevItem = processedMessages[index - 1];
+                    const isSequence =
+                      prevItem?.type === "normal" &&
+                      prevItem.data.speaker.characterId ===
+                        msg.speaker.characterId;
+
+                    // Layout
+                    const justify = isPlayer ? "justify-end" : "justify-start";
+                    const align = isPlayer ? "items-end" : "items-start";
 
                     return (
-                      <div
-                        key={index}
-                        className="flex flex-col items-end gap-2 mt-6 mb-2 animate-in fade-in slide-in-from-bottom-2"
-                      >
-                        <div className="flex items-center gap-2 mb-1 mr-1 opacity-70">
-                          <GitBranch size={14} className="text-cyan-400" />
-                          <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400">
-                            Select Option
-                          </span>
-                        </div>
-
-                        {item.items.map((choice, cIdx) => {
-                          const isSelected = selectedIdx === cIdx;
-                          return (
-                            <button
-                              key={choice.id}
-                              onClick={() =>
-                                setSelectedChoices((prev) => ({
-                                  ...prev,
-                                  [index]: cIdx,
-                                }))
-                              }
-                              className={`
-                                                        relative px-6 py-3 rounded-2xl border-2 transition-all duration-300 ease-out text-sm lg:text-base font-medium max-w-[85%] lg:max-w-[60%] text-left
-                                                        ${
-                                                          isSelected
-                                                            ? "bg-gray-900/90 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-100 z-10"
-                                                            : "bg-gray-800/50 border-gray-600 text-gray-400 hover:bg-gray-800 hover:border-gray-500 scale-95 opacity-60"
-                                                        }
-                                                    `}
-                            >
-                              {isSelected && (
-                                <div className="absolute -left-3 top-1/2 -translate-y-1/2 bg-gray-900 rounded-full p-1 border border-cyan-500">
-                                  <CheckCircle2
-                                    size={12}
-                                    className="text-cyan-400"
-                                  />
-                                </div>
-                              )}
-                              {choice.text}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  }
-
-                  // --- CASE 2: PESAN NORMAL ---
-                  const msg = item.data;
-
-                  // Logic Grouping Sequence
-                  // Kita perlu melihat data 'asli' sebelumnya untuk spacing, tapi karena sudah di-process,
-                  // kita pakai pendekatan visual sederhana saja:
-                  const prevItem = processedMessages[index - 1];
-                  // Cek apakah item sebelumnya juga 'normal' dan dari speaker yang sama
-                  const isSequence =
-                    prevItem?.type === "normal" &&
-                    prevItem.data.speaker.characterId ===
-                      msg.speaker.characterId;
-
-                  const mt = isSequence ? "mt-1" : "mt-6";
-                  const isPlayer = msg.speaker.isPlayer;
-                  const justify = isPlayer ? "justify-end" : "justify-start";
-
-                  // Style Bubble
-                  const bgColor = isPlayer
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-700 text-white";
-                  const border = isPlayer
-                    ? "border border-blue-500"
-                    : "border-transparent";
-
-                  const rounded = isPlayer
-                    ? isSequence
-                      ? "rounded-l-xl rounded-br-xl rounded-tr-sm"
-                      : "rounded-l-xl rounded-br-xl rounded-tr-2xl"
-                    : isSequence
-                      ? "rounded-r-xl rounded-bl-xl rounded-tl-sm"
-                      : "rounded-r-xl rounded-bl-xl rounded-tl-2xl";
-
-                  return (
-                    <div key={index} className={`flex ${justify} ${mt}`}>
-                      <div
-                        className={`flex items-end max-w-[85%] lg:max-w-[60%] gap-3 ${isPlayer ? "flex-row-reverse" : "flex-row"}`}
-                      >
-                        {!isPlayer && (
-                          <div className="flex-shrink-0 w-10">
-                            {!isSequence && (
-                              <img
-                                src={
-                                  msg.speaker.icon ||
-                                  "/assets/icon/chara-avatar.png"
-                                }
-                                alt="Avatar"
-                                className="w-10 h-10 rounded-full object-cover border border-gray-600 bg-gray-800 shadow-md"
-                              />
-                            )}
-                          </div>
-                        )}
-
+                      <div key={index} className={`flex ${justify} group`}>
                         <div
-                          className={`flex flex-col ${isPlayer ? "items-end" : "items-start"}`}
+                          className={`flex ${align} max-w-[85%] lg:max-w-[70%] gap-3 ${isPlayer ? "flex-row-reverse" : "flex-row"}`}
                         >
-                          {!isPlayer && !isSequence && (
-                            <span className="text-xs text-gray-400 ml-1 mb-1 font-bold tracking-wide">
-                              {msg.speaker.name}
-                            </span>
+                          {/* Avatar */}
+                          {!isPlayer && (
+                            <div className="flex-shrink-0 w-10 h-10 mt-1">
+                              {!isSequence && (
+                                <img
+                                  src={
+                                    msg.speaker.icon ||
+                                    "/assets/icon/chara-avatar.png"
+                                  }
+                                  alt="Avatar"
+                                  className="w-10 h-10 rounded-full object-cover border border-white/10 bg-[#1f2937]"
+                                />
+                              )}
+                            </div>
                           )}
 
-                          <div
-                            className={`relative px-4 py-2 shadow-md break-words ${rounded} ${msg.stamp ? "bg-transparent p-0 shadow-none" : bgColor} ${border}`}
-                          >
-                            {msg.stamp ? (
-                              <img
-                                src={msg.stamp}
-                                alt="Stamp"
-                                className="w-32 h-auto object-contain"
-                              />
-                            ) : msg.image ? (
-                              <div className="flex flex-col gap-2">
-                                <img
-                                  src={msg.image}
-                                  alt="Attachment"
-                                  className="max-w-60 rounded-lg border border-white/20 cursor-pointer hover:opacity-90 transition-opacity"
-                                  onClick={() =>
-                                    window.open(msg.image!, "_blank")
-                                  }
-                                />
-                                {msg.text && (
-                                  <div
-                                    dangerouslySetInnerHTML={{
-                                      __html: parseText(msg.text),
-                                    }}
-                                  />
-                                )}
-                              </div>
-                            ) : (
-                              <div
-                                className="text-sm lg:text-base leading-relaxed"
-                                dangerouslySetInnerHTML={{
-                                  __html: parseText(msg.text),
-                                }}
-                              />
+                          <div className={`flex flex-col ${align}`}>
+                            {/* Name Tag */}
+                            {!isPlayer && !isSequence && (
+                              <span className="text-[10px] text-gray-400 ml-1 mb-1 font-bold tracking-wider uppercase">
+                                {msg.speaker.name}
+                              </span>
                             )}
+
+                            {/* Bubble */}
+                            <div
+                              className={`
+                                relative px-4 py-2.5 shadow-sm text-sm lg:text-base leading-relaxed break-words
+                                ${
+                                  msg.stamp
+                                    ? "bg-transparent p-0 shadow-none"
+                                    : isPlayer
+                                      ? "bg-gradient-to-br from-cyan-600 to-blue-700 text-white rounded-l-xl rounded-tr-xl rounded-br-sm border border-cyan-500/30"
+                                      : "bg-[#1f2937] text-gray-200 rounded-r-xl rounded-tl-xl rounded-bl-sm border border-white/5"
+                                }
+                              `}
+                            >
+                              {msg.stamp ? (
+                                <img
+                                  src={msg.stamp}
+                                  alt="Stamp"
+                                  className="w-28 h-auto object-contain drop-shadow-lg"
+                                />
+                              ) : msg.image ? (
+                                <div className="space-y-2">
+                                  <img
+                                    src={msg.image}
+                                    alt="Attachment"
+                                    className="max-w-xs rounded-lg border border-white/10 cursor-pointer hover:opacity-90 transition"
+                                    onClick={() =>
+                                      window.open(msg.image!, "_blank")
+                                    }
+                                  />
+                                  {msg.text && (
+                                    <div
+                                      dangerouslySetInnerHTML={{
+                                        __html: parseText(msg.text),
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                              ) : (
+                                <div
+                                  dangerouslySetInnerHTML={{
+                                    __html: parseText(msg.text),
+                                  }}
+                                />
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-                <div className="h-10"></div>
+                  {/* Spacer Bottom */}
+                  <div className="h-10"></div>
+                </div>
               </div>
             </>
           )}

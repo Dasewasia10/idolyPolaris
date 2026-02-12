@@ -14,8 +14,6 @@ import {
   Ribbon,
   Heart,
   Activity,
-  Database,
-  X,
 } from "lucide-react";
 
 import SearchBar from "../components/searchBar";
@@ -33,9 +31,9 @@ interface CardWithSourceName extends Card {
 
 const API_BASE_URL = "https://diveidolypapi.my.id/api";
 const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
-const ITEMS_PER_PAGE = 30;
+const ITEMS_PER_PAGE = 30; // Limit 20 Card
 
-// --- HELPER IMAGE URL (Sama) ---
+// --- HELPER IMAGE URL GENERATOR (Lokal untuk Modal di Page ini) ---
 const getCardImageUrl = (
   card: Card,
   type: "full" | "thumb" | "upper",
@@ -44,13 +42,16 @@ const getCardImageUrl = (
   const assetId = card.initialTitle;
   const rarity = card.initial;
   const hasAwakening = card.hasAwakening ?? false;
+
   const config = {
     full: { folder: "cardFull", ext: "webp" },
     thumb: { folder: "cardThumb", ext: "png" },
     upper: { folder: "cardUpper", ext: "png" },
   };
+
   const { folder, ext } = config[type];
   let index = 1;
+
   if (rarity < 5) {
     index = isEvolved ? 1 : 0;
   } else if (rarity === 5 && hasAwakening) {
@@ -58,14 +59,21 @@ const getCardImageUrl = (
   } else {
     index = 1;
   }
+
   return `${IMG_BASE_URL}/${folder}/img_card_${type}_${index}_${assetId}.${ext}`;
 };
 
 const getCardCosuUrl = (card: any) => {
-  if (card.images?.costume) return card.images.costume;
+  // Jika backend sudah menyediakan link costume (dari script sync-data.mjs), pakai itu.
+  if (card.images?.costume) {
+    return card.images.costume;
+  }
+
+  // Jika tidak ada, return gambar transparan atau placeholder
   return `${import.meta.env.BASE_URL}assets/default_image.png`;
 };
 
+// Function to generate unique identifier for Card
 const generateCardId = (card: Card): string => {
   const globalTitleWords = (card.title?.global ?? "NewCard").split(" ");
   const firstTwoWords = globalTitleWords.slice(0, 2).join("");
@@ -85,6 +93,7 @@ const matchWithCharacters = (cardSources: Source[], characters: any[]) =>
     };
   });
 
+// --- HELPER: Stat Bar Colors ---
 const getStatColorInfo = (type: "vocal" | "dance" | "visual" | "stamina") => {
   switch (type) {
     case "vocal":
@@ -114,44 +123,40 @@ const getStatColorInfo = (type: "vocal" | "dance" | "visual" | "stamina") => {
   }
 };
 
-// --- STYLE SELECT DARK MODE (Updated) ---
+// --- STYLE SELECT DARK MODE ---
 const customSelectStyles = {
-  control: (base: any, state: any) => ({
+  control: (base: any) => ({
     ...base,
-    backgroundColor: "#161b22", // Darker bg
-    borderColor: state.isFocused ? "#3b82f6" : "#30363d",
+    backgroundColor: "#1f2937", // bg-gray-800
+    borderColor: "#374151", // border-gray-700
     color: "white",
     minHeight: "42px",
-    boxShadow: state.isFocused ? "0 0 0 1px #3b82f6" : "none",
-    "&:hover": { borderColor: "#3b82f6" },
   }),
   singleValue: (base: any) => ({ ...base, color: "white" }),
   multiValue: (base: any) => ({
     ...base,
-    backgroundColor: "#1f2937",
-    border: "1px solid #374151",
+    backgroundColor: "#374151",
   }),
-  multiValueLabel: (base: any) => ({ ...base, color: "#e5e7eb" }),
+  multiValueLabel: (base: any) => ({
+    ...base,
+    color: "white",
+  }),
   multiValueRemove: (base: any) => ({
     ...base,
     color: "#9ca3af",
-    ":hover": { backgroundColor: "#ef4444", color: "white" },
+    ":hover": {
+      backgroundColor: "#ef4444",
+      color: "white",
+    },
   }),
-  menu: (base: any) => ({
-    ...base,
-    backgroundColor: "#161b22",
-    border: "1px solid #30363d",
-    zIndex: 50,
-  }),
+  menu: (base: any) => ({ ...base, backgroundColor: "#1f2937", zIndex: 50 }),
   option: (base: any, state: any) => ({
     ...base,
-    backgroundColor: state.isFocused ? "#1f2937" : "#161b22",
+    backgroundColor: state.isFocused ? "#374151" : "#1f2937",
     color: "white",
-    cursor: "pointer",
-    ":active": { backgroundColor: "#3b82f6" },
   }),
   input: (base: any) => ({ ...base, color: "white" }),
-  placeholder: (base: any) => ({ ...base, color: "#6b7280" }),
+  placeholder: (base: any) => ({ ...base, color: "#9ca3af" }),
 };
 
 const processCardSources = (cardSources: Source[], characters: any[]) => {
@@ -207,6 +212,7 @@ const processCardSources = (cardSources: Source[], characters: any[]) => {
                 global: "",
                 indo: "",
               },
+              // TAMBAHKAN INI SECARA EKSPLISIT AGAR AMAN
               source: item.yell.source,
             }
           : undefined,
@@ -220,11 +226,13 @@ const processCardSources = (cardSources: Source[], characters: any[]) => {
 
 const CardOverviewPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // --- DATA STATE ---
   const [characters, setCharacters] = useState<Character[]>([]);
   const [cardSources, setCardSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  // --- FILTER STATE ---
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
     searchParams.get("character"),
   );
@@ -234,6 +242,7 @@ const CardOverviewPage: React.FC = () => {
   );
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
   const [selectedGroups, setSelectedGroups] = useState<
     MultiValue<{ value: string; label: string }>
   >([]);
@@ -244,16 +253,20 @@ const CardOverviewPage: React.FC = () => {
     MultiValue<{ value: string; label: string; count?: number }>
   >([]);
 
+  // --- PAGINATION STATE ---
   const [currentPage, setCurrentPage] = useState(1);
+
+  // --- MODAL STATE ---
   const [selectedCard, setSelectedCard] = useState<CardWithSourceName | null>(
     null,
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEvolvedView, setIsEvolvedView] = useState(false);
+  const [isEvolvedView, setIsEvolvedView] = useState(false); // Untuk toggle gambar di modal
   const [primaryLanguage, setPrimaryLanguage] = useState<
     "japanese" | "global" | "indo"
   >("global");
 
+  // --- FETCH DATA ---
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -275,35 +288,51 @@ const CardOverviewPage: React.FC = () => {
 
   useEffect(() => {
     const charParam = searchParams.get("character");
-    if (charParam !== selectedCharacter) setSelectedCharacter(charParam);
+    if (charParam !== selectedCharacter) {
+      setSelectedCharacter(charParam);
+    }
   }, [searchParams]);
 
+  // --- PROCESSING DATA ---
   const sources = useMemo(
     () => processCardSources(cardSources, characters),
     [cardSources, characters],
   );
-  const allCards = useMemo(
-    () =>
-      sources.flatMap((source) =>
-        source.data.map((card) => ({ ...card, _sourceName: source.name })),
-      ),
-    [sources],
-  );
 
+  const allCards = useMemo(() => {
+    return sources.flatMap((source) =>
+      source.data.map((card) => ({
+        ...card,
+        _sourceName: source.name,
+      })),
+    );
+  }, [sources]);
+
+  // --- FILTER OPTIONS CALCULATION (RESTORED LOGIC) ---
+
+  // 1. Group Options
   const groupOptions = useMemo(() => {
     const groups = new Set<string>();
     characters.forEach((char) => {
-      if (char.groupName) groups.add(char.groupName);
+      if (char.groupName) {
+        groups.add(char.groupName);
+      }
     });
-    return Array.from(groups).map((group) => ({ value: group, label: group }));
+    return Array.from(groups).map((group) => ({
+      value: group,
+      label: group,
+    }));
   }, [characters]);
 
+  // 2. Character Options (dengan Count)
   const characterOptions = useMemo(() => {
     const counts: Record<string, number> = {};
     allCards.forEach((card) => {
-      if (card._sourceName)
+      if (card._sourceName) {
         counts[card._sourceName] = (counts[card._sourceName] || 0) + 1;
+      }
     });
+
     return Object.entries(counts)
       .map(([name, count]) => ({
         value: name,
@@ -313,12 +342,14 @@ const CardOverviewPage: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   }, [allCards]);
 
+  // 3. Category Options (dengan Count)
   const categoryOptions = useMemo(() => {
     const counts: Record<string, number> = {};
     allCards.forEach((card) => {
       const cat = card.category || "Unknown";
       counts[cat] = (counts[cat] || 0) + 1;
     });
+
     return Object.entries(counts)
       .map(([cat, count]) => ({
         value: cat,
@@ -328,24 +359,30 @@ const CardOverviewPage: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   }, [allCards]);
 
+  // --- FILTERING LOGIC ---
   const filteredCards = useMemo(() => {
     let result = allCards;
-    if (selectedCharacter)
+
+    if (selectedCharacter) {
       result = result.filter(
         (card) =>
           card._sourceName.toLowerCase() === selectedCharacter.toLowerCase(),
       );
-    if (selectedRarity)
+    }
+    if (selectedRarity) {
       result = result.filter((card) => card.initial === selectedRarity);
-    if (selectedAttribute)
+    }
+    if (selectedAttribute) {
       result = result.filter(
         (card) =>
           card.attribute.toLowerCase() === selectedAttribute.toLowerCase(),
       );
-    if (selectedType)
+    }
+    if (selectedType) {
       result = result.filter(
         (card) => card.type.toLowerCase() === selectedType.toLowerCase(),
       );
+    }
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -354,11 +391,15 @@ const CardOverviewPage: React.FC = () => {
           card.title?.japanese?.toLowerCase().includes(query) ||
           card.title?.indo?.toLowerCase().includes(query),
       );
-    }
+    } // Filter 3: Advanced Multi Selects (RESTORED)
+
+    // a. Groups
     if (selectedGroups.length > 0) {
       const selectedGroupValues = selectedGroups.map((g) => g.value);
       result = result.filter((card) => {
+        // Cari data karakter dari kartu ini
         const charData = characters.find((c) => c.name === card._sourceName);
+        // Cek apakah groupName karakter ini ada di list yg dipilih
         return (
           charData &&
           charData.groupName &&
@@ -366,18 +407,24 @@ const CardOverviewPage: React.FC = () => {
         );
       });
     }
+
+    // b. Characters (Specific)
     if (selectedCharacters.length > 0) {
       const selectedCharValues = selectedCharacters.map((c) => c.value);
       result = result.filter((card) =>
         selectedCharValues.includes(card._sourceName),
       );
     }
+
+    // c. Categories
     if (selectedCategories.length > 0) {
       const selectedCatValues = selectedCategories.map((c) => c.value);
       result = result.filter((card) =>
         selectedCatValues.includes(card.category || "Unknown"),
       );
     }
+
+    // Default Sorting: Newest Release Date
     return result.sort(
       (a, b) =>
         new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime(),
@@ -395,10 +442,14 @@ const CardOverviewPage: React.FC = () => {
     selectedCategories,
   ]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+  };
+
+  // --- PAGINATION LOGIC ---
   const totalPages = Math.ceil(filteredCards.length / ITEMS_PER_PAGE);
 
+  // Reset page saat filter berubah
   useEffect(() => {
     setCurrentPage(1);
   }, [
@@ -407,11 +458,9 @@ const CardOverviewPage: React.FC = () => {
     selectedAttribute,
     selectedType,
     searchQuery,
-    selectedGroups,
-    selectedCharacters,
-    selectedCategories,
   ]);
 
+  // Potong data sesuai halaman
   const paginatedCards = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredCards.slice(start, start + ITEMS_PER_PAGE);
@@ -420,17 +469,31 @@ const CardOverviewPage: React.FC = () => {
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+      // Scroll ke bagian atas list (bukan paling atas halaman)
       const listElement = document.getElementById("card-list-top");
-      if (listElement)
+      if (listElement) {
         listElement.scrollIntoView({ behavior: "smooth", block: "start" });
-      else window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
+  // --- HANDLER UI ---
+  const handleCharacterClick = (charName: string) => {
+    if (selectedCharacter === charName) {
+      setSelectedCharacter(null);
+      setSearchParams({});
+    } else {
+      setSelectedCharacter(charName);
+      setSearchParams({ character: charName });
     }
   };
 
   const handleCardClick = (card: CardWithSourceName) => {
     setSelectedCard(card);
     setIsModalOpen(true);
-    setIsEvolvedView(false);
+    setIsEvolvedView(false); // Reset view ke normal saat buka modal
   };
 
   const closeModal = () => {
@@ -440,13 +503,18 @@ const CardOverviewPage: React.FC = () => {
 
   const renderWithBr = (text?: string | string[]) => {
     if (!text) return null;
-    if (Array.isArray(text))
+
+    // Jika datanya Array (misal: ["Line 1", "Line 2"]), kita map langsung
+    if (Array.isArray(text)) {
       return text.map((line, index) => (
         <React.Fragment key={index}>
           {line}
           <br />
         </React.Fragment>
       ));
+    }
+
+    // Jika datanya String (misal: "Line 1\nLine 2"), kita split dulu
     return text.split("\n").map((line, index) => (
       <React.Fragment key={index}>
         {line}
@@ -455,8 +523,11 @@ const CardOverviewPage: React.FC = () => {
     ));
   };
 
+  // --- PAGINATION COMPONENT ---
   const Pagination = () => {
     if (totalPages <= 1) return null;
+
+    // Logic range halaman (Smart Pagination)
     const getPageNumbers = () => {
       const delta = 1;
       const range = [];
@@ -466,8 +537,9 @@ const CardOverviewPage: React.FC = () => {
           i === 1 ||
           i === totalPages ||
           (i >= currentPage - delta && i <= currentPage + delta)
-        )
+        ) {
           range.push(i);
+        }
       }
       let l;
       for (let i of range) {
@@ -482,21 +554,22 @@ const CardOverviewPage: React.FC = () => {
     };
 
     return (
-      <div className="flex justify-center items-center gap-2 py-6">
+      <div className="flex justify-center items-center gap-2 py-6 animate-in fade-in duration-300">
         <button
           onClick={() => handlePageChange(1)}
           disabled={currentPage === 1}
-          className="p-2 rounded bg-[#161b22] border border-white/10 text-gray-400 hover:text-white disabled:opacity-30"
+          className="p-2 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30"
         >
           <ChevronsLeft size={18} />
         </button>
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded bg-[#161b22] border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 mr-2"
+          className="p-2 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 mr-2"
         >
           <ChevronLeft size={18} />
         </button>
+
         {getPageNumbers().map((pageNum, idx) => (
           <button
             key={idx}
@@ -504,22 +577,29 @@ const CardOverviewPage: React.FC = () => {
               typeof pageNum === "number" && handlePageChange(pageNum)
             }
             disabled={typeof pageNum !== "number"}
-            className={`min-w-[32px] h-8 px-2 rounded text-sm font-bold border transition-all ${pageNum === currentPage ? "bg-cyan-600 border-cyan-500 text-white shadow-lg" : typeof pageNum !== "number" ? "text-gray-500 bg-transparent border-transparent" : "bg-[#161b22] border-white/10 text-gray-400 hover:bg-[#1f2937]"}`}
+            className={`min-w-[32px] h-8 px-2 rounded text-sm font-bold transition-all ${
+              pageNum === currentPage
+                ? "bg-pink-600 text-white scale-110"
+                : typeof pageNum !== "number"
+                  ? "text-gray-500 bg-transparent"
+                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+            }`}
           >
             {pageNum}
           </button>
         ))}
+
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded bg-[#161b22] border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 ml-2"
+          className="p-2 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 ml-2"
         >
           <ChevronRight size={18} />
         </button>
         <button
           onClick={() => handlePageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded bg-[#161b22] border border-white/10 text-gray-400 hover:text-white disabled:opacity-30"
+          className="p-2 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30"
         >
           <ChevronsRight size={18} />
         </button>
@@ -528,50 +608,22 @@ const CardOverviewPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0f1115] text-white font-sans relative selection:bg-cyan-500 selection:text-white">
-      {/* Background Texture */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-5 z-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      ></div>
-
-      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+    <div className="flex min-h-screen bg-gray-950 text-white font-sans">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header & Filters */}
-        <header className="sticky top-0 z-30 bg-[#0f1115]/90 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <header className="sticky top-0 z-30 bg-gray-950/90 backdrop-blur-md border-b border-gray-800 shadow-md">
           <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
-            {/* Title & Search */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-cyan-600 rounded text-black shadow-[0_0_15px_rgba(34,211,238,0.5)]">
-                  <Database size={20} />
-                </div>
-                <div>
-                  <span className="text-[10px] text-cyan-400 font-bold tracking-[0.2em] uppercase block">
-                    Card Database
-                  </span>
-                  <h1 className="text-2xl font-black italic tracking-tighter text-white">
-                    IDOL{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-                      ARCHIVE&nbsp;
-                    </span>
-                  </h1>
-                </div>
-              </div>
-
-              <div className="w-full md:w-auto relative group">
-                <SearchBar
-                  searchTerm={searchQuery}
-                  onSearchChange={handleSearchChange}
-                  placeholderText="Search card name / title..."
-                />
-              </div>
+            {/* Search Bar */}
+            <div className="relative">
+              <SearchBar
+                searchTerm={searchQuery}
+                onSearchChange={handleSearchChange}
+                placeholderText="Search by name or title or group"
+              />
             </div>
 
-            {/* Filter Controls (Grid Layout) */}
+            {/* Filter Controls */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Select
                 options={[
@@ -584,7 +636,21 @@ const CardOverviewPage: React.FC = () => {
                 ]}
                 placeholder="Rarity"
                 onChange={(opt) => setSelectedRarity(opt?.value || null)}
-                styles={customSelectStyles}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#1f2937",
+                    borderColor: "#374151",
+                    color: "white",
+                  }),
+                  singleValue: (base) => ({ ...base, color: "white" }),
+                  menu: (base) => ({ ...base, backgroundColor: "#1f2937" }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused ? "#374151" : "#1f2937",
+                    color: "white",
+                  }),
+                }}
               />
               <Select
                 options={[
@@ -595,7 +661,20 @@ const CardOverviewPage: React.FC = () => {
                 ]}
                 placeholder="Attribute"
                 onChange={(opt) => setSelectedAttribute(opt?.value || null)}
-                styles={customSelectStyles}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#1f2937",
+                    borderColor: "#374151",
+                  }),
+                  singleValue: (base) => ({ ...base, color: "white" }),
+                  menu: (base) => ({ ...base, backgroundColor: "#1f2937" }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused ? "#374151" : "#1f2937",
+                    color: "white",
+                  }),
+                }}
               />
               <Select
                 options={[
@@ -606,56 +685,130 @@ const CardOverviewPage: React.FC = () => {
                 ]}
                 placeholder="Type"
                 onChange={(opt) => setSelectedType(opt?.value || null)}
-                styles={customSelectStyles}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#1f2937",
+                    borderColor: "#374151",
+                  }),
+                  singleValue: (base) => ({ ...base, color: "white" }),
+                  menu: (base) => ({ ...base, backgroundColor: "#1f2937" }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused ? "#374151" : "#1f2937",
+                    color: "white",
+                  }),
+                }}
               />
+              {/* Groups */}
               <Select
                 isMulti
                 options={groupOptions}
                 value={selectedGroups}
-                onChange={(s) => setSelectedGroups(s as MultiValue<any>)}
-                placeholder="Groups..."
+                onChange={(selected) =>
+                  setSelectedGroups(
+                    selected as MultiValue<{
+                      value: string;
+                      label: string;
+                    }>,
+                  )
+                }
+                placeholder="Select Groups..."
+                classNamePrefix="select"
                 styles={customSelectStyles}
               />
+
+              {/* Characters (Multi) */}
               <Select
                 isMulti
                 options={characterOptions}
                 value={selectedCharacters}
-                onChange={(s) => setSelectedCharacters(s as MultiValue<any>)}
-                placeholder="Characters..."
+                onChange={(selected) =>
+                  setSelectedCharacters(
+                    selected as MultiValue<{
+                      value: string;
+                      label: string;
+                      count?: number;
+                    }>,
+                  )
+                }
+                placeholder="Select Characters..."
+                classNamePrefix="select"
                 styles={customSelectStyles}
               />
+
+              {/* Categories */}
               <Select
                 isMulti
                 options={categoryOptions}
                 value={selectedCategories}
-                onChange={(s) => setSelectedCategories(s as MultiValue<any>)}
-                placeholder="Categories..."
+                onChange={(selected) =>
+                  setSelectedCategories(
+                    selected as MultiValue<{
+                      value: string;
+                      label: string;
+                      count?: number;
+                    }>,
+                  )
+                }
+                placeholder="Select Categories..."
+                classNamePrefix="select"
                 styles={customSelectStyles}
               />
+            </div>
+
+            {/* Language Toggle */}
+            <div className="flex justify-between items-center">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPrimaryLanguage("japanese")}
+                  className={`px-3 py-1 rounded text-base transition-colors ${primaryLanguage === "japanese" ? "bg-pink-600" : "bg-gray-700 hover:bg-gray-600"}`}
+                >
+                  JP
+                </button>
+                <button
+                  onClick={() => setPrimaryLanguage("global")}
+                  className={`px-3 py-1 rounded text-base transition-colors ${primaryLanguage === "global" ? "bg-pink-600" : "bg-gray-700 hover:bg-gray-600"}`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => setPrimaryLanguage("indo")}
+                  className={`px-3 py-1 rounded text-base transition-colors ${primaryLanguage === "indo" ? "bg-pink-600" : "bg-gray-700 hover:bg-gray-600"}`}
+                >
+                  ID
+                </button>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8" id="card-list-top">
+        {/* Card List Area */}
+        <main
+          className="flex-1 p-4 md:p-8 bg-gray-950/50 text-gray-800"
+          id="card-list-top"
+        >
           <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-6 pb-2 border-b border-white/5 text-gray-400 text-xs font-mono">
+            <div className="flex justify-between items-center mb-4 text-gray-400 text-sm">
               <p>
-                QUERY RESULT:{" "}
-                <span className="text-cyan-400 font-bold">
+                Found{" "}
+                <span className="text-pink-400 font-bold">
                   {filteredCards.length}
                 </span>{" "}
-                RECORDS FOUND
+                cards
               </p>
               <p>
-                PAGE {currentPage} / {totalPages || 1}
+                Page {currentPage} of {totalPages || 1}
               </p>
             </div>
 
+            {/* TOP PAGINATION */}
+            <Pagination />
+
+            {/* LIST */}
             {loading ? (
-              <div className="flex flex-col items-center justify-center h-64 text-cyan-500 font-mono tracking-widest animate-pulse">
-                <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                ACCESSING DATABASE...
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
               </div>
             ) : filteredCards.length > 0 ? (
               <CardList
@@ -664,8 +817,8 @@ const CardOverviewPage: React.FC = () => {
                 primaryLanguage={primaryLanguage}
               />
             ) : (
-              <div className="text-center py-20 text-gray-500 bg-[#161b22] rounded-xl border border-dashed border-white/10 font-mono">
-                <p>NO DATA MATCHING FILTERS</p>
+              <div className="text-center py-20 text-gray-500 bg-gray-900/50 rounded-xl border border-dashed border-gray-800">
+                <p className="text-lg">No cards found matching your filters.</p>
                 <button
                   onClick={() => {
                     setSearchQuery("");
@@ -675,71 +828,98 @@ const CardOverviewPage: React.FC = () => {
                     setSelectedCharacter(null);
                     setSearchParams({});
                   }}
-                  className="mt-4 text-cyan-400 hover:underline"
+                  className="mt-4 text-pink-400 hover:underline"
                 >
-                  RESET FILTERS
+                  Clear all filters
                 </button>
               </div>
             )}
 
+            {/* BOTTOM PAGINATION */}
             <Pagination />
           </div>
         </main>
       </div>
 
-      {/* --- MODAL DETAIL --- */}
+      {/* --- MODAL DETAIL (Disesuaikan Image Source-nya) --- */}
       {isModalOpen && selectedCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-7xl rounded-2xl bg-[#161b22] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[75vh]">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center p-4 border-b border-white/10 bg-[#0d1117]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="relative w-full max-w-7xl rounded-2xl bg-gray-900 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header Modal */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-800 bg-gray-900 sticky top-0 z-10">
               <div className="flex gap-2">
-                {(["japanese", "global", "indo"] as const).map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => setPrimaryLanguage(lang)}
-                    className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-all ${primaryLanguage === lang ? "bg-cyan-600 text-white" : "bg-[#1f2937] text-gray-400 hover:text-white"}`}
-                  >
-                    {lang === "japanese"
-                      ? "JP"
-                      : lang === "global"
-                        ? "EN"
-                        : "ID"}
-                  </button>
-                ))}
+                <button
+                  onClick={() => setPrimaryLanguage("japanese")}
+                  className={`px-3 py-1 rounded text-xs transition-colors ${primaryLanguage === "japanese" ? "bg-pink-600" : "bg-gray-700 hover:bg-gray-600"}`}
+                >
+                  JP
+                </button>
+                <button
+                  onClick={() => setPrimaryLanguage("global")}
+                  className={`px-3 py-1 rounded text-xs transition-colors ${primaryLanguage === "global" ? "bg-pink-600" : "bg-gray-700 hover:bg-gray-600"}`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => setPrimaryLanguage("indo")}
+                  className={`px-3 py-1 rounded text-xs transition-colors ${primaryLanguage === "indo" ? "bg-pink-600" : "bg-gray-700 hover:bg-gray-600"}`}
+                >
+                  ID
+                </button>
               </div>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition"
+                className="p-2 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
               >
-                <X size={20} />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
               </button>
             </div>
 
-            <div className="flex flex-col lg:flex-row h-full overflow-hidden">
-              {/* Left: Image (Dark) */}
-              <div className="lg:w-1/2 bg-[#0a0c10] flex items-center justify-center p-6 relative group">
-                {/* Grid Pattern */}
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-
-                <div className="relative w-full max-w-md">
+            {/* Content Modal */}
+            <div className="flex flex-col lg:flex-row max-h-[30rem]">
+              {/* Kiri: Gambar */}
+              <div className="lg:w-1/2 p-6 bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center relative">
+                <div className="relative w-full">
+                  {/* LOGIC GAMBAR:
+                        - Jika Bintang 5: Ikuti state toggle (isEvolvedView). Default false (Base).
+                        - Jika Bintang < 5: Paksa true (karena biasanya gambar ada di index 1/evolved, index 0 kosong).
+                    */}
                   <img
                     src={getCardImageUrl(
                       selectedCard,
                       "full",
                       selectedCard.initial === 5 ? isEvolvedView : true,
                     )}
-                    className="w-full h-auto rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10"
+                    className="w-full h-auto rounded-xl shadow-[0_0_25px_rgba(0,0,0,0.5)] border border-gray-700"
                     alt="Card Art"
                     onError={(e) => {
+                      // Hapus fallback ke thumb, langsung ke placeholder jika gagal
                       e.currentTarget.src = getPlaceholderImageUrl("rect");
                     }}
                   />
+
+                  {/* Toggle Evolution Button 
+                        HANYA MUNCUL JIKA INITIAL == 5 (Punya Base & Evolved)
+                    */}
                   {selectedCard.initial === 5 && (
                     <button
                       onClick={() => setIsEvolvedView(!isEvolvedView)}
-                      className="absolute bottom-4 right-4 bg-black/80 text-cyan-400 p-3 rounded-full backdrop-blur border border-cyan-500/50 hover:bg-cyan-500 hover:text-white transition-all shadow-lg"
+                      className="absolute bottom-4 right-4 bg-black/60 hover:bg-pink-600 text-white p-2.5 rounded-full backdrop-blur-sm transition-all border border-white/20 shadow-lg group"
+                      title="Switch Art"
                     >
+                      {/* Icon Refresh/Switch */}
                       <svg
                         className={`w-5 h-5 transition-transform duration-500 ${isEvolvedView ? "rotate-180" : ""}`}
                         fill="none"
@@ -758,91 +938,106 @@ const CardOverviewPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right: Info (Scrollable) */}
-              <div className="lg:w-1/2 bg-[#161b22] p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent space-y-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <img
-                        src={getCardTypeImageUrl(selectedCard.type)}
-                        className="w-5 h-5"
-                        alt={selectedCard.type}
-                      />
-                      <img
-                        src={getAttributeImageUrl(selectedCard.attribute)}
-                        className="w-5 h-5"
-                        alt={selectedCard.attribute}
-                      />
-                      <span
-                        className={`text-lg font-bold ${selectedCard.initial === 5 ? "text-pink-400 drop-shadow-md" : "text-yellow-400"}`}
-                      >
-                        {"★".repeat(selectedCard.initial)}
+              {/* Kanan: Info (Tetap seperti sebelumnya) */}
+              <div className="lg:w-1/2 p-6 space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <img
+                          src={getCardTypeImageUrl(selectedCard.type)}
+                          className="w-6 h-6"
+                          alt={selectedCard.type}
+                        />
+                        <img
+                          src={getAttributeImageUrl(selectedCard.attribute)}
+                          className="w-6 h-6"
+                          alt={selectedCard.attribute}
+                        />
+                        <span className="text-yellow-400 font-bold text-lg">
+                          {"★".repeat(selectedCard.initial)}
+                        </span>
+                      </div>
+                      <h2 className="text-2xl font-bold text-white mb-1">
+                        {selectedCard.title?.[primaryLanguage] ||
+                          selectedCard.title?.global}
+                      </h2>
+                      <p className="text-gray-400 italic mb-4">
+                        {selectedCard.initialTitle}
+                      </p>
+                    </div>
+                    {getCardCosuUrl(selectedCard) !=
+                      `${import.meta.env.BASE_URL}assets/default_image.png` && (
+                      <div id="costume-icon" className="h-20 w-auto mr-6">
+                        {selectedCard.initial === 5 && (
+                          <img
+                            // Gunakan fungsi getCardCosuUrl yang baru
+                            src={getCardCosuUrl(selectedCard)}
+                            alt={`Costume ${selectedCard.uniqueId}`}
+                            className="h-auto w-10 rounded bg-white object-cover p-1 lg:w-20"
+                            onError={(e) => {
+                              e.currentTarget.src = `${
+                                import.meta.env.BASE_URL
+                              }assets/default_image.png`;
+                              e.currentTarget.alt = "Image not available";
+                            }}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* --- STATS SECTION --- */}
+                  <div className="mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700">
+                    {/* Total Stats */}
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+                      <div className="flex items-center gap-2 text-gray-300 font-bold">
+                        <Activity size={18} className="text-pink-500" />
+                        TOTAL POWER
+                      </div>
+                      <span className="text-xl font-black text-white">
+                        {selectedCard.stats.total.toLocaleString()}
                       </span>
                     </div>
-                    <h2 className="text-2xl font-bold text-white leading-tight">
-                      {selectedCard.title?.[primaryLanguage] ||
-                        selectedCard.title?.global}
-                    </h2>
-                    <p className="text-sm text-gray-500 font-mono mt-1 uppercase tracking-wide">
-                      {selectedCard.initialTitle}
-                    </p>
-                  </div>
-                  {getCardCosuUrl(selectedCard) !==
-                    `${import.meta.env.BASE_URL}assets/default_image.png` &&
-                    selectedCard.initial === 5 && (
-                      <img
-                        src={getCardCosuUrl(selectedCard)}
-                        alt="costume"
-                        className="w-16 h-auto rounded border border-white/20 bg-black/50 py-2 px-1 mr-2"
-                      />
+
+                    {/* Stat Bars Horizontal */}
+                    {(["vocal", "dance", "visual", "stamina"] as const).map(
+                      (stat) => {
+                        const info = getStatColorInfo(stat);
+                        const value = selectedCard.stats[stat];
+                        const maxStat = 150000; // Standard max stat
+                        const percent = Math.min((value / maxStat) * 100, 100);
+
+                        return (
+                          <div key={stat} className="mb-3 last:mb-0">
+                            <div className="flex justify-between text-xs mb-1">
+                              <div
+                                className={`flex items-center gap-1.5 font-bold uppercase ${info.text}`}
+                              >
+                                {info.icon}
+                                {stat}
+                              </div>
+                              <span className="text-white font-mono">
+                                {value.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="h-2 bg-gray-900 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full ${info.color} rounded-full transition-all duration-500`}
+                                style={{ width: `${percent}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        );
+                      },
                     )}
-                </div>
-
-                {/* Stats */}
-                <div className="bg-[#0d1117] p-4 rounded-xl border border-white/10">
-                  <div className="flex justify-between items-end mb-4 border-b border-white/5 pb-2">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                      {" "}
-                      <Activity size={14} className="text-cyan-500" />{" "}
-                      Performance
-                    </span>
-                    <span className="text-xl font-black text-white font-mono">
-                      {selectedCard.stats.total.toLocaleString()}
-                    </span>
                   </div>
-                  {(["vocal", "dance", "visual", "stamina"] as const).map(
-                    (stat) => {
-                      const info = getStatColorInfo(stat);
-                      const value = selectedCard.stats[stat];
-                      const percent = Math.min((value / 150000) * 100, 100);
-                      return (
-                        <div key={stat} className="mb-3 last:mb-0">
-                          <div className="flex justify-between text-[10px] uppercase font-bold mb-1">
-                            <span
-                              className={`flex items-center gap-1 ${info.text}`}
-                            >
-                              {info.icon} {stat}
-                            </span>
-                            <span className="text-white font-mono">
-                              {value.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="h-1.5 bg-[#1f2937] rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${info.color} rounded-full`}
-                              style={{ width: `${percent}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    },
-                  )}
                 </div>
 
-                {/* Skills */}
+                {/* --- SKILLS & YELL SECTION --- */}
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
-                    Skill Data
+                  <h3 className="text-sm font-bold text-gray-400 border-b border-gray-800 pb-1 mb-2">
+                    SKILLS & YELL
                   </h3>
                   {[
                     selectedCard.skillOne,
@@ -853,40 +1048,52 @@ const CardOverviewPage: React.FC = () => {
                   ]
                     .filter(Boolean)
                     .map((skill, idx) => {
+                      // Guard Clause: Lewati jika null/undefined
                       if (!skill) return null;
+
+                      // Logic Check
                       const isYell = !("typeSkill" in skill);
                       const isSkillFour = skill === selectedCard.skillFour;
+
                       return (
                         <div
                           key={idx}
-                          className={`p-4 rounded-lg border text-sm transition-all ${isYell ? "bg-purple-900/10 border-purple-500/20" : "bg-[#0d1117] border-white/5 hover:border-white/20"} ${isSkillFour ? "border-yellow-500/30 bg-yellow-900/5" : ""}`}
+                          className={`p-3 rounded-lg border text-sm transition-all
+                                    ${isYell ? "bg-purple-900/10 border-purple-500/30" : "bg-gray-800/40 border-gray-700"}
+                                    ${isSkillFour ? "border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.1)] bg-yellow-900/10" : ""}
+                                `}
                         >
-                          <div className="flex flex-wrap justify-between items-start mb-2 gap-2">
+                          <div className="flex flex-wrap justify-between items-start mb-1.5 gap-2">
+                            {/* Nama Skill */}
                             <h4
-                              className={`font-bold text-sm ${isYell ? "text-purple-300" : isSkillFour ? "text-yellow-300" : "text-pink-300"}`}
+                              className={`font-bold text-base ${isYell ? "text-purple-300" : isSkillFour ? "text-yellow-300" : "text-pink-300"}`}
                             >
-                              {isYell && (
-                                <span className="text-[9px] bg-purple-600 text-white px-1 rounded mr-2">
-                                  PASSIVE
-                                </span>
-                              )}
+                              {isYell ? "[YELL] " : ""}
                               {skill?.name?.[primaryLanguage] ||
                                 skill?.name?.global}
                             </h4>
+
                             <div className="flex gap-1 flex-wrap justify-end">
+                              {/* Type Skill Badge (Cek property 'typeSkill') */}
                               {"typeSkill" in skill && skill.typeSkill && (
-                                <span className="text-[9px] bg-blue-900/30 text-blue-300 px-1.5 py-0.5 rounded border border-blue-800/50">
+                                <span
+                                  className="text-[10px] bg-blue-900/50 text-blue-200 px-1.5 py-0.5 rounded border border-blue-800 whitespace-nowrap"
+                                  title={skill.typeSkill}
+                                >
                                   {skill.typeSkill}
                                 </span>
                               )}
+                              {/* CT Badge (Cek property 'ct') */}
                               {"ct" in skill && (
-                                <span className="text-[9px] bg-[#1f2937] text-gray-400 px-1.5 py-0.5 rounded border border-white/10 font-mono">
-                                  CT:{skill.ct}
+                                <span className="text-[10px] bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded border border-gray-600 whitespace-nowrap">
+                                  CT: {skill.ct}
                                 </span>
                               )}
                             </div>
                           </div>
-                          <p className="text-gray-400 text-xs leading-relaxed font-sans border-l-2 border-white/10 pl-2">
+
+                          {/* Deskripsi Skill */}
+                          <p className="text-gray-300 whitespace-pre-wrap leading-relaxed text-xs sm:text-sm pl-1 border-l-2 border-gray-700">
                             {renderWithBr(
                               skill?.description?.[primaryLanguage] ||
                                 skill?.description?.global,

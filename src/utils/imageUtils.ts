@@ -186,7 +186,7 @@ export const getSpecialGiftItemImageUrl = (characterName: string): string => {
     Saki: "ski",
     Sakura: "skr",
     Shizuku: "szk",
-    Chisa: "chn",
+    Chisa: "chs",
     Haruko: "hrk",
     Rei: "rei",
     Rui: "rui",
@@ -197,7 +197,7 @@ export const getSpecialGiftItemImageUrl = (characterName: string): string => {
     Ai: "ai",
     Kokoro: "kkr",
     fran: "kor",
-    kana: "kna",
+    kana: "kan",
     miho: "mhk",
   };
 

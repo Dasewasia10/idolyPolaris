@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { FaCheckCircle, FaTimesCircle, FaTimes } from "react-icons/fa";
+import { CheckCircle, XCircle, X } from "lucide-react";
 
 interface ToastProps {
   message: string;
@@ -12,8 +12,7 @@ const Toast: React.FC<ToastProps> = ({ message, isSuccess, onClose }) => {
     if (message) {
       const timer = setTimeout(() => {
         onClose();
-      }, 2000);
-
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [message, isSuccess, onClose]);
@@ -22,25 +21,27 @@ const Toast: React.FC<ToastProps> = ({ message, isSuccess, onClose }) => {
 
   return (
     <div
-      className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-[9999]  flex items-center justify-between p-4 rounded-lg shadow-lg ${
-        isSuccess ? "bg-green-500" : "bg-red-500"
-      } text-white min-w-[300px] max-w-[90%] md:max-w-[400px] ${
-        message ? "toast-enter" : "toast-exit"
-      }`}
+      className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-[9999] flex items-center justify-between p-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-md border animate-in slide-in-from-top-4 duration-300 min-w-[320px] max-w-[90%]
+        ${
+          isSuccess
+            ? "bg-green-900/80 border-green-500/50 text-green-100"
+            : "bg-red-900/80 border-red-500/50 text-red-100"
+        }
+      `}
     >
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
         {isSuccess ? (
-          <FaCheckCircle className="mr-3 text-xl" />
+          <CheckCircle size={20} className="text-green-400" />
         ) : (
-          <FaTimesCircle className="mr-3 text-xl" />
+          <XCircle size={20} className="text-red-400" />
         )}
-        <span className="text-sm font-medium">{message}</span>
+        <span className="text-sm font-semibold tracking-wide">{message}</span>
       </div>
       <button
         onClick={onClose}
-        className="ml-4 text-white hover:text-white/70 focus:outline-none"
+        className="ml-4 p-1 hover:bg-white/10 rounded-full transition-colors"
       >
-        <FaTimes />
+        <X size={16} />
       </button>
     </div>
   );

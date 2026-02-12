@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import {
   BookOpen,
   Calendar as CalendarIcon,
-  Globe,
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  FileText,
+  Clock,
 } from "lucide-react";
 import axios from "axios";
 
@@ -26,7 +27,7 @@ const ManaDiaryPage: React.FC = () => {
   const [language, setLanguage] = useState<"jp" | "en">("jp");
 
   // State
-  const [currentDate, setCurrentDate] = useState(new Date(2016, 5, 1)); // Juni 2016
+  const [currentDate, setCurrentDate] = useState(new Date(2016, 4, 1)); // Juni 2016
   const [selectedEntry, setSelectedEntry] = useState<DiaryEntry | null>(null);
 
   // 1. FETCH DATA
@@ -37,11 +38,9 @@ const ManaDiaryPage: React.FC = () => {
         const data = res.data;
         setEntries(data);
 
-        // AUTO SELECT: Pilih entry pertama kali ditemukan agar kanan tidak kosong
         if (data.length > 0) {
-          // Cari entry yang paling awal (biasanya index 0 kalau backend udah sort, tapi kita cari aman)
           const firstEntry = data.find(
-            (e: DiaryEntry) => e.year === "2016" && e.month === "06",
+            (e: DiaryEntry) => e.year === "2016" && e.month === "05",
           );
           if (firstEntry) setSelectedEntry(firstEntry);
           else setSelectedEntry(data[0]);
@@ -100,190 +99,250 @@ const ManaDiaryPage: React.FC = () => {
 
   if (loading)
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950 text-blue-300 animate-pulse">
-        Opening Records...
+      <div className="flex h-screen items-center justify-center bg-[#0f172a] text-pink-400 font-mono tracking-widest animate-pulse">
+        ACCESSING ARCHIVE...
       </div>
     );
 
   return (
-    <div className=" bg-slate-950 text-slate-200 font-sans pb-20 px-4">
-      {/* HEADER */}
-      <div className="max-w-4xl mx-auto text-center mb-8 pt-10">
-        <h1 className="text-3xl font-bold text-blue-200 mb-2 font-serif flex justify-center items-center gap-2">
-          <BookOpen className="text-pink-400" />
-          Mana's Diary
-        </h1>
-
-        {/* Language Switcher */}
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={() => setLanguage(language === "jp" ? "en" : "jp")}
-            className="flex items-center gap-2 px-4 py-1.5 bg-slate-800 rounded-full border border-slate-700 hover:border-pink-500 transition-all text-sm"
-          >
-            <Globe size={14} />
-            <span
-              className={
-                language === "jp" ? "text-pink-300 font-bold" : "text-slate-400"
-              }
-            >
-              JP
-            </span>
-            <span className="text-slate-600">|</span>
-            <span
-              className={
-                language === "en" ? "text-blue-300 font-bold" : "text-slate-400"
-              }
-            >
-              EN
-            </span>
-          </button>
-        </div>
+    <div className="min-h-screen bg-[#0f1115] text-slate-200 font-sans pb-20 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div
+          className="w-full h-full"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(236, 72, 153, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(236, 72, 153, 0.05) 1px, transparent 1px)",
+            backgroundSize: "30px 30px",
+          }}
+        ></div>
       </div>
+      {/* Decorative Gradient Orbs */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-pink-600/20 blur-[150px] rounded-full pointer-events-none"></div>
+      <div className="fixed top-1/2 -right-40 w-[30rem] h-[30rem] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none"></div>
 
-      <main className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-10 relative z-10">
+        {/* HEADER SECTION */}
+        <header className="flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-6 mb-10 gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-pink-400 mb-1">
+              <span className="text-[10px] tracking-[0.3em] font-bold uppercase">
+                Private Archive
+              </span>
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-black italic tracking-tighter text-white flex items-center gap-3">
+              MANA'S{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                DIARY&nbsp;
+              </span>
+            </h1>
+          </div>
+
+          {/* Language Switcher (Skewed Style) */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setLanguage("jp")}
+              className={`px-6 py-2 transform skew-x-[-12deg] font-bold text-sm transition-all border border-white/10 ${
+                language === "jp"
+                  ? "bg-pink-600 text-white shadow-[0_0_15px_rgba(236,72,153,0.4)]"
+                  : "bg-slate-900/50 text-slate-500 hover:text-white"
+              }`}
+            >
+              <span className="block transform skew-x-[12deg]">JAPANESE</span>
+            </button>
+            <button
+              onClick={() => setLanguage("en")}
+              className={`px-6 py-2 transform skew-x-[-12deg] font-bold text-sm transition-all border border-white/10 ${
+                language === "en"
+                  ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                  : "bg-slate-900/50 text-slate-500 hover:text-white"
+              }`}
+            >
+              <span className="block transform skew-x-[12deg]">GLOBAL</span>
+            </button>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* --- LEFT COLUMN: CALENDAR (5 cols) --- */}
-          <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden sticky top-24">
-            {/* Month Navigation */}
-            <div className="flex items-center justify-between p-4 bg-slate-800/50 border-b border-slate-700">
-              <button
-                onClick={handlePrevMonth}
-                className="p-2 hover:bg-slate-700 rounded-full transition-colors"
-              >
-                <ChevronLeft className="text-slate-400" />
-              </button>
-              <h2 className="text-lg font-bold text-slate-200 font-serif">
-                {currentDate.toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </h2>
-              <button
-                onClick={handleNextMonth}
-                className="p-2 hover:bg-slate-700 rounded-full transition-colors"
-              >
-                <ChevronRight className="text-slate-400" />
-              </button>
-            </div>
-
-            {/* Days Grid */}
-            <div className="p-4">
-              <div className="grid grid-cols-7 mb-2 text-center">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                  (day) => (
-                    <div
-                      key={day}
-                      className="text-[10px] text-slate-500 font-bold uppercase tracking-wider py-2"
-                    >
-                      {day}
-                    </div>
-                  ),
-                )}
+          <div className="lg:col-span-5 sticky top-24">
+            {/* Calendar Container */}
+            <div
+              className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 shadow-2xl overflow-hidden"
+              style={{
+                clipPath: "polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%)",
+              }}
+            >
+              {/* Month Navigation */}
+              <div className="flex items-center justify-between p-5 bg-gradient-to-r from-pink-900/20 to-transparent border-b border-white/5">
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-2 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-white"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <div className="text-center">
+                  <span className="block text-xs text-pink-400 font-bold tracking-widest uppercase">
+                    Select Date
+                  </span>
+                  <h2 className="text-xl font-bold text-white font-mono tracking-tight">
+                    {currentDate
+                      .toLocaleDateString("en-US", {
+                        month: "long",
+                        year: "numeric",
+                      })
+                      .toUpperCase()}
+                  </h2>
+                </div>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-2 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-white"
+                >
+                  <ChevronRight size={20} />
+                </button>
               </div>
 
-              <div className="grid grid-cols-7 gap-1.5">
-                {[...Array(firstDayOfMonth)].map((_, i) => (
-                  <div key={`empty-${i}`} />
-                ))}
+              {/* Days Grid */}
+              <div className="p-6">
+                <div className="grid grid-cols-7 mb-4 text-center">
+                  {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(
+                    (day) => (
+                      <div
+                        key={day}
+                        className="text-[10px] text-gray-500 font-bold tracking-wider"
+                      >
+                        {day}
+                      </div>
+                    ),
+                  )}
+                </div>
 
-                {[...Array(daysInMonth)].map((_, i) => {
-                  const day = i + 1;
-                  const entry = getEntryForDay(day);
-                  const hasEntry = !!entry;
-                  const isSelected =
-                    selectedEntry && entry && selectedEntry.date === entry.date;
+                <div className="grid grid-cols-7 gap-2">
+                  {[...Array(firstDayOfMonth)].map((_, i) => (
+                    <div key={`empty-${i}`} />
+                  ))}
 
-                  return (
-                    <button
-                      key={day}
-                      disabled={!hasEntry}
-                      onClick={() => entry && setSelectedEntry(entry)}
-                      className={`
-                        relative h-9 w-full rounded-md flex items-center justify-center text-sm font-medium transition-all duration-200
-                        ${
-                          isSelected
-                            ? "bg-pink-500 text-white ring-2 ring-pink-300 ring-offset-2 ring-offset-slate-900"
-                            : hasEntry
-                              ? "bg-blue-900/20 text-blue-200 hover:bg-blue-800 border border-blue-500/20"
-                              : "text-slate-700 cursor-default"
-                        }
-                      `}
-                    >
-                      {day}
-                      {hasEntry && !isSelected && (
-                        <span className="absolute bottom-1 w-1 h-1 bg-pink-400 rounded-full"></span>
-                      )}
-                    </button>
-                  );
-                })}
+                  {[...Array(daysInMonth)].map((_, i) => {
+                    const day = i + 1;
+                    const entry = getEntryForDay(day);
+                    const hasEntry = !!entry;
+                    const isSelected =
+                      selectedEntry &&
+                      entry &&
+                      selectedEntry.date === entry.date;
+
+                    return (
+                      <button
+                        key={day}
+                        disabled={!hasEntry}
+                        onClick={() => entry && setSelectedEntry(entry)}
+                        className={`
+                          relative h-10 w-full flex items-center justify-center text-sm font-bold transition-all duration-200 group
+                          ${
+                            isSelected
+                              ? "bg-pink-600 text-white shadow-[0_0_10px_rgba(236,72,153,0.5)] border border-pink-400"
+                              : hasEntry
+                                ? "bg-slate-800/50 text-white hover:bg-pink-900/30 hover:border-pink-500/50 border border-transparent"
+                                : "text-gray-700 cursor-default"
+                          }
+                        `}
+                        // Membuat sudut sedikit miring
+                        style={{
+                          clipPath:
+                            "polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%)",
+                        }}
+                      >
+                        {day}
+                        {hasEntry && !isSelected && (
+                          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-pink-500 rounded-full shadow-[0_0_5px_#ec4899]"></span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
-            <div className="p-3 bg-slate-950/50 text-center text-[10px] text-slate-500 border-t border-slate-800">
-              Days with dots have diary entries.
+              <div className="px-6 py-3 bg-[#0d1117] text-[10px] text-gray-500 border-t border-white/5 flex items-center gap-2 font-mono">
+                <div className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse"></div>
+                AVAILABLE RECORDS
+              </div>
             </div>
           </div>
-          <div className="lg:col-span-2"></div>
+
           {/* --- RIGHT COLUMN: IMAGE VIEWER (7 cols) --- */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-7">
             {selectedEntry ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-1 shadow-2xl relative group">
-                {/* Header Card */}
-                <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-slate-900/90 to-transparent z-10 flex justify-between items-start rounded-t-2xl">
-                  <div className="flex items-center gap-2 text-blue-200 bg-slate-950/50 backdrop-blur px-3 py-1 rounded-full border border-slate-700/50">
-                    <CalendarIcon size={14} />
-                    <span className="font-bold text-sm">
-                      {new Date(selectedEntry.date).toLocaleDateString(
-                        undefined,
-                        { dateStyle: "long" },
-                      )}
-                    </span>
+              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Meta Info Bar */}
+                <div className="flex items-center justify-between bg-white/5 border border-white/10 px-4 py-2 rounded-t-lg backdrop-blur">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-pink-300">
+                      <CalendarIcon size={14} />
+                      <span className="text-sm font-mono font-bold">
+                        {selectedEntry.date}
+                      </span>
+                    </div>
+                    <div className="h-4 w-[1px] bg-white/10"></div>
+                    <div className="flex items-center gap-2 text-blue-300">
+                      <FileText size={14} />
+                      <span className="text-xs font-mono uppercase tracking-wide">
+                        {language === "jp" ? "Original" : "Translated"}
+                      </span>
+                    </div>
                   </div>
-                  {/* Open Original (New Tab) */}
                   <a
                     href={getImageUrl(selectedEntry)}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-2 bg-slate-950/50 backdrop-blur rounded-full hover:bg-pink-500 hover:text-white text-slate-400 transition-colors"
-                    title="Open Full Size"
+                    className="p-1.5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition"
+                    title="Maximize"
                   >
                     <Maximize2 size={16} />
                   </a>
                 </div>
 
-                {/* Image Container */}
-                <div className="relative bg-[#fdfbf7] rounded-xl overflow-hidden min-h-[100px] flex items-center justify-center">
-                  {/* Paper Texture Overlay */}
-                  <div className="absolute inset-0 bg-yellow-500/5 pointer-events-none mix-blend-multiply" />
+                {/* Image Container - Looks like a file viewer */}
+                <div className="relative bg-[#1a1d26] border border-white/10 p-2 shadow-2xl">
+                  {/* Decorative Corners */}
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-pink-500/50"></div>
+                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-pink-500/50"></div>
+                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-pink-500/50"></div>
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-pink-500/50"></div>
 
-                  <img
-                    src={getImageUrl(selectedEntry)}
-                    alt={`Diary ${selectedEntry.date}`}
-                    className="w-max h-full object-contain max-h-[32rem]" // Constraint height biar gak kegedean
-                    loading="lazy"
-                  />
+                  <div className="bg-[#fdfbf7] relative overflow-hidden flex items-center justify-center min-h-[400px]">
+                    {/* Paper Texture Overlay */}
+                    <div className="absolute inset-0 bg-yellow-900/5 pointer-events-none mix-blend-multiply opacity-50" />
+
+                    <img
+                      src={getImageUrl(selectedEntry)}
+                      alt={`Diary ${selectedEntry.date}`}
+                      className="w-full h-auto max-h-[70vh] object-contain shadow-inner"
+                      loading="lazy"
+                    />
+                  </div>
                 </div>
 
                 {/* Footer Info */}
-                <div className="mt-2 text-right px-2">
-                  <span className="text-[10px] text-slate-600 font-mono">
-                    File:{" "}
-                    {language === "jp"
-                      ? selectedEntry.filename
-                      : selectedEntry.filename.replace(".png", ".jpg")}
+                <div className="flex justify-between items-center text-[10px] text-gray-500 font-mono px-2">
+                  <span>FILE: {selectedEntry.filename}</span>
+                  <span className="flex items-center gap-1">
+                    <Clock size={10} /> SYSTEM TIME:{" "}
+                    {new Date().toLocaleTimeString()}
                   </span>
                 </div>
               </div>
             ) : (
               // Empty State
-              <div className="h-[400px] flex flex-col items-center justify-center text-slate-600 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed">
+              <div className="h-[400px] flex flex-col items-center justify-center text-gray-600 bg-white/5 rounded-xl border border-white/10 border-dashed">
                 <BookOpen size={48} className="mb-4 opacity-20" />
-                <p>Select a date to read Mana's diary.</p>
+                <p className="font-mono text-sm tracking-widest uppercase">
+                  Select data to retrieve
+                </p>
               </div>
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

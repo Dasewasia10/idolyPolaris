@@ -15,7 +15,13 @@ import {
   Eye,
   EyeOff,
   Phone,
-} from "lucide-react"; // Tambah icon Eye, EyeOff, Phone
+  Settings,
+  Download,
+  FileJson,
+  MessageSquare,
+  Users,
+  Sticker,
+} from "lucide-react";
 
 import { Message } from "../interfaces/Message";
 import { Icon } from "../interfaces/Icon";
@@ -39,7 +45,6 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [title, setTitle] = useState("Title Here");
-  // STATE BARU: Toggle Judul
   const [titleVisible, setTitleVisible] = useState(true);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -47,7 +52,7 @@ const ChatPage: React.FC = () => {
   const [selectedStamp, setSelectedStamp] = useState<Stamp | null>(null);
   const [position, setPosition] = useState<"left" | "right">("left");
 
-  const [iconGroupVisible, setIconGroupVisible] = useState(false);
+  const [iconGroupVisible, setIconGroupVisible] = useState(true); // Default open
   const [stampGroupVisible, setStampGroupVisible] = useState(false);
   const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
   const [replyButtonVisible, setReplyButtonVisible] = useState(false);
@@ -88,8 +93,12 @@ const ChatPage: React.FC = () => {
   };
 
   const getCharacterIconUrl = (characterName: string) => {
-    const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
+    let assetName = characterName.toLowerCase().replace(/\s+/g, "");
+
+    if (characterName.toLowerCase() === "snow") {
+      assetName = "smiku";
+    }
+    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${assetName}.png`;
   };
 
   // --- Data Fetching ---
@@ -227,7 +236,6 @@ const ChatPage: React.FC = () => {
     setUnsavedChanges(true);
   };
 
-  // LOGIC HAPUS SATU LOG (Penting untuk perbaikanmu)
   const handleDeleteCallLog = (id: number) => {
     setCallLogs((prevLogs) => prevLogs.filter((log) => log.id !== id));
     setUnsavedChanges(true);
@@ -235,7 +243,6 @@ const ChatPage: React.FC = () => {
 
   const handleClearCallLog = () => {
     if (callLogs.length < 1) {
-      // Ubah < 2 jadi < 1 agar bisa hapus meski cuma 1
       setToastMessage("There's no call logs!");
       setIsSuccess(false);
       return;
@@ -453,452 +460,540 @@ const ChatPage: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isEmojiOpen]);
 
+  // -- Component Tombol Control --
+  const ControlButton = ({
+    onClick,
+    label,
+    active,
+    icon: Icon,
+    color,
+  }: any) => (
+    <button
+      onClick={onClick}
+      className={`
+        flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs font-bold transition-all border
+        ${
+          active
+            ? `bg-${color}-900/40 border-${color}-500 text-${color}-400 shadow-[0_0_10px_rgba(var(--${color}-500),0.2)]`
+            : "bg-[#1f2937] border-white/10 text-gray-400 hover:bg-[#374151] hover:text-white"
+        }
+      `}
+    >
+      <Icon size={14} />
+      {label}
+    </button>
+  );
+
   return (
-    <div className="bg-gray-900 text-white px-4 py-6 z-10 rounded-lg mt-10 lg:mt-0">
-      <div className="h-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Sidebar - Menu Controls */}
-        <section className="space-y-6 flex flex-col text-xs lg:text-base">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex justify-center lg:justify-start">
-            IdolyChat
-          </h1>
-          <div className="flex flex-col justify-around gap-4">
-            <div className="flex gap-4 justify-around flex-col">
-              {/* BUTTONS GROUP: Actions */}
-              <button
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-md w-full"
-                onClick={handleClearMessage}
-              >
-                Clear Message
-              </button>
+    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden">
+      {/* Background Grid */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-5 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      ></div>
 
-              <div className="flex border-b border-slate-500 mx-2"></div>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 relative z-10">
+        {/* --- LEFT SIDEBAR: CONTROLS --- */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-blue-600 rounded text-black shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+              <MessageSquare size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase block">
+                Messaging System
+              </span>
+              <h1 className="text-2xl font-black italic tracking-tighter text-white">
+                IDOLY{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                  CHAT&nbsp;
+                </span>
+              </h1>
+            </div>
+          </div>
 
-              {/* Toggle Judul (BARU) */}
-              <button
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md w-full flex items-center justify-center gap-2"
+          <div className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-lg">
+            <h2 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <Settings size={12} /> View Settings
+            </h2>
+
+            <div className="grid grid-cols-2 gap-2">
+              <ControlButton
                 onClick={() => setTitleVisible(!titleVisible)}
-              >
-                {titleVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                {titleVisible ? "Hide Title" : "Show Title"}
-              </button>
-
-              <button
-                className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md w-full"
+                label={titleVisible ? "Hide Title" : "Show Title"}
+                active={titleVisible}
+                icon={titleVisible ? Eye : EyeOff}
+                color="blue"
+              />
+              <ControlButton
                 onClick={() => setReplyButtonVisible(!replyButtonVisible)}
-              >
-                {replyButtonVisible ? "Hide Reply" : "Show Reply"}
-              </button>
-              <button
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-md w-full"
+                label="Reply Btn"
+                active={replyButtonVisible}
+                icon={Reply}
+                color="green"
+              />
+              <ControlButton
                 onClick={() => setDeleteButtonVisible(!deleteButtonVisible)}
-              >
-                {deleteButtonVisible ? "Hide Delete" : "Show Delete"}
-              </button>
-              <button
-                className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md w-full"
+                label="Delete Btn"
+                active={deleteButtonVisible}
+                icon={Trash2}
+                color="red"
+              />
+              <ControlButton
                 onClick={() => setEmojiButtonVisible(!emojiButtonVisible)}
-              >
-                {emojiButtonVisible ? "Hide Emoji Action" : "Show Emoji Action"}
-              </button>
+                label="React Btn"
+                active={emojiButtonVisible}
+                icon={Smile}
+                color="yellow"
+              />
+            </div>
+          </div>
 
-              <div className="flex border-b border-slate-500 mx-2"></div>
+          <div className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-lg">
+            <h2 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <FileJson size={12} /> Data I/O
+            </h2>
 
+            <div className="flex flex-col gap-2">
               <button
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md w-full"
                 onClick={saveAsPng}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
               >
-                Save PNG
+                <Download size={14} /> EXPORT IMAGE
               </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={handleExport}
+                  className="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 rounded-lg transition-colors border border-white/5"
+                >
+                  SAVE JSON
+                </button>
+                <label className="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 rounded-lg transition-colors border border-white/5 text-center cursor-pointer">
+                  LOAD JSON
+                  <input
+                    type="file"
+                    accept="application/json"
+                    onChange={handleImport}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
+          </div>
 
-            <div className="flex gap-4 flex-col lg:flex-row">
-              <button
-                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full"
-                onClick={handleExport}
-              >
-                Export JSON
-              </button>
-              <label className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-md w-full text-center cursor-pointer">
-                Import JSON
-                <input
-                  type="file"
-                  accept="application/json"
-                  onChange={handleImport}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            <div className="flex border-b border-slate-500 mx-2"></div>
-
+          <div className="space-y-2">
             <button
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-md w-full flex items-center justify-center gap-2"
               onClick={() => setShowCallLogModal(true)}
+              className="w-full bg-purple-900/30 border border-purple-500/30 hover:bg-purple-900/50 text-purple-300 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
             >
-              <Phone size={16} />
-              Call History
+              <Phone size={16} /> OPEN CALL LOGS
+            </button>
+            <button
+              onClick={handleClearMessage}
+              className="w-full bg-red-900/30 border border-red-500/30 hover:bg-red-900/50 text-red-300 font-bold py-2 rounded-xl flex items-center justify-center gap-2 transition-all text-xs"
+            >
+              <Trash2 size={14} /> RESET CHAT
             </button>
           </div>
         </section>
 
-        {/* Center - Chat Canvas */}
-        <section className="lg:col-span-2 overflow-y-auto no-scrollbar">
-          <div
-            id="idolyMessage"
-            className="bg-gray-800 rounded-lg shadow-xl p-6 overflow-y-auto h-[24rem] scrollbar-minimal z-[9999] bg-[url('/assets/chat-bg.png')] bg-repeat bg-blend-multiply bg-cover"
-          >
-            {/* Conditional Rendering Title */}
-            {titleVisible && (
-              <h2>
-                <TextareaAutosize
-                  className="w-full bg-gray-900 text-white text-lg lg:text-2xl font-bold p-3 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value);
-                    setUnsavedChanges(true);
-                  }}
-                  placeholder="Chat Title"
-                />
-              </h2>
-            )}
+        {/* --- CENTER: CHAT CANVAS --- */}
+        <section className="lg:col-span-2 flex flex-col gap-4 relative">
+          {/* Main Monitor Frame */}
+          <div className="relative bg-black rounded-xl p-1 shadow-2xl ring-1 ring-white/10">
+            {/* Decorative HUD Elements */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-blue-500 rounded-b opacity-50"></div>
 
-            {messages.map((msg, index) => {
-              const isSequence =
-                index > 0 && messages[index - 1].name === msg.name;
-              const containerMargin = isSequence ? "mt-1" : "mt-6";
-              const showName = !isSequence;
+            {/* THE CHAT CANVAS (INTERNAL STRUCTURE UNTOUCHED) */}
+            <div
+              id="idolyMessage"
+              className="bg-gray-800 rounded-lg shadow-inner overflow-y-auto h-[500px] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-900 relative z-10 p-6"
+              style={{
+                backgroundImage: "url('/assets/chat-bg.png')",
+                backgroundRepeat: "repeat",
+                backgroundBlendMode: "multiply",
+                backgroundSize: "cover",
+              }}
+            >
+              {/* --- START: PROTECTED CONTENT (LOGIC & MAPPING) --- */}
+              {titleVisible && (
+                <div className="mb-6 relative group animate-in fade-in slide-in-from-top-2 duration-300 bg-gradient-to-b from-gray-900 to-transparent py-3">
+                  {/* Decorative Left Bar */}
+                  <div className="absolute left-0 top-1 bottom-1 w-1 bg-gray-700 rounded-full group-focus-within:bg-blue-500 group-focus-within:shadow-[0_0_10px_#3b82f6] transition-all duration-300"></div>
 
-              const bubbleRadius =
-                msg.position === "left"
-                  ? isSequence
-                    ? "rounded-tl-md rounded-tr-2xl rounded-br-2xl rounded-bl-md"
-                    : "rounded-tl-2xl rounded-tr-2xl rounded-br-2xl rounded-bl-none"
-                  : isSequence
-                    ? "rounded-tr-md rounded-tl-2xl rounded-bl-2xl rounded-br-md"
-                    : "rounded-tr-2xl rounded-tl-2xl rounded-bl-2xl rounded-br-none";
+                  <div className="pl-4">
+                    {/* Label Kecil ala Terminal */}
+                    <label className="block text-[10px] font-mono font-bold text-gray-500 tracking-[0.2em] uppercase mb-1 group-focus-within:text-blue-400 transition-colors">
+                      Session Subject //
+                    </label>
 
-              // Warna dan style dasar bubble
-              let bubbleClass = msg.stamp
-                ? // --- PERBAIKAN STAMP ---
-                  // Hapus '-m-4'. Ubah scale jadi 'scale-100' atau hapus saja.
-                  // Gunakan 'p-0' agar gambar pas di container, dan 'bg-transparent'.
-                  "p-0 scale-100 bg-transparent shadow-none"
-                : msg.position === "left"
-                  ? "bg-gray-700 text-white"
-                  : "bg-blue-600 text-white";
+                    {/* Input Field yang menyatu dengan background */}
+                    <TextareaAutosize
+                      className="w-full bg-transparent text-white text-2xl lg:text-3xl font-black italic tracking-tight placeholder-gray-600 border-b border-transparent focus:border-blue-500/50 focus:outline-none resize-none transition-all leading-tight"
+                      value={title}
+                      onChange={(e) => {
+                        setTitle(e.target.value);
+                        setUnsavedChanges(true);
+                      }}
+                      placeholder="UNTITLED_SESSION"
+                      maxRows={2}
+                    />
+                  </div>
+                </div>
+              )}
 
-              if (!msg.stamp) {
-                bubbleClass += ` ${bubbleRadius} px-4 py-2`;
-              }
+              {messages.map((msg, index) => {
+                const isSequence =
+                  index > 0 && messages[index - 1].name === msg.name;
+                const containerMargin = isSequence ? "mt-1" : "mt-6";
+                const showName = !isSequence;
 
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex text-sm lg:text-base ${containerMargin} ${msg.position === "left" ? "justify-start" : "justify-end"}`}
-                >
+                const bubbleRadius =
+                  msg.position === "left"
+                    ? isSequence
+                      ? "rounded-tl-md rounded-tr-2xl rounded-br-2xl rounded-bl-md"
+                      : "rounded-tl-2xl rounded-tr-2xl rounded-br-2xl rounded-bl-none"
+                    : isSequence
+                      ? "rounded-tr-md rounded-tl-2xl rounded-bl-2xl rounded-br-md"
+                      : "rounded-tr-2xl rounded-tl-2xl rounded-bl-2xl rounded-br-none";
+
+                let bubbleClass = msg.stamp
+                  ? "p-0 scale-100 bg-transparent shadow-none"
+                  : msg.position === "left"
+                    ? "bg-gray-700 text-white"
+                    : "bg-blue-600 text-white";
+
+                if (!msg.stamp) {
+                  bubbleClass += ` ${bubbleRadius} px-4 py-2`;
+                }
+
+                return (
                   <div
-                    className={`flex items-end max-w-xs lg:max-w-md gap-2 ${msg.position === "right" ? "flex-row-reverse" : "flex-row"}`}
+                    key={msg.id}
+                    className={`flex text-sm lg:text-base ${containerMargin} ${msg.position === "left" ? "justify-start" : "justify-end"}`}
                   >
-                    <div className="flex-shrink-0 w-10">
-                      {!isSequence && (
-                        <img
-                          src={msg.icon}
-                          alt={msg.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      )}
-                    </div>
-
                     <div
-                      className={`flex flex-col ${msg.position === "left" ? "items-start" : "items-end"}`}
+                      className={`flex items-end max-w-xs lg:max-w-md gap-2 ${msg.position === "right" ? "flex-row-reverse" : "flex-row"}`}
                     >
-                      {showName && (
-                        <span
-                          className={`text-xs text-gray-400 mb-1 ml-1 ${msg.position === "right" ? "text-right mr-1" : "text-left"}`}
-                        >
-                          {msg.name}
-                        </span>
-                      )}
-
-                      {msg.replyTo && (
-                        <div
-                          className={`text-xs text-gray-300 bg-gray-600 bg-opacity-50 p-2 rounded-md mb-1 border-l-2 border-blue-400 w-fit max-w-full`}
-                        >
-                          <span className="font-bold opacity-75">
-                            {msg.replyTo.name}
-                          </span>
-                          <div className="truncate opacity-75">
-                            {msg.replyTo.text || "Media/Stamp"}
-                          </div>
-                        </div>
-                      )}
+                      <div className="flex-shrink-0 w-10">
+                        {!isSequence && (
+                          <img
+                            src={msg.icon}
+                            alt={msg.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        )}
+                      </div>
 
                       <div
-                        className={`relative ${bubbleClass} max-w-[16rem] lg:max-w-[20rem] break-words shadow-sm`}
+                        className={`flex flex-col ${msg.position === "left" ? "items-start" : "items-end"}`}
                       >
-                        {msg.isCall ? (
-                          <div className="flex flex-col items-center min-w-[100px]">
-                            <CallIcon
-                              color={msg.callIconColor || "white"}
-                              size={24}
-                            />
-                            <span className="text-sm mt-1 font-semibold">
-                              Call Ended
+                        {showName && (
+                          <span
+                            className={`text-xs text-gray-400 mb-1 ml-1 ${msg.position === "right" ? "text-right mr-1" : "text-left"}`}
+                          >
+                            {msg.name}
+                          </span>
+                        )}
+
+                        {msg.replyTo && (
+                          <div
+                            className={`text-xs text-gray-300 bg-gray-600 bg-opacity-50 p-2 rounded-md mb-1 border-l-2 border-blue-400 w-fit max-w-full`}
+                          >
+                            <span className="font-bold opacity-75">
+                              {msg.replyTo.name}
                             </span>
-                            <span className="text-xs opacity-80">
-                              {msg.callDuration}
-                            </span>
-                          </div>
-                        ) : msg.isVoiceNote ? (
-                          <div className="flex items-center gap-3 min-w-[160px] py-1">
-                            <div className="bg-white text-blue-600 rounded-full p-2 flex items-center justify-center">
-                              <Play size={16} fill="currentColor" />
+                            <div className="truncate opacity-75">
+                              {msg.replyTo.text || "Media/Stamp"}
                             </div>
-                            <div className="flex flex-col flex-1 justify-center gap-1">
-                              <div className="h-1 bg-white/50 rounded-full w-full overflow-hidden">
-                                <div className="h-full bg-white w-2/3 rounded-full"></div>
-                              </div>
-                              <span className="text-xs font-mono opacity-90">
-                                {msg.voiceDuration || "0:00"}
-                              </span>
-                            </div>
-                          </div>
-                        ) : msg.stamp ? (
-                          <img
-                            src={msg.stamp}
-                            alt="Stamp"
-                            className="w-24 h-24 object-contain"
-                          />
-                        ) : (
-                          <div className="flex flex-col gap-2">
-                            {msg.image && (
-                              <img
-                                src={msg.image}
-                                alt="Uploaded"
-                                className="rounded-lg max-h-60 object-cover w-full cursor-pointer"
-                                onClick={() => window.open(msg.image, "_blank")}
-                              />
-                            )}
-                            {msg.text && (
-                              <div
-                                dangerouslySetInnerHTML={{
-                                  __html: parseText(msg.text),
-                                }}
-                                className="prose prose-invert prose-p:my-0 leading-snug"
-                              />
-                            )}
                           </div>
                         )}
 
-                        {msg.reactions &&
-                          Object.keys(msg.reactions).length > 0 && (
-                            <div
-                              className={`absolute -bottom-3 ${msg.position === "left" ? "left-2" : "right-2"} flex gap-1`}
-                            >
-                              {Object.entries(msg.reactions).map(
-                                ([emoji, users]) => (
-                                  <div
-                                    key={emoji}
-                                    onClick={() =>
-                                      handleRemoveReaction(msg.id, emoji)
-                                    }
-                                    className="bg-gray-700 border border-gray-600 rounded-full px-1.5 py-0.5 text-[10px] flex items-center cursor-pointer hover:bg-gray-600 shadow-sm"
-                                  >
-                                    <span>{emoji}</span>
-                                    {users.length > 1 && (
-                                      <span className="ml-1 font-bold">
-                                        {users.length}
-                                      </span>
-                                    )}
-                                  </div>
-                                ),
+                        <div
+                          className={`relative ${bubbleClass} max-w-[16rem] lg:max-w-[20rem] break-words shadow-sm`}
+                        >
+                          {msg.isCall ? (
+                            <div className="flex flex-col items-center min-w-[100px]">
+                              <CallIcon
+                                color={msg.callIconColor || "white"}
+                                size={24}
+                              />
+                              <span className="text-sm mt-1 font-semibold">
+                                Call Ended
+                              </span>
+                              <span className="text-xs opacity-80">
+                                {msg.callDuration}
+                              </span>
+                            </div>
+                          ) : msg.isVoiceNote ? (
+                            <div className="flex items-center gap-3 min-w-[160px] py-1">
+                              <div className="bg-white text-blue-600 rounded-full p-2 flex items-center justify-center">
+                                <Play size={16} fill="currentColor" />
+                              </div>
+                              <div className="flex flex-col flex-1 justify-center gap-1">
+                                <div className="h-1 bg-white/50 rounded-full w-full overflow-hidden">
+                                  <div className="h-full bg-white w-2/3 rounded-full"></div>
+                                </div>
+                                <span className="text-xs font-mono opacity-90">
+                                  {msg.voiceDuration || "0:00"}
+                                </span>
+                              </div>
+                            </div>
+                          ) : msg.stamp ? (
+                            <img
+                              src={msg.stamp}
+                              alt="Stamp"
+                              className="w-24 h-24 object-contain"
+                            />
+                          ) : (
+                            <div className="flex flex-col gap-2">
+                              {msg.image && (
+                                <img
+                                  src={msg.image}
+                                  alt="Uploaded"
+                                  className="rounded-lg max-h-60 object-cover w-full cursor-pointer"
+                                  onClick={() =>
+                                    window.open(msg.image, "_blank")
+                                  }
+                                />
+                              )}
+                              {msg.text && (
+                                <div
+                                  dangerouslySetInnerHTML={{
+                                    __html: parseText(msg.text),
+                                  }}
+                                  className="prose prose-invert prose-p:my-0 leading-snug"
+                                />
                               )}
                             </div>
                           )}
-                      </div>
-                    </div>
 
-                    <div className="flex flex-col justify-end gap-1 mb-2">
-                      {replyButtonVisible && (
-                        <button
-                          onClick={() => handleReplyClick(msg)}
-                          className="text-gray-500 hover:text-blue-400 transition-colors"
-                          title="Reply"
-                        >
-                          <Reply size={14} />
-                        </button>
-                      )}
-                      {emojiButtonVisible && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowReactionPicker(
-                              showReactionPicker === msg.id ? null : msg.id,
-                            );
-                          }}
-                          className="text-gray-500 hover:text-yellow-400 transition-colors"
-                          title="React"
-                        >
-                          <Smile size={14} />
-                        </button>
-                      )}
-                      {deleteButtonVisible && (
-                        <button
-                          onClick={() => handleDeleteMessage(msg.id)}
-                          className="text-gray-500 hover:text-red-500 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                          {msg.reactions &&
+                            Object.keys(msg.reactions).length > 0 && (
+                              <div
+                                className={`absolute -bottom-3 ${msg.position === "left" ? "left-2" : "right-2"} flex gap-1`}
+                              >
+                                {Object.entries(msg.reactions).map(
+                                  ([emoji, users]) => (
+                                    <div
+                                      key={emoji}
+                                      onClick={() =>
+                                        handleRemoveReaction(msg.id, emoji)
+                                      }
+                                      className="bg-gray-700 border border-gray-600 rounded-full px-1.5 py-0.5 text-[10px] flex items-center cursor-pointer hover:bg-gray-600 shadow-sm"
+                                    >
+                                      <span>{emoji}</span>
+                                      {users.length > 1 && (
+                                        <span className="ml-1 font-bold">
+                                          {users.length}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col justify-end gap-1 mb-2">
+                        {replyButtonVisible && (
+                          <button
+                            onClick={() => handleReplyClick(msg)}
+                            className="text-gray-500 hover:text-blue-400 transition-colors"
+                            title="Reply"
+                          >
+                            {" "}
+                            <Reply size={14} />{" "}
+                          </button>
+                        )}
+                        {emojiButtonVisible && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowReactionPicker(
+                                showReactionPicker === msg.id ? null : msg.id,
+                              );
+                            }}
+                            className="text-gray-500 hover:text-yellow-400 transition-colors"
+                            title="React"
+                          >
+                            {" "}
+                            <Smile size={14} />{" "}
+                          </button>
+                        )}
+                        {deleteButtonVisible && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className="text-gray-500 hover:text-red-500 transition-colors"
+                            title="Delete"
+                          >
+                            {" "}
+                            <Trash2 size={14} />{" "}
+                          </button>
+                        )}
+                      </div>
+                      {showReactionPicker === msg.id && (
+                        <div className="absolute z-50 mt-8">
+                          <EmojiPicker
+                            onEmojiClick={(e) => handleAddReaction(msg.id, e)}
+                            width={250}
+                            height={300}
+                            searchDisabled
+                            skinTonesDisabled
+                            previewConfig={{ showPreview: false }}
+                          />
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={() => setShowReactionPicker(null)}
+                          ></div>
+                        </div>
                       )}
                     </div>
-                    {showReactionPicker === msg.id && (
-                      <div className="absolute z-50 mt-8">
-                        <EmojiPicker
-                          onEmojiClick={(e) => handleAddReaction(msg.id, e)}
-                          width={250}
-                          height={300}
-                          searchDisabled
-                          skinTonesDisabled
-                          previewConfig={{ showPreview: false }}
-                        />
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setShowReactionPicker(null)}
-                        ></div>
-                      </div>
-                    )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+              {/* --- END: PROTECTED CONTENT --- */}
+            </div>
           </div>
 
-          <div className="bg-gray-800 p-4 rounded-lg shadow-xl mt-4">
+          {/* INPUT TERMINAL (Redesigned) */}
+          <div className="bg-[#161b22] p-4 rounded-xl border border-white/10 shadow-lg relative">
+            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l"></div>
+
             {replyingTo && (
-              <div className="bg-gray-700 p-2 rounded mb-2 flex justify-between items-center text-sm border-l-4 border-blue-500">
-                <div className="truncate">
+              <div className="bg-[#0f1115] p-2 rounded mb-3 flex justify-between items-center text-xs border-l-2 border-blue-500">
+                <div className="truncate text-gray-400">
+                  Replying to{" "}
                   <span className="font-bold text-blue-300">
                     {replyingTo.name}
                   </span>
-                  : {replyingTo.text || "Media"}
                 </div>
-                <button onClick={() => setReplyingTo(null)}>
-                  <X size={16} />
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="text-gray-500 hover:text-white"
+                >
+                  <X size={14} />
                 </button>
               </div>
             )}
 
             {selectedImage && (
-              <div className="relative w-fit mb-2 group">
+              <div className="relative w-fit mb-3 group">
                 <img
                   src={selectedImage}
                   alt="Preview"
-                  className="h-24 rounded-lg border border-gray-600"
+                  className="h-16 rounded border border-gray-600"
                 />
                 <button
                   onClick={() => setSelectedImage(null)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600"
                 >
                   <X size={12} />
                 </button>
               </div>
             )}
 
-            <div className="flex items-end space-x-2 mb-2">
-              <img
-                src={
-                  selectedIcon?.src ||
-                  `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`
-                }
-                alt="Selected"
-                className="w-10 h-10 rounded-full border border-gray-600 bg-gray-900"
-              />
+            <div className="flex items-end gap-3">
+              <div className="relative group">
+                <img
+                  src={
+                    selectedIcon?.src ||
+                    `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`
+                  }
+                  alt="Selected"
+                  className="w-10 h-10 rounded-full border border-white/20 bg-black object-cover"
+                />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#161b22] rounded-full"></div>
+              </div>
 
-              <div className="flex-1 flex flex-col gap-2 relative">
+              <div className="flex-1 relative">
                 <textarea
                   value={inputText}
                   onChange={(e) => {
                     setInputText(e.target.value);
                     setUnsavedChanges(true);
                   }}
-                  placeholder="Type a message..."
-                  className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700 text-white focus:ring-1 focus:ring-blue-500 resize-none scrollbar-minimal"
+                  placeholder="Input command or message..."
+                  className="w-full p-3 pr-10 rounded-lg border border-white/10 bg-[#0f1115] text-white focus:border-blue-500 focus:outline-none resize-none font-mono text-sm shadow-inner"
                   rows={2}
                 />
-                <div className="absolute bottom-2 right-2 flex gap-2">
-                  <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="text-gray-400 hover:text-yellow-400 transition-colors"
-                  >
-                    <Smile size={20} />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="absolute bottom-3 right-3 text-gray-500 hover:text-yellow-400 transition-colors"
+                >
+                  <Smile size={18} />
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-700 pt-3">
-              <div className="flex gap-1">
-                <div className="bg-gray-700 rounded-lg p-1 flex">
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+              <div className="flex gap-2 items-center">
+                <div className="bg-[#0f1115] p-1 rounded-lg flex border border-white/5">
                   <button
                     onClick={() => setPosition("left")}
-                    className={`px-3 py-1 text-xs rounded ${position === "left" ? "bg-gray-600 text-white font-bold shadow" : "text-gray-400 hover:text-white"}`}
+                    className={`px-3 py-1 text-[10px] font-bold rounded ${position === "left" ? "bg-gray-700 text-white" : "text-gray-500 hover:text-white"}`}
                   >
-                    Left
+                    L
                   </button>
                   <button
                     onClick={() => setPosition("right")}
-                    className={`px-3 py-1 text-xs rounded ${position === "right" ? "bg-blue-600 text-white font-bold shadow" : "text-gray-400 hover:text-white"}`}
+                    className={`px-3 py-1 text-[10px] font-bold rounded ${position === "right" ? "bg-blue-600 text-white" : "text-gray-500 hover:text-white"}`}
                   >
-                    Right
+                    R
                   </button>
                 </div>
 
-                <div className="flex items-center gap-1 ml-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-2 text-gray-400 hover:text-green-400 bg-gray-700 hover:bg-gray-600 rounded-full transition-all"
-                    title="Upload Image"
-                  >
-                    <ImageIcon size={18} />
-                  </button>
-                  <button
-                    onClick={handleAddVoiceNote}
-                    className="p-2 text-gray-400 hover:text-pink-400 bg-gray-700 hover:bg-gray-600 rounded-full transition-all"
-                    title="Add Voice Note"
-                  >
-                    <Mic size={18} />
-                  </button>
-                  <button
-                    onClick={handleAddCallObject}
-                    className="p-2 text-gray-400 hover:text-blue-400 bg-gray-700 hover:bg-gray-600 rounded-full transition-all"
-                    title="Add Call"
-                  >
-                    <CallIcon color="currentColor" size={18} />
-                  </button>
-                </div>
+                <div className="h-6 w-[1px] bg-white/10 mx-1"></div>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 hover:bg-white/5 rounded text-gray-400 hover:text-green-400 transition"
+                  title="Image"
+                >
+                  {" "}
+                  <ImageIcon size={16} />{" "}
+                </button>
+                <button
+                  onClick={handleAddVoiceNote}
+                  className="p-2 hover:bg-white/5 rounded text-gray-400 hover:text-pink-400 transition"
+                  title="Voice"
+                >
+                  {" "}
+                  <Mic size={16} />{" "}
+                </button>
+                <button
+                  onClick={handleAddCallObject}
+                  className="p-2 hover:bg-white/5 rounded text-gray-400 hover:text-blue-400 transition"
+                  title="Call"
+                >
+                  {" "}
+                  <CallIcon color="currentColor" size={16} />{" "}
+                </button>
               </div>
 
               <button
                 onClick={() => handleSendMessage()}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transform active:scale-95 transition-all"
+                className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-lg text-sm font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
               >
-                Send
+                SEND
               </button>
             </div>
 
             {showEmojiPicker && (
-              <div
-                className="absolute bottom-20 right-4 z-50 shadow-2xl rounded-xl overflow-hidden"
-                ref={emojiRef}
-              >
+              <div className="absolute bottom-full right-0 mb-2 z-50 shadow-2xl rounded-xl overflow-hidden border border-white/20">
                 <EmojiPicker
                   onEmojiClick={handleEmojiClick}
                   width={300}
@@ -910,71 +1005,89 @@ const ChatPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Right Sidebar - Selection */}
-        <section className="flex flex-col gap-4">
-          <div className="bg-gray-800 p-4 rounded-lg flex-1 overflow-hidden flex flex-col">
+        {/* --- RIGHT SIDEBAR: ASSETS --- */}
+        <section className="flex flex-col gap-4 h-[calc(100vh-100px)] lg:sticky lg:top-4">
+          {/* Character Selector */}
+          <div
+            className={`bg-[#161b22]/90 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden flex flex-col transition-all duration-300 ${iconGroupVisible ? "flex-1" : "h-auto"}`}
+          >
             <button
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4 font-semibold"
+              className="w-full bg-[#0d1117] hover:bg-[#1f2937] text-gray-300 px-4 py-3 text-xs font-bold uppercase tracking-widest flex items-center justify-between border-b border-white/5 transition-colors"
               onClick={() => setIconGroupVisible(!iconGroupVisible)}
             >
-              {iconGroupVisible ? "▲ Hide Characters" : "▼ Show Characters"}
+              <div className="flex items-center gap-2">
+                <Users size={14} className="text-blue-400" /> Characters
+              </div>
+              <span>{iconGroupVisible ? "−" : "+"}</span>
             </button>
+
             {iconGroupVisible && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-44 overflow-y-auto scrollbar-minimal py-2">
-                {icons.map((icon) => (
-                  <button
-                    key={icon.id}
-                    onClick={() => {
-                      setSelectedIcon(icon);
-                      setUnsavedChanges(true);
-                    }}
-                    className={`p-1 rounded-full transition-all ${
-                      selectedIcon?.id === icon.id
-                        ? "ring-2 ring-blue-500 transform scale-105"
-                        : "hover:ring-1 hover:ring-gray-400"
-                    }`}
-                  >
-                    <img
-                      src={icon.src}
-                      alt={icon.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
+              <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                <div className="grid grid-cols-4 gap-2">
+                  {icons.map((icon) => (
+                    <button
+                      key={icon.id}
+                      onClick={() => {
+                        setSelectedIcon(icon);
+                        setUnsavedChanges(true);
+                      }}
+                      className={`aspect-square rounded-lg overflow-hidden border-2 transition-all relative group ${
+                        selectedIcon?.id === icon.id
+                          ? "border-blue-500 shadow-[0_0_10px_rgba(37,99,235,0.5)]"
+                          : "border-transparent hover:border-white/20"
+                      }`}
+                      title={icon.name}
+                    >
+                      <img
+                        src={icon.src}
+                        alt={icon.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-white/10 transition-colors"></div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          <div className="bg-gray-800 p-4 rounded-lg flex-1 overflow-hidden flex flex-col">
+          {/* Stamp Selector */}
+          <div
+            className={`bg-[#161b22]/90 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden flex flex-col transition-all duration-300 ${stampGroupVisible ? "flex-1" : "h-auto"}`}
+          >
             <button
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-md mb-4 font-semibold"
+              className="w-full bg-[#0d1117] hover:bg-[#1f2937] text-gray-300 px-4 py-3 text-xs font-bold uppercase tracking-widest flex items-center justify-between border-b border-white/5 transition-colors"
               onClick={() => setStampGroupVisible(!stampGroupVisible)}
             >
-              {stampGroupVisible ? "▲ Hide Stamps" : "▼ Show Stamps"}
+              <div className="flex items-center gap-2">
+                <Sticker size={14} className="text-pink-400" /> Stamps
+              </div>
+              <span>{stampGroupVisible ? "−" : "+"}</span>
             </button>
+
             {stampGroupVisible && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-44 overflow-y-auto scrollbar-minimal">
-                {stamps.map((stamp) => (
-                  <button
-                    key={stamp.id}
-                    onClick={() => {
-                      handleStampClick(stamp);
-                      handleSendMessage(true);
-                    }}
-                    className="aspect-square bg-gray-700 rounded p-1 hover:bg-gray-600 transition-colors"
-                  >
-                    <img
-                      src={stamp.src}
-                      alt="stamp"
-                      className="w-full h-full object-contain"
-                    />
-                  </button>
-                ))}
+              <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                <div className="grid grid-cols-3 gap-2">
+                  {stamps.map((stamp) => (
+                    <button
+                      key={stamp.id}
+                      onClick={() => {
+                        handleStampClick(stamp);
+                        handleSendMessage(true);
+                      }}
+                      className="aspect-square bg-[#0f1115] rounded-lg p-1 hover:bg-white/10 border border-transparent hover:border-white/20 transition-all flex items-center justify-center"
+                    >
+                      <img
+                        src={stamp.src}
+                        alt="stamp"
+                        className="w-full h-full object-contain"
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
-
-          {/* Tombol Call History dihapus dari sini karena sudah pindah ke kiri */}
         </section>
       </div>
 
@@ -986,7 +1099,6 @@ const ChatPage: React.FC = () => {
         />
       )}
 
-      {/* UPDATE MODAL PROPS: Pastikan CallLogModal support onDeleteLog */}
       <CallLogModal
         isOpen={showCallLogModal}
         onClose={() => setShowCallLogModal(false)}
@@ -995,7 +1107,7 @@ const ChatPage: React.FC = () => {
         icons={icons}
         addCallLog={handleAddCallLog}
         clearCallLog={handleClearCallLog}
-        onDeleteLog={handleDeleteCallLog} // <--- PASTIKAN PROPS INI DITERIMA DI CallLogModal
+        onDeleteLog={handleDeleteCallLog}
       />
     </div>
   );
