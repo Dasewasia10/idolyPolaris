@@ -47,7 +47,7 @@ const KTPManager: React.FC = () => {
         let snowMiku = response.data.name("snow");
 
         if (snowMiku) {
-          snowMiku = snowMiku.toString.toLowerCase().replace("snow", "snowmiku")
+          snowMiku = snowMiku.toString.toLowerCase().replace("snow", "smiku")
         } 
 
         const processedIcons = response.data.map(
