@@ -18,6 +18,7 @@ const KTPManager: React.FC = () => {
   const [managerName, setManagerName] = useState("");
   const [inputText, setInputText] = useState("");
   const [group, setGroup] = useState("Mana Nagase");
+  const [level, setLevel] = useState("100");
   const [activeAgency, setActiveAgency] = useState(
     "Hoshimi Production's Manager",
   );
@@ -48,7 +49,7 @@ const KTPManager: React.FC = () => {
 
           if (char.name.toLowerCase() === "snow") {
             displayName = "Snow Miku";
-            assetName = "smiku"; 
+            assetName = "smiku";
           }
 
           // 2. Return objek yang sudah diproses
@@ -193,7 +194,44 @@ const KTPManager: React.FC = () => {
           />
         </div>
 
-        {/* Input Nama & Pesan (Sudah di-handle di dalam IDCard, tapi kita perlu state lift-up) */}
+        {/* Gabungkan Input Nama dan Level agar hemat tempat */}
+        <div className="grid grid-cols-3 gap-4 bg-gray-800 p-6 rounded-xl border border-gray-700">
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-400 mb-2">
+              Manager Name
+            </label>
+            <input
+              type="text"
+              value={managerName}
+              onChange={(e) => {
+                setManagerName(e.target.value);
+                setUnsavedChanges(true);
+              }}
+              placeholder="Enter Name"
+              maxLength={20}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm font-medium text-gray-400 mb-2">
+              Level
+            </label>
+            <input
+              type="number"
+              value={level}
+              onChange={(e) => {
+                // Batasi max 3 digit (misal max 999)
+                if (e.target.value.length <= 3) {
+                  setLevel(e.target.value);
+                  setUnsavedChanges(true);
+                }
+              }}
+              placeholder="Lv"
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-center"
+            />
+          </div>
+        </div>
+
         {/* Di sini IDCard menerima props untuk update state parent */}
 
         {/* Group Selector */}
@@ -257,7 +295,7 @@ const KTPManager: React.FC = () => {
           </div>
 
           {showIconSelector && (
-            <div className="grid grid-cols-5 gap-2 max-h-60 overflow-y-auto p-2 bg-gray-900 rounded-lg">
+            <div className="grid grid-cols-5 gap-2 max-h-60 overflow-y-auto p-2 bg-gray-900 rounded-lg scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
               {icons.map((icon) => (
                 <button
                   key={icon.id}
@@ -271,7 +309,7 @@ const KTPManager: React.FC = () => {
                   <img
                     src={icon.src}
                     alt={icon.name}
-                    className="w-10 h-10 rounded-full mx-auto"
+                    className="w-16 h-16 rounded-full mx-auto"
                   />
                 </button>
               ))}
@@ -313,6 +351,7 @@ const KTPManager: React.FC = () => {
             <IDCard
               title={activeAgency}
               group={group}
+              level={level}
               profilePic={profilePic}
               inputText={inputText}
               setInputText={setInputText}
