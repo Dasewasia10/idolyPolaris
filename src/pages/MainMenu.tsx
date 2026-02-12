@@ -25,6 +25,7 @@ const MENUS = {
     { name: "Idol Messages", path: "/messages" },
     { name: "Character Comparison", path: "/stat" },
     { name: "Love Story", path: "/loveStory" },
+    { name: "Beatmap", path: "/beatmaps"}
   ],
 
   upcoming: [

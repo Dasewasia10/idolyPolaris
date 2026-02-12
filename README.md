@@ -28,7 +28,7 @@
 * **Compass Chart:** Analyze character traits using a quadrant chart.
 
 ### 🎮 Simulation & Fun
-* **Gacha Simulator:** Realistic gacha experience with "Spark" system (100/200 pts), distinct pools (Fes, Limited, Birthday), and detailed animations.
+* **Gacha Simulator:** Realistic gacha experience with "Spark" system (100/200 pts), distinct pools (Fes, Limited, Birthday), ~~and detailed animations~~.
 * **Idoly Chat:** Simulate chat conversations with your favorite idols.
 * **Q&A Sessions:** Interactive interview-style Q&A with characters.
 * **Idoly Wordle:** A word puzzle game themed around the franchise.
