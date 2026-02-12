@@ -34,29 +34,31 @@ const KTPManager: React.FC = () => {
   // Ref untuk elemen kartu yang akan di-capture
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Load data icon (opsional, sesuaikan dengan API kamu)
   useEffect(() => {
     const fetchIcons = async () => {
       try {
         const response = await axios.get(
           "https://diveidolypapi.my.id/api/characters",
         );
-        // Proses response untuk mendapatkan array icon
-        // Contoh sederhana:
 
-        let snowMiku = response.data.name("snow");
+        const processedIcons = response.data.map((char: any, index: number) => {
+          // 1. Logika Deteksi & Penggantian Nama
+          let displayName = char.name;
+          let assetName = char.name.toLowerCase().replace(/\s+/g, "");
 
-        if (snowMiku) {
-          snowMiku = snowMiku.toString.toLowerCase().replace("snow", "smiku")
-        } 
+          if (char.name.toLowerCase() === "snow") {
+            displayName = "Snow Miku";
+            assetName = "smiku"; 
+          }
 
-        const processedIcons = response.data.map(
-          (char: any, index: number) => ({
+          // 2. Return objek yang sudah diproses
+          return {
             id: index,
-            name: char.name,
-            src: `https://api.diveidolypapi.my.id/iconCharacter/chara-${char.name.toLowerCase().replace(/\s+/g, "")}.png`,
-          }),
-        );
+            name: displayName,
+            src: `https://api.diveidolypapi.my.id/iconCharacter/chara-${assetName}.png`,
+          };
+        });
+
         setIcons(processedIcons);
       } catch (error) {
         console.error("Error fetching icons:", error);
