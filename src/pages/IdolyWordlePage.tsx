@@ -217,13 +217,42 @@ const IdolyWordlePage: React.FC = () => {
             const guess = guesses[rowIndex];
             const isCurrentRow = rowIndex === guesses.length;
 
+            // --- LOGIKA PEWARNAAN YANG DIPERBAIKI ---
+            let rowStatuses = Array(wordLength).fill("absent"); // Default abu-abu
+
+            if (guess) {
+              const solutionChars = solution.split("");
+              const guessChars = guess.split("");
+
+              // 1. Pass Pertama: Cari yang "CORRECT" (Hijau) dulu
+              guessChars.forEach((char, i) => {
+                if (char === solutionChars[i]) {
+                  rowStatuses[i] = "correct";
+                  solutionChars[i] = ""; // Tandai huruf ini sudah terpakai
+                }
+              });
+
+              // 2. Pass Kedua: Cari yang "PRESENT" (Kuning)
+              guessChars.forEach((char, i) => {
+                if (rowStatuses[i] !== "correct") {
+                  // Jika belum hijau
+                  const indexInSolution = solutionChars.indexOf(char);
+                  if (indexInSolution !== -1) {
+                    rowStatuses[i] = "present";
+                    solutionChars[indexInSolution] = ""; // Pakai jatah huruf ini
+                  }
+                }
+              });
+            }
+            // ----------------------------------------
+
             return [...Array(wordLength)].map((_, colIndex) => {
               let letter = "";
               let status = "";
 
               if (guess) {
                 letter = guess[colIndex];
-                status = getLetterStatus(letter, colIndex);
+                status = rowStatuses[colIndex]; // Gunakan hasil hitungan di atas
               } else if (isCurrentRow) {
                 letter = currentGuess[colIndex] || "";
                 status = "active";
@@ -236,22 +265,16 @@ const IdolyWordlePage: React.FC = () => {
 
               if (status === "correct") {
                 borderClass = "border-green-500 bg-green-500/20";
-                textClass =
-                  "text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.8)]";
-                glowClass = "shadow-[0_0_15px_rgba(74,222,128,0.3)]";
+                textClass = "text-green-400";
               } else if (status === "present") {
                 borderClass = "border-yellow-500 bg-yellow-500/20";
-                textClass =
-                  "text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]";
-                glowClass = "shadow-[0_0_15px_rgba(250,204,21,0.3)]";
+                textClass = "text-yellow-400";
               } else if (status === "absent") {
                 borderClass = "border-gray-700 bg-black/40";
                 textClass = "text-gray-600";
               } else if (status === "active" && letter) {
                 borderClass = "border-pink-500 bg-pink-500/10";
-                textClass =
-                  "text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]";
-                glowClass = "shadow-[0_0_10px_rgba(236,72,153,0.4)]";
+                textClass = "text-white";
               }
 
               return (
@@ -311,7 +334,7 @@ const IdolyWordlePage: React.FC = () => {
 
       {/* RESULT OVERLAY (LIVE RESULT STYLE) */}
       {gameStatus !== "playing" && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 animate-in fade-in duration-500">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 animate-in fade-in duration-500">
           <div className="bg-[#161b22] p-1 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full mx-4 overflow-hidden relative">
             {/* Banner Header */}
             <div

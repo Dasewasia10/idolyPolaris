@@ -10,7 +10,6 @@ import {
   Menu,
   History,
   User,
-  X,
 } from "lucide-react";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 import StrategyGuide from "../components/MoshikoiTimelineGuide";
@@ -23,13 +22,7 @@ interface ChoiceOption {
 }
 
 interface ScriptLine {
-  type:
-    | "dialogue"
-    | "choice_selection"
-    | "anchor"
-    | "jump"
-    | "background"
-    | "bgm";
+  type: "dialogue" | "choice_selection" | "anchor" | "jump";
   speakerCode?: string | null;
   speakerName?: string;
   iconUrl?: string | null;
@@ -38,9 +31,6 @@ interface ScriptLine {
   choices?: ChoiceOption[];
   nextLabel?: string;
   labelName?: string;
-  src?: string; // URL Background atau Audio
-  action?: "play" | "stop"; // Untuk BGM
-  bgName?: string; // ID Background (opsional)
 }
 
 interface Episode {
@@ -128,19 +118,12 @@ const LoveStoryPage: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const typeIntervalRef = useRef<number | null>(null);
 
-  const [isSidebarOpen, setSidebarOpen] = useState(false); // Default tertutup di mobile
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+  const [isSidebarOpen, setSidebarOpen] = useState(true); // Toggle Sidebar
   //
   // --- USERNAME STATE ---
   const [userName, setUserName] = useState(() => {
     return localStorage.getItem("idoly_username") || "Manager";
   });
-
-  // STATE BARU: Background Image
-  const [currentBg, setCurrentBg] = useState<string | null>(null);
-
-  // REF BARU: Background Music
-  const bgmRef = useRef<HTMLAudioElement | null>(null);
 
   // --- 1. FETCH INDEX ---
   useEffect(() => {
@@ -158,14 +141,6 @@ const LoveStoryPage: React.FC = () => {
       setIsAutoPlay(false);
       setIsTyping(false);
       setDisplayedText("");
-
-      // Reset BG & BGM
-      setCurrentBg(null);
-      if (bgmRef.current) {
-        bgmRef.current.pause();
-        bgmRef.current = null;
-      }
-
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -183,95 +158,35 @@ const LoveStoryPage: React.FC = () => {
 
   // --- 3. ENGINE LOGIC ---
   const advance = () => {
-    setExecutionStack((prevStack) => {
-      const newStack = [...prevStack];
-      const top = { ...newStack[newStack.length - 1] };
+    if (executionStack.length === 0) return;
+    const newStack = [...executionStack];
+    const top = newStack[newStack.length - 1];
+    const line = top.script[top.index];
 
-      // Cek apakah kita sudah di akhir script layer ini
-      if (top.index >= top.script.length - 1) {
-        // Jika ini adalah Sub-Route (stack > 1), kita "POP" stack untuk kembali ke cerita utama
-        if (newStack.length > 1) {
-          newStack.pop();
+    if (line && line.type === "choice_selection") return;
 
-          // Setelah pop, kita kembali ke layer di bawahnya (Main Story).
-          // PENTING: Kita harus memajukan index layer bawah 1 langkah
-          // agar tidak mengulang/stuck di baris 'choice_selection' lagi.
-          const parentTop = { ...newStack[newStack.length - 1] };
-          parentTop.index += 1;
-          newStack[newStack.length - 1] = parentTop;
-
-          return newStack;
-        } else {
-          // Jika ini Main Story dan habis, biarkan di akhir (End of Episode)
-          return prevStack;
-        }
-      }
-
-      // Normal Advance
-      top.index += 1;
-      newStack[newStack.length - 1] = top;
-      return newStack;
-    });
-  };
-
-  // UPDATE: LOGIKA PILIHAN UNTUK PUSH STACK
-  const handleChoice = (choiceIndex: number) => {
-    if (!currentLine || !currentLine.choices) return;
-
-    const selectedChoice = currentLine.choices[choiceIndex];
-
-    // Jika pilihan memiliki rute khusus (Branching)
-    if (selectedChoice.route && selectedChoice.route.length > 0) {
-      // PUSH rute baru ke atas stack
-      // Engine akan mulai membaca dari index 0 milik rute ini
-      setExecutionStack((prev) => [
-        ...prev,
-        { script: selectedChoice.route, index: 0 },
-      ]);
+    if (top.index < top.script.length - 1) {
+      top.index++;
+      setExecutionStack(newStack);
     } else {
-      // Jika tidak ada rute khusus (pilihan dummy/linear), langsung lanjut saja
-      advance();
+      if (newStack.length > 1) {
+        newStack.pop();
+        const parent = newStack[newStack.length - 1];
+        parent.index++;
+        setExecutionStack(newStack);
+      } else {
+        console.log("End of Story");
+      }
     }
   };
 
-  // --- EFFECT: PLAY LINE (AUDIO + TEXT + HISTORY + BG/BGM) ---
+  const handleChoice = (route: ScriptLine[]) => {
+    setExecutionStack([...executionStack, { script: route, index: 0 }]);
+  };
+
+  // --- EFFECT: PLAY LINE (AUDIO + TEXT + HISTORY) ---
   useEffect(() => {
     if (!currentLine) return;
-
-    // 1. HANDLE BACKGROUND CHANGE
-    if (currentLine.type === "background" && currentLine.src) {
-      setCurrentBg(currentLine.src);
-      advance(); // Langsung lanjut ke baris berikutnya
-      return;
-    }
-
-    // 2. HANDLE BGM CHANGE
-    if (currentLine.type === "bgm") {
-      if (currentLine.action === "stop") {
-        if (bgmRef.current) {
-          // Fade out effect manual (opsional) atau langsung pause
-          bgmRef.current.pause();
-          bgmRef.current = null;
-        }
-      } else if (currentLine.action === "play" && currentLine.src) {
-        // Stop lagu sebelumnya jika ada
-        if (bgmRef.current) {
-          bgmRef.current.pause();
-        }
-        // Play lagu baru
-        const newBgm = new Audio(currentLine.src);
-        newBgm.loop = true; // BGM biasanya looping
-        newBgm.volume = 0.5; // Set volume default
-        newBgm
-          .play()
-          .catch((e) =>
-            console.warn("BGM Play failed (interaction needed)", e),
-          );
-        bgmRef.current = newBgm;
-      }
-      advance(); // Langsung lanjut
-      return;
-    }
 
     // 1. CLEANUP PREVIOUS STATE
     if (audioRef.current) {
@@ -368,34 +283,6 @@ const LoveStoryPage: React.FC = () => {
     }
   }, [isAutoPlay, isTyping, isPlayingAudio, currentLine]);
 
-  // --- CLEANUP ON UNMOUNT (Pindah Halaman) ---
-  useEffect(() => {
-    // Fungsi ini akan dijalankan saat komponen "mati" (user pindah halaman)
-    return () => {
-      console.log("Stopping all audio...");
-
-      // 1. Matikan Voice
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0; // Reset ke awal
-        audioRef.current = null;
-      }
-
-      // 2. Matikan BGM
-      if (bgmRef.current) {
-        bgmRef.current.pause();
-        bgmRef.current.currentTime = 0;
-        bgmRef.current = null;
-      }
-
-      // 3. Hentikan ketikan teks (agar tidak error update state di component yg sudah unmount)
-      if (typeIntervalRef.current) {
-        clearInterval(typeIntervalRef.current);
-        typeIntervalRef.current = null;
-      }
-    };
-  }, []);
-
   const handleBoxClick = () => {
     if (!currentLine) return;
     if (currentLine.type === "choice_selection") return;
@@ -463,24 +350,6 @@ const LoveStoryPage: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[#0f1115] text-white font-sans overflow-hidden relative selection:bg-pink-500 selection:text-white">
-      {/* --- 1. MOBILE TOGGLE BUTTON (FLOATING) --- */}
-      {/* Z-Index 100 agar selalu di atas segalanya */}
-      <button
-        onClick={() => setSidebarOpen(!isSidebarOpen)}
-        className="fixed top-20 left-4 z-[100] lg:hidden p-3 bg-pink-600 text-white rounded-full shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-white/20 transition-transform active:scale-95 hover:bg-pink-500"
-      >
-        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
-      {/* --- 2. MOBILE OVERLAY (Backdrop) --- */}
-      {/* Klik area gelap untuk menutup sidebar */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-[40] bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-300"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       {/* BACKGROUND TEXTURE (Scanlines/Grid) */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -493,11 +362,7 @@ const LoveStoryPage: React.FC = () => {
 
       {/* SIDEBAR */}
       <aside
-        className={`
-        fixed inset-y-0 top-16 lg:top-0 left-0 z-[50] w-72 bg-[#0d1117] border-r border-white/10 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl
-        lg:relative lg:translate-x-0 lg:z-0 lg:shadow-none
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      `}
+        className={`fixed lg:relative z-50 h-full bg-[#161b22]/95 backdrop-blur-md border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out shadow-2xl ${isSidebarOpen ? "w-80 translate-x-0" : "w-0 -translate-x-full lg:w-0 lg:-translate-x-0"}`}
       >
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-pink-900/20 to-transparent">
           <div>
@@ -583,8 +448,28 @@ const LoveStoryPage: React.FC = () => {
         </div>
       </aside>
 
+      {/* TOGGLE BUTTON (Mobile/Collapsed) */}
+      {!isSidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="absolute top-4 left-4 z-50 p-3 bg-black/50 backdrop-blur border border-white/10 text-white hover:bg-pink-600 hover:border-pink-500 transition-all rounded-none skew-x-[-12deg]"
+        >
+          <Menu size={20} className="skew-x-[12deg]" />
+        </button>
+      )}
+
       {/* MAIN STAGE */}
       <main className="flex-1 relative bg-black flex flex-col items-center justify-center overflow-hidden">
+        {/* Toggle Sidebar Button (Desktop inside) */}
+        {isSidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="absolute top-1/2 left-0 z-50 p-1 bg-gray-800 text-gray-500 hover:text-white rounded-r-full shadow-lg border border-gray-700 hidden lg:block"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        )}
+
         {!currentLine ? (
           <div className="flex flex-col items-center justify-center h-full opacity-30 select-none animate-pulse">
             <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center mb-6">
@@ -596,28 +481,15 @@ const LoveStoryPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* --- UPDATE: BACKGROUND LAYER --- */}
-            {/* Gunakan currentBg state, bukan hardcoded url */}
-            <div className="absolute inset-0 transition-all duration-1000 ease-in-out">
-              {/* Layer Background default/hitam */}
-              <div className="absolute inset-0 bg-[#0f1115]"></div>
-
-              {/* Layer Gambar Dinamis */}
-              {currentBg && (
-                <div
-                  className="absolute inset-0 bg-cover bg-center animate-in fade-in duration-1000"
-                  style={{ backgroundImage: `url('${currentBg}')` }}
-                >
-                  {/* Overlay Gelap agar teks terbaca */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 opacity-60"></div>
-                </div>
-              )}
+            {/* BACKGROUND */}
+            <div className="absolute inset-0 bg-[url('/assets/bg_school.jpg')] bg-cover bg-center transition-all duration-1000 ease-in-out">
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 opacity-80"></div>
             </div>
 
             {/* SPRITE LAYER */}
             {currentLine.speakerCode &&
               getSpriteUrl(currentLine.speakerCode) && (
-                <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] lg:translate-y-60">
+                <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-10">
                   <img
                     key={currentLine.speakerCode}
                     src={getSpriteUrl(currentLine.speakerCode)!}
@@ -636,7 +508,7 @@ const LoveStoryPage: React.FC = () => {
                 {currentLine.choices.map((choice, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleChoice(idx)}
+                    onClick={() => handleChoice(choice.route)}
                     className="w-[90%] max-w-xl group relative overflow-hidden bg-gray-900 border border-white/20 px-8 py-6 transition-all hover:border-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] skew-x-[-12deg]"
                   >
                     <div className="absolute inset-0 w-1 bg-pink-500 -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
