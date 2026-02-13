@@ -714,7 +714,7 @@ const BondStoryPage: React.FC = () => {
                         className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500 transition-all group"
                       >
                         <span className="font-bold text-lg text-white group-hover:text-pink-400 transition-colors">
-                          {ep.title}
+                          {ep.title + ep.epNum}
                         </span>
                         <ArrowRight className="text-gray-500 group-hover:text-white transition-transform group-hover:translate-x-1" />
                       </button>
