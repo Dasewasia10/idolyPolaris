@@ -1,35 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
-  Volume2,
   Play,
   Pause,
-  SkipForward,
-  Map,
   Menu,
   History,
   User,
   X,
   ArrowRight,
-  CheckCircle,
+  Heart, // Icon baru untuk Bond Story
 } from "lucide-react";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
-import StrategyGuide from "../components/MoshikoiTimelineGuide";
 import LogModal from "../components/LogModal";
-import { LOVE_STORY_ROADMAP } from "../assets/roadmap";
 
 // --- TYPES ---
-interface ChoiceOption {
-  text: string;
-  route: ScriptLine[];
-}
-
 interface ScriptLine {
   type:
     | "dialogue"
-    | "choice_selection"
-    | "anchor"
-    | "jump"
+    | "choice_selection" // (Jaga-jaga jika ada)
     | "background"
     | "bgm"
     | "sfx";
@@ -38,9 +26,6 @@ interface ScriptLine {
   iconUrl?: string | null;
   text?: string;
   voiceUrl?: string | null;
-  choices?: ChoiceOption[];
-  nextLabel?: string;
-  labelName?: string;
   src?: string;
   action?: "play" | "stop";
   bgName?: string;
@@ -48,23 +33,30 @@ interface ScriptLine {
   sfxList?: { src: string; delay: number }[];
 }
 
-interface Episode {
+interface Story {
   id: string;
   title: string;
+  epNum: number;
   fileName: string;
 }
 
-interface EventGroup {
+interface CharacterGroup {
   id: string;
-  title: string;
-  episodes: Episode[];
+  name: string;
+  stories: Story[];
+}
+
+interface StackFrame {
+  script: ScriptLine[];
+  index: number;
 }
 
 // --- CONFIG ---
-const API_BASE = "https://diveidolypapi.my.id/api/lovestory";
+// Pastikan endpoint ini sesuai dengan folder output backend Anda
+const API_BASE = "https://diveidolypapi.my.id/api/bondstory";
 const R2_DOMAIN = "https://api.diveidolypapi.my.id";
 
-// --- MAPPING SPRITE ---
+// --- MAPPING SPRITE (Sama dengan LoveStory) ---
 const SPRITE_MAP: Record<string, string> = {
   rio: "rio",
   aoi: "aoi",
@@ -98,19 +90,15 @@ const SPRITE_MAP: Record<string, string> = {
   stm: "satomi",
 };
 
-interface StackFrame {
-  script: ScriptLine[];
-  index: number;
-}
-
-const LoveStoryPage: React.FC = () => {
+const BondStoryPage: React.FC = () => {
   // Data State
-  const [events, setEvents] = useState<EventGroup[]>([]);
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [characters, setCharacters] = useState<CharacterGroup[]>([]);
+  const [selectedCharId, setSelectedCharId] = useState<string | null>(null);
+
+  const [currentStoryId, setCurrentStoryId] = useState<string | null>(null);
 
   // Stack-Based Engine
   const [executionStack, setExecutionStack] = useState<StackFrame[]>([]);
-  const [currentEpisodeTitle, setCurrentEpisodeTitle] = useState("");
 
   const currentFrame = executionStack[executionStack.length - 1];
   const currentLine = currentFrame
@@ -120,7 +108,6 @@ const LoveStoryPage: React.FC = () => {
   // UI State
   const [history, setHistory] = useState<ScriptLine[]>([]);
   const [showLog, setShowLog] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isAutoPlay, setIsAutoPlay] = useState(false);
@@ -139,49 +126,46 @@ const LoveStoryPage: React.FC = () => {
 
   // End Episode State
   const [isEpisodeFinished, setIsEpisodeFinished] = useState(false);
-  const [nextEpisodes, setNextEpisodes] = useState<Episode[]>([]);
-  const [activeRouteInfo, setActiveRouteInfo] = useState<string | null>(null);
+  const [nextStories, setNextStories] = useState<Story[]>([]);
 
-  // --- 1. FETCH INDEX ---
+  // --- 1. FETCH INDEX (BOND) ---
   useEffect(() => {
+    // Mengambil index_bond.json yang dihasilkan script backend
     axios
-      .get(`${API_BASE}/index.json`)
-      .then((res) => setEvents(res.data))
-      .catch((err) => console.error("Index Error:", err));
+      .get(`${API_BASE}/index_bond.json`)
+      .then((res) => setCharacters(res.data))
+      .catch((err) => console.error("Bond Index Error:", err));
   }, []);
 
-  // --- FIX 2: GLOBAL AUDIO CLEANUP (Saat ganti page/komponen mati) ---
+  // --- CLEANUP AUDIO ---
   useEffect(() => {
     return () => {
-      // Matikan BGM
       if (bgmRef.current) {
         bgmRef.current.pause();
         bgmRef.current = null;
       }
-      // Matikan Voice
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
-      // Clear SFX Timers
       sfxTimersRef.current.forEach((id) => clearTimeout(id));
     };
   }, []);
 
-  // --- 2. LOAD EPISODE ---
-  const loadEpisode = async (episodeId: string, title: string) => {
+  // --- 2. LOAD STORY ---
+  const loadStory = async (storyId: string, _title: string) => {
     try {
+      // Reset States
       setExecutionStack([]);
       setHistory([]);
       setIsAutoPlay(false);
       setIsTyping(false);
       setDisplayedText("");
       setIsEpisodeFinished(false);
-      setActiveRouteInfo(null);
-      setNextEpisodes([]);
+      setNextStories([]);
 
       setCurrentBg(null);
-      // Reset Audio saat load episode baru
+      // Reset Audio
       if (bgmRef.current) {
         bgmRef.current.pause();
         bgmRef.current = null;
@@ -191,107 +175,39 @@ const LoveStoryPage: React.FC = () => {
         audioRef.current = null;
       }
 
-      const res = await axios.get(`${API_BASE}/stories/${episodeId}.json`);
+      // Fetch JSON Story
+      const res = await axios.get(`${API_BASE}/stories/${storyId}.json`);
       setExecutionStack([{ script: res.data.script, index: 0 }]);
-      setCurrentEpisodeTitle(title);
+      setCurrentStoryId(storyId);
       if (window.innerWidth < 1024) setSidebarOpen(false);
     } catch (err) {
       console.error("Story Load Error:", err);
     }
   };
 
-  // --- FIX 1: LOGIC NAVIGASI YANG LEBIH ROBUST ---
-  const handleEpisodeEnd = () => {
+  // --- LOGIC: DETEKSI NEXT STORY (LINEAR) ---
+  const handleStoryEnd = () => {
     if (isEpisodeFinished) return;
     setIsEpisodeFinished(true);
 
-    if (!selectedEventId || !currentEpisodeTitle) return;
-    const currentGroup = events.find((e) => e.id === selectedEventId);
-    if (!currentGroup) return;
+    if (!selectedCharId || !currentStoryId) return; // Cek ID
+    const currentChar = characters.find((c) => c.id === selectedCharId);
+    if (!currentChar) return;
 
-    const currentIndex = currentGroup.episodes.findIndex(
-      (ep) => ep.title === currentEpisodeTitle,
+    // Cari index berdasarkan ID (Pasti Akurat)
+    const currentIndex = currentChar.stories.findIndex(
+      (s) => s.id === currentStoryId,
     );
 
     if (currentIndex === -1) return;
 
-    const currentEpObj = currentGroup.episodes[currentIndex];
-
-    const parseId = (id: string) => {
-      const parts = id.split("_");
-      if (parts.length < 5) return { ep: 999, part: 999 };
-      return { ep: parseInt(parts[3]), part: parseInt(parts[4]) };
-    };
-
-    const currentMeta = parseId(currentEpObj.id);
-    let nextParts: Episode[] = [];
-    let nextEpisodes: Episode[] = [];
-
-    // Scan episodes selanjutnya
-    for (let i = currentIndex + 1; i < currentGroup.episodes.length; i++) {
-      const targetEp = currentGroup.episodes[i];
-      const targetMeta = parseId(targetEp.id);
-
-      if (targetMeta.ep > currentMeta.ep + 1) break; // Stop jika loncat terlalu jauh
-
-      // Case A: Part Selanjutnya (2.1 -> 2.2)
-      if (
-        targetMeta.ep === currentMeta.ep &&
-        targetMeta.part === currentMeta.part + 1
-      ) {
-        nextParts.push(targetEp);
-      }
-
-      // Case B: Episode Selanjutnya (2.1 -> 3.1, 3.2, etc)
-      if (targetMeta.ep === currentMeta.ep + 1) {
-        nextEpisodes.push(targetEp);
-      }
-    }
-
-    let finalSuggestions: Episode[] = [];
-
-    // Prioritas: Jika ada Part selanjutnya (Linear), ambil itu.
-    // TAPI, jika TIDAK ADA Part selanjutnya (berarti episode ini selesai),
-    // Tampilkan SEMUA Episode berikutnya (untuk handle cabang 3.1 dan 3.2).
-    if (nextParts.length > 0) {
-      finalSuggestions = nextParts;
-    } else {
-      // Ini memperbaiki masalah Mintsuku 2.1:
-      // Karena tidak ada 2.2, dia akan otomatis mengambil 3.1 DAN 3.2
-      finalSuggestions = nextEpisodes;
-    }
-
-    // Fallback Terakhir: Jika logic di atas gagal total (misal format nama file aneh)
-    if (
-      finalSuggestions.length === 0 &&
-      currentIndex + 1 < currentGroup.episodes.length
-    ) {
-      finalSuggestions.push(currentGroup.episodes[currentIndex + 1]);
-    }
-
-    setNextEpisodes(finalSuggestions);
-
-    // Roadmap Hint Logic
-    const routes = LOVE_STORY_ROADMAP[selectedEventId];
-    if (routes) {
-      const userChoices = history
-        .filter((h) => h.type === "dialogue" && h.speakerName === "Choice")
-        .map((h) => h.text);
-
-      let matchedRouteName = null;
-      for (const route of routes) {
-        const matchCount = route.steps.filter((step) =>
-          userChoices.includes(step.choiceText),
-        ).length;
-        if (matchCount > 0) matchedRouteName = route.endingName;
-      }
-      setActiveRouteInfo(
-        matchedRouteName ? `Possible Route: ${matchedRouteName}` : null,
-      );
+    const nextStory = currentChar.stories[currentIndex + 1];
+    if (nextStory) {
+      setNextStories([nextStory]);
     }
   };
 
-  // --- 3. ENGINE LOGIC ---
+  // --- ENGINE LOGIC ---
   const advance = () => {
     if (isEpisodeFinished) return;
 
@@ -300,19 +216,9 @@ const LoveStoryPage: React.FC = () => {
       const top = { ...newStack[newStack.length - 1] };
 
       if (top.index >= top.script.length - 1) {
-        if (newStack.length > 1) {
-          newStack.pop();
-          const parentTop = { ...newStack[newStack.length - 1] };
-          parentTop.index += 1;
-          newStack[newStack.length - 1] = parentTop;
-          return newStack;
-        } else {
-          // Main story finished
-          // Panggil handleEpisodeEnd di luar render cycle agar aman
-          // (Sebenarnya aman disini karena trigger state update)
-          setTimeout(handleEpisodeEnd, 0);
-          return prevStack;
-        }
+        // Story Selesai
+        setTimeout(handleStoryEnd, 0);
+        return prevStack;
       }
 
       top.index += 1;
@@ -321,40 +227,8 @@ const LoveStoryPage: React.FC = () => {
     });
   };
 
-  // --- UPDATE: HANDLE CHOICE (FIX SKIP STUCK) ---
-  const handleChoice = (choiceIndex: number) => {
-    if (!currentLine || !currentLine.choices) return;
-    const selectedChoice = currentLine.choices[choiceIndex];
-
-    // 1. Simpan ke History
-    setHistory((prev) => [
-      ...prev,
-      {
-        type: "dialogue",
-        speakerName: "Choice",
-        text: selectedChoice.text,
-      } as ScriptLine,
-    ]);
-
-    // 3. Navigasi
-    if (selectedChoice.route && selectedChoice.route.length > 0) {
-      setExecutionStack((prev) => [
-        ...prev,
-        { script: selectedChoice.route!, index: 0 },
-      ]);
-    } else {
-      advance();
-    }
-
-    // 2. Reset Engine State (PENTING untuk memperbaiki tombol Skip macet)
-    setIsTyping(false);
-    setIsAutoPlay(false);
-    setDisplayedText("");
-  };
-
   // --- EFFECT: PLAY LINE ---
   useEffect(() => {
-    // Cleanup SFX timer agar tidak bocor ke slide berikutnya
     sfxTimersRef.current.forEach((id) => clearTimeout(id));
     sfxTimersRef.current = [];
 
@@ -386,7 +260,7 @@ const LoveStoryPage: React.FC = () => {
       return;
     }
 
-    // SFX (Parallel with Dialogue)
+    // SFX
     if (
       currentLine.type === "dialogue" &&
       currentLine.sfxList &&
@@ -402,7 +276,6 @@ const LoveStoryPage: React.FC = () => {
       });
     }
 
-    // SFX (Standalone)
     if (currentLine.type === "sfx" && currentLine.src) {
       const sfx = new Audio(currentLine.src);
       sfx.volume = 0.7;
@@ -412,7 +285,7 @@ const LoveStoryPage: React.FC = () => {
       return;
     }
 
-    // Cleanup prev audio/typing
+    // Reset Audio/Typing
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -429,7 +302,7 @@ const LoveStoryPage: React.FC = () => {
     setIsTyping(hasText);
     setDisplayedText("");
 
-    // Voice
+    // Voice Playback
     if (hasVoice && currentLine.voiceUrl) {
       const audio = new Audio(currentLine.voiceUrl);
       audioRef.current = audio;
@@ -458,6 +331,7 @@ const LoveStoryPage: React.FC = () => {
           text: fullText,
           speakerName: parseText(currentLine.speakerName),
         };
+        // Mencegah duplikasi history jika re-render
         if (
           last &&
           last.text === processedLine.text &&
@@ -475,10 +349,9 @@ const LoveStoryPage: React.FC = () => {
     };
   }, [currentLine]);
 
-  // Auto Play
+  // Auto Play Logic
   useEffect(() => {
     if (!isAutoPlay || !currentLine) return;
-    if (currentLine.type === "choice_selection") return;
 
     if (!isTyping && !isPlayingAudio) {
       const timer = setTimeout(() => {
@@ -491,39 +364,14 @@ const LoveStoryPage: React.FC = () => {
   // Handle User Click
   const handleBoxClick = () => {
     if (!currentLine) return;
-    if (currentLine.type === "choice_selection") return;
 
     if (isTyping) {
-      // Instant Finish
       if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
       setDisplayedText(parseText(currentLine.text) || "");
       setIsTyping(false);
     } else {
       advance();
     }
-  };
-
-  const handleSkip = () => {
-    setIsAutoPlay(false);
-    const top = executionStack[executionStack.length - 1];
-
-    // Cari pilihan berikutnya
-    const nextChoiceIndex = top.script.findIndex(
-      (line, idx) => idx > top.index && line.type === "choice_selection",
-    );
-
-    const newStack = [...executionStack];
-    if (nextChoiceIndex !== -1) {
-      newStack[newStack.length - 1].index = nextChoiceIndex;
-    } else {
-      // Jika tidak ada pilihan lagi, lompat ke akhir (yang akan men-trigger handleEpisodeEnd)
-      newStack[newStack.length - 1].index = top.script.length - 1;
-    }
-
-    setExecutionStack(newStack);
-
-    // Reset typing state agar tombol skip tidak macet setelah skip selesai
-    setIsTyping(false);
   };
 
   const getSpriteUrl = (code?: string | null) => {
@@ -537,26 +385,28 @@ const LoveStoryPage: React.FC = () => {
     return `${R2_DOMAIN}/spriteCharacter/sprite-${filename}-01.png`;
   };
 
-  // --- FIX 3: HELPER UNTUK SPRITE STYLE ---
-  // Fungsi ini menentukan posisi berdasarkan kode karakter
+  // Helper untuk Icon Karakter di Sidebar
+  const getCharacterIconUrl = (characterName: string) => {
+    let assetName = characterName.toLowerCase().replace(/\s+/g, "");
+
+    if (characterName.toLowerCase() === "snow") {
+      assetName = "smiku";
+    }
+    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${assetName}.png`;
+  };
+
   const getSpriteStyle = (code?: string | null) => {
     if (!code) return "";
     const lower = code.toLowerCase();
-
-    // Sumire (smr) & Rui (rui) geser ke kiri (-translate-x)
-    if (["smr"].includes(lower)) {
-      let style = "-translate-x-16 lg:-translate-x-20";
-      // Rui lebih naik sedikit (y-40 vs y-60)
-      if (lower === "rui") {
-        style +=
-          "-translate-x-16 lg:-translate-x-20 translate-y-40 lg:translate-y-60";
+    if (["kor"].includes(lower)) {
+      let style = "lg:translate-y-80";
+      if (lower === "mhk") {
+        style += "lg:translate-y-96"; //somehow not working
       } else {
-        style += "translate-y-60 lg:translate-y-1/2";
+        style += "";
       }
       return style;
     }
-
-    // Default (Tengah/Bawah)
     return "";
   };
 
@@ -614,15 +464,15 @@ const LoveStoryPage: React.FC = () => {
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-pink-900/20 to-transparent">
           <div>
             <div className="flex items-center gap-2 text-pink-400 mb-1">
-              <Volume2 size={16} />
+              <Heart size={16} />
               <span className="text-[10px] tracking-[0.2em] font-bold uppercase">
-                Visual Novel
+                Idol Story
               </span>
             </div>
             <h1 className="font-black italic text-2xl tracking-tighter text-white">
-              MOSHIKOI{" "}
+              BOND{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
-                STORIES&nbsp;
+                STORY&nbsp;
               </span>
             </h1>
           </div>
@@ -640,50 +490,60 @@ const LoveStoryPage: React.FC = () => {
               {userName}
             </span>
           </button>
-
-          <button
-            onClick={() => setShowGuide(!showGuide)}
-            className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-pink-400 transition pl-2"
-          >
-            <Map size={14} /> ROADMAP
-          </button>
         </div>
+
+        {/* CHARACTER LIST */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          {events.map((event) => (
-            <div key={event.id} className="group">
+          {characters.map((char) => (
+            <div key={char.id} className="group">
               <button
                 onClick={() =>
-                  setSelectedEventId(
-                    selectedEventId === event.id ? null : event.id,
-                  )
+                  setSelectedCharId(selectedCharId === char.id ? null : char.id)
                 }
-                className={`w-full text-left px-4 py-3 rounded-none border-l-2 transition-all flex justify-between items-center ${
-                  selectedEventId === event.id
+                className={`w-full text-left px-3 py-3 rounded-lg transition-all flex items-center gap-3 border ${
+                  selectedCharId === char.id
                     ? "border-pink-500 bg-white/5 text-white"
                     : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
+                title={char.name}
               >
-                <span className="font-bold text-sm tracking-wide">
-                  {event.title}
-                </span>
-                <span className="text-[10px] bg-black/40 px-2 py-0.5 rounded text-gray-500 border border-white/10 font-mono">
-                  {event.episodes.length}
-                </span>
+                {/* Character Icon */}
+                <div
+                  className={`w-10 h-10 rounded-full border-2 overflow-hidden flex-shrink-0 ${selectedCharId === char.id ? "border-pink-500" : "border-white/10 group-hover:border-white/30"}`}
+                >
+                  <img
+                    src={getCharacterIconUrl(SPRITE_MAP[char.id])}
+                    alt={char.id}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = getPlaceholderImageUrl("square");
+                    }}
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <span className="font-bold text-sm tracking-wide block truncate">
+                    {char.name}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-mono">
+                    {char.stories.length} Stories
+                  </span>
+                </div>
               </button>
 
-              {selectedEventId === event.id && (
-                <div className="bg-black/20 py-2">
-                  {event.episodes.map((ep) => (
+              {selectedCharId === char.id && (
+                <div className="ml-6 mt-2 pl-4 border-l-2 border-white/10 space-y-1">
+                  {char.stories.map((story) => (
                     <button
-                      key={ep.id}
-                      onClick={() => loadEpisode(ep.id, ep.title)}
-                      className={`block w-full text-left text-xs px-6 py-2 transition-all border-l-4 ${
-                        currentEpisodeTitle === ep.title
-                          ? "border-pink-500 text-pink-300 bg-pink-500/10 font-bold"
-                          : "border-transparent text-gray-500 hover:text-white hover:pl-7"
+                      key={story.id + story.epNum}
+                      onClick={() => loadStory(story.id, story.title)}
+                      className={`block w-full text-left text-xs px-4 py-2 rounded transition-all ${
+                        currentStoryId === story.id
+                          ? "text-pink-300 bg-pink-500/10 font-bold"
+                          : "text-gray-500 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      {ep.title}
+                      {story.title + story.epNum}
                     </button>
                   ))}
                 </div>
@@ -701,7 +561,7 @@ const LoveStoryPage: React.FC = () => {
               <Play size={32} className="ml-1" />
             </div>
             <p className="text-xl tracking-[0.5em] font-light text-white/50">
-              SELECT EPISODE
+              SELECT STORY
             </p>
           </div>
         ) : (
@@ -723,7 +583,7 @@ const LoveStoryPage: React.FC = () => {
             {currentLine.speakerCode &&
               getSpriteUrl(currentLine.speakerCode) && (
                 <div
-                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] ${getSpriteStyle(currentLine.speakerCode)}`}
+                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] translate-y-40 lg:translate-y-60 ${getSpriteStyle(currentLine.speakerCode)}`}
                 >
                   <img
                     key={currentLine.speakerCode}
@@ -733,27 +593,6 @@ const LoveStoryPage: React.FC = () => {
                   />
                 </div>
               )}
-
-            {/* CHOICE SELECTION */}
-            {currentLine.type === "choice_selection" && currentLine.choices && (
-              <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
-                <div className="text-pink-400 font-bold tracking-[0.3em] text-sm mb-4 border-b border-pink-500/50 pb-2">
-                  DECISION POINT
-                </div>
-                {currentLine.choices.map((choice, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleChoice(idx)}
-                    className="w-[90%] max-w-xl group relative overflow-hidden bg-gray-900 border border-white/20 px-8 py-6 transition-all hover:border-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] skew-x-[-12deg]"
-                  >
-                    <div className="absolute inset-0 w-1 bg-pink-500 -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
-                    <span className="relative z-10 text-lg font-medium text-white/90 group-hover:text-white block skew-x-[12deg] text-center">
-                      {choice.text.replace("text=", " ")}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* DIALOGUE */}
             {currentLine.type === "dialogue" && (
@@ -813,7 +652,7 @@ const LoveStoryPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Controls */}
+                    {/* Controls (No Skip) */}
                     <div className="absolute top-0 right-0 flex">
                       <div className="bg-black/60 px-4 py-1 flex gap-4 rounded-bl-xl border-l border-b border-white/10 backdrop-blur">
                         <button
@@ -839,15 +678,6 @@ const LoveStoryPage: React.FC = () => {
                           )}{" "}
                           Auto
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSkip();
-                          }}
-                          className="text-[10px] font-bold text-gray-400 hover:text-pink-400 flex items-center gap-1 uppercase tracking-wider"
-                        >
-                          Skip <SkipForward size={12} />
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -857,52 +687,42 @@ const LoveStoryPage: React.FC = () => {
           </>
         )}
 
-        {/* --- END EPISODE OVERLAY --- */}
+        {/* --- END STORY OVERLAY --- */}
         {isEpisodeFinished && (
           <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-500">
-            <div className="max-w-2xl w-full p-8 bg-[#0f131a] border border-white/10 shadow-2xl rounded-xl relative overflow-y-auto max-h-[40rem] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+            <div className="max-w-2xl w-full p-8 bg-[#0f131a] border border-white/10 shadow-2xl rounded-xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
 
               <h2 className="text-3xl font-black italic text-white mb-2 tracking-tighter">
-                EPISODE FINISHED
+                STORY COMPLETED
               </h2>
-              <p className="text-gray-400 mb-6 text-sm">
-                Current progress saved.
-              </p>
-
-              {activeRouteInfo && (
-                <div className="mb-6 p-3 bg-pink-500/10 border border-pink-500/30 rounded flex items-center gap-3">
-                  <CheckCircle className="text-pink-400" size={20} />
-                  <span className="text-pink-200 font-bold text-sm tracking-wide">
-                    {activeRouteInfo}
-                  </span>
-                </div>
-              )}
+              <p className="text-gray-400 mb-6 text-sm">Bond Level Updated!</p>
 
               <div className="space-y-3">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-                  Continue to:
-                </p>
-
-                {nextEpisodes.length > 0 ? (
-                  nextEpisodes.map((ep) => (
-                    <button
-                      key={ep.id}
-                      onClick={() => {
-                        setIsEpisodeFinished(false);
-                        loadEpisode(ep.id, ep.title);
-                      }}
-                      className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500 transition-all group"
-                    >
-                      <span className="font-bold text-lg text-white group-hover:text-pink-400 transition-colors">
-                        {ep.title}
-                      </span>
-                      <ArrowRight className="text-gray-500 group-hover:text-white transition-transform group-hover:translate-x-1" />
-                    </button>
-                  ))
+                {nextStories.length > 0 ? (
+                  <>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+                      Next Story:
+                    </p>
+                    {nextStories.map((ep) => (
+                      <button
+                        key={ep.id}
+                        onClick={() => {
+                          setIsEpisodeFinished(false);
+                          loadStory(ep.id, ep.title);
+                        }}
+                        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500 transition-all group"
+                      >
+                        <span className="font-bold text-lg text-white group-hover:text-pink-400 transition-colors">
+                          {ep.title}
+                        </span>
+                        <ArrowRight className="text-gray-500 group-hover:text-white transition-transform group-hover:translate-x-1" />
+                      </button>
+                    ))}
+                  </>
                 ) : (
                   <div className="p-4 bg-white/5 border border-white/5 text-center text-gray-500">
-                    No further episodes found. (End of Event)
+                    Character Story Completed.
                   </div>
                 )}
               </div>
@@ -917,7 +737,7 @@ const LoveStoryPage: React.FC = () => {
                   }}
                   className="text-xs text-gray-500 hover:text-white underline"
                 >
-                  Replay Episode
+                  Replay Story
                 </button>
                 <button
                   onClick={() => {
@@ -934,13 +754,6 @@ const LoveStoryPage: React.FC = () => {
         )}
       </main>
 
-      {showGuide && selectedEventId && (
-        <StrategyGuide
-          eventId={selectedEventId}
-          onClose={() => setShowGuide(false)}
-        />
-      )}
-
       {showLog && (
         <LogModal history={history} onClose={() => setShowLog(false)} />
       )}
@@ -948,4 +761,4 @@ const LoveStoryPage: React.FC = () => {
   );
 };
 
-export default LoveStoryPage;
+export default BondStoryPage;

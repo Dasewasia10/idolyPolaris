@@ -26,8 +26,11 @@ const MENUS = {
     { name: "Mana's Diary", path: "/diary" },
     { name: "Character Comparison", path: "/stat" },
     { name: "Idol Messages", path: "/messages" },
-    { name: "Love Story", path: "/loveStory" },
     { name: "Beatmap", path: "/beatmaps" },
+  ],
+  stories: [
+    { name: "Love Story", path: "/loveStory" },
+    { name: "Bond Story", path: "/bondStory" },
   ],
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },
@@ -208,6 +211,12 @@ const MainMenu: React.FC = () => {
               <DesktopDropdown
                 title="Add-Ons"
                 items={MENUS.addOn}
+                currentPath={location.pathname}
+                navigate={handleNav}
+              />
+              <DesktopDropdown
+                title="Stories"
+                items={MENUS.stories}
                 currentPath={location.pathname}
                 navigate={handleNav}
               />

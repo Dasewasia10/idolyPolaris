@@ -84,9 +84,37 @@ const CharacterCalendar: React.FC = () => {
     const startDay = getDay(monthStart);
     const daysInMonth = getDaysInMonth(currentDate);
     const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
 
     const weeks = [];
     let days = [];
+
+    const SPECIAL_EVENTS = [
+      {
+        day: 1,
+        month: 0,
+        name: "Oshougatsu (New Year)",
+        color: "text-red-500",
+      },
+      { day: 14, month: 1, name: "Valentine's Day", color: "text-pink-400" },
+      { day: 14, month: 2, name: "White Day", color: "text-blue-300" },
+      {
+        day: 29,
+        month: 3,
+        name: "Golden Week Starts",
+        color: "text-yellow-500",
+      },
+      {
+        day: 5,
+        month: 4,
+        name: "Children's Day (GW End)",
+        color: "text-yellow-600",
+      },
+      { day: 7, month: 6, name: "Tanabata", color: "text-purple-400" },
+      { day: 31, month: 9, name: "Halloween", color: "text-orange-500" },
+      { day: 24, month: 11, name: "Christmas Eve", color: "text-green-500" },
+      { day: 25, month: 11, name: "Christmas Day", color: "text-red-600" },
+    ];
 
     // Empty cells at start
     for (let i = 0; i < startDay; i++) {
@@ -110,6 +138,14 @@ const CharacterCalendar: React.FC = () => {
         currentMonth === today.getMonth() &&
         currentDate.getFullYear() === today.getFullYear();
 
+      // Cek apakah hari ini Anniversary (24 Juni)
+      const isAnniversary = day === 24 && currentMonth === 5;
+
+      // Cek event jepang lainnya
+      const holiday = SPECIAL_EVENTS.find(
+        (e) => e.day === day && e.month === currentMonth,
+      );
+
       days.push(
         <div
           key={`day-${day}`}
@@ -130,6 +166,16 @@ const CharacterCalendar: React.FC = () => {
         >
           {/* Day Number */}
           <div className="flex justify-end">
+            {isAnniversary && (
+              <span className="text-[7px] lg:text-[9px] font-black text-yellow-500 leading-none uppercase">
+                ✨ {getAnniversaryText(currentYear)}
+              </span>
+            )}
+            {holiday && (
+              <span className="text-[7px] lg:text-[8px] font-bold text-pink-500 leading-none uppercase">
+                {holiday.name}
+              </span>
+            )}
             <span
               className={`text-xs font-mono px-1.5 py-0.5 rounded ${
                 isToday
@@ -217,6 +263,21 @@ const CharacterCalendar: React.FC = () => {
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() + months, 1),
     );
+  };
+
+  const getAnniversaryText = (viewYear: number) => {
+    const startYear = 2021;
+    const yearDiff = viewYear - startYear;
+
+    if (yearDiff <= 0) return "Game Launch";
+
+    // Logika penambahan suffix (st, nd, rd, th)
+    const j = yearDiff % 10,
+      k = yearDiff % 100;
+    if (j === 1 && k !== 11) return `${yearDiff}st Anniversary`;
+    if (j === 2 && k !== 12) return `${yearDiff}nd Anniversary`;
+    if (j === 3 && k !== 13) return `${yearDiff}rd Anniversary`;
+    return `${yearDiff}th Anniversary`;
   };
 
   return (
