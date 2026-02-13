@@ -583,7 +583,7 @@ const BondStoryPage: React.FC = () => {
             {currentLine.speakerCode &&
               getSpriteUrl(currentLine.speakerCode) && (
                 <div
-                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] translate-y-40 lg:translate-y-60 ${getSpriteStyle(currentLine.speakerCode)}`}
+                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] translate-y-20 lg:translate-y-60 ${getSpriteStyle(currentLine.speakerCode)}`}
                 >
                   <img
                     key={currentLine.speakerCode}

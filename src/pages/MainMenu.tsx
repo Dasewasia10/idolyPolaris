@@ -258,50 +258,54 @@ const MainMenu: React.FC = () => {
               ))}
 
               {/* Mobile Accordions */}
-              {["Cards", "Playground", "Add-Ons"].map((section, _idx) => {
-                const items =
-                  section === "Cards"
-                    ? MENUS.card
-                    : section === "Playground"
-                      ? MENUS.playground
-                      : MENUS.addOn;
-                const isExpanded = mobileExpanded === section;
+              {["Cards", "Playground", "Add-Ons", "Stories"].map(
+                (section, _idx) => {
+                  const items =
+                    section === "Cards"
+                      ? MENUS.card
+                      : section === "Playground"
+                        ? MENUS.playground
+                        : section === "Stories"
+                          ? MENUS.stories
+                          : MENUS.addOn;
+                  const isExpanded = mobileExpanded === section;
 
-                return (
-                  <div
-                    key={section}
-                    className="border-t border-slate-800 pt-2 mt-2"
-                  >
-                    <button
-                      onClick={() =>
-                        setMobileExpanded(isExpanded ? null : section)
-                      }
-                      className="flex items-center justify-between w-full px-3 py-2 text-base font-bold text-gray-400 uppercase tracking-wider hover:text-white"
+                  return (
+                    <div
+                      key={section}
+                      className="border-t border-slate-800 pt-2 mt-2"
                     >
-                      {section}
-                      <ChevronDown
-                        size={16}
-                        className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                      />
-                    </button>
+                      <button
+                        onClick={() =>
+                          setMobileExpanded(isExpanded ? null : section)
+                        }
+                        className="flex items-center justify-between w-full px-3 py-2 text-base font-bold text-gray-400 uppercase tracking-wider hover:text-white"
+                      >
+                        {section}
+                        <ChevronDown
+                          size={16}
+                          className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
 
-                    {isExpanded && (
-                      <div className="pl-4 space-y-1 mt-1 bg-slate-900/50">
-                        {items.map((item: any) => (
-                          <button
-                            key={item.path}
-                            onClick={() => handleNav(item.path)}
-                            className={`block w-full text-left px-3 py-2 rounded-md text-sm
+                      {isExpanded && (
+                        <div className="pl-4 space-y-1 mt-1 bg-slate-900/50">
+                          {items.map((item: any) => (
+                            <button
+                              key={item.path}
+                              onClick={() => handleNav(item.path)}
+                              className={`block w-full text-left px-3 py-2 rounded-md text-sm
                               ${location.pathname === item.path ? "text-blue-400 font-semibold" : "text-gray-400 hover:text-white"}`}
-                          >
-                            {item.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                            >
+                              {item.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                },
+              )}
             </div>
           </div>
         )}

@@ -359,7 +359,7 @@ const IdolListPage: React.FC = () => {
                       exit={{ opacity: 0, x: -50 }}
                       transition={{ duration: 0.4 }}
                       className={`absolute w-auto h-[120%] max-w-none object-cover select-none z-0
-                            ${isMobile ? "left-1/2 -translate-x-1/2 top-10" : "right-[-10%] top-[-10%]"}
+                            ${isMobile ? "left-1/2 -translate-x-1/2" : "right-[-10%] top-[-10%]"}
                         `}
                       draggable="false"
                       onError={(e) => {
