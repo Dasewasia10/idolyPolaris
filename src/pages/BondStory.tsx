@@ -189,6 +189,16 @@ const BondStoryPage: React.FC = () => {
   const handleStoryEnd = () => {
     if (isEpisodeFinished) return;
     setIsEpisodeFinished(true);
+    
+    if (bgmRef.current) {
+      bgmRef.current.pause();
+      bgmRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    sfxTimersRef.current.forEach((id) => clearTimeout(id));
 
     if (!selectedCharId || !currentStoryId) return; // Cek ID
     const currentChar = characters.find((c) => c.id === selectedCharId);

@@ -204,6 +204,16 @@ const LoveStoryPage: React.FC = () => {
   const handleEpisodeEnd = () => {
     if (isEpisodeFinished) return;
     setIsEpisodeFinished(true);
+    
+    if (bgmRef.current) {
+      bgmRef.current.pause();
+      bgmRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    sfxTimersRef.current.forEach((id) => clearTimeout(id));
 
     if (!selectedEventId || !currentEpisodeTitle) return;
     const currentGroup = events.find((e) => e.id === selectedEventId);
