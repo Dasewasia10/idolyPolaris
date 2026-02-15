@@ -26,15 +26,22 @@ const getCharacterImageUrl = (
   characterName: string,
   type: "icon" | "sprite1" | "sprite2" | "banner",
 ) => {
-  // 1. Ubah nama menjadi lowercase untuk pengecekan
-  const lowerName = characterName.toLowerCase();
+  const baseUrl = "https://api.diveidolypapi.my.id";
+  const formattedName = encodeURIComponent(characterName.toLowerCase());
 
-  // 2. Cek apakah namanya "snow". Jika iya, ganti jadi "smiku". Jika tidak, tetap pakai nama aslinya.
-  const finalName = lowerName === "snow" ? "smiku" : lowerName;
-
-  return `https://diveidolypapi.my.id/api/img/character/${type}/${encodeURIComponent(
-    finalName,
-  )}`;
+  switch (type) {
+    case "icon":
+      return `${baseUrl}/iconCharacter/chara-${formattedName}.png`;
+    case "banner":
+      return `${baseUrl}/bannerCharacter/banner-${formattedName}.png`;
+    case "sprite1":
+      return `${baseUrl}/spriteCharacter/sprite-${formattedName}-01.png`;
+    case "sprite2":
+      return `${baseUrl}/spriteCharacter/sprite-${formattedName}-02.png`;
+    default:
+      // Fallback aman jika tipe tidak dikenali
+      return "";
+  }
 };
 
 const allowedGroups = [

@@ -1,64 +1,57 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
-  ChevronLeft,
-  Volume2,
   Play,
   Pause,
-  SkipForward,
-  Map,
   Menu,
   History,
   User,
+  X,
+  ArrowRight,
+  Album,
 } from "lucide-react";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
-import StrategyGuide from "../components/MoshikoiTimelineGuide";
 import LogModal from "../components/LogModal";
 
 // --- TYPES ---
-interface ChoiceOption {
-  text: string;
-  route: ScriptLine[];
-}
-
 interface ScriptLine {
-  type:
-    | "dialogue"
-    | "choice_selection"
-    | "anchor"
-    | "jump"
-    | "background"
-    | "bgm";
+  type: "dialogue" | "background" | "bgm" | "sfx";
   speakerCode?: string | null;
   speakerName?: string;
   iconUrl?: string | null;
   text?: string;
   voiceUrl?: string | null;
-  choices?: ChoiceOption[];
-  nextLabel?: string;
-  labelName?: string;
-  src?: string; // URL Background atau Audio
-  action?: "play" | "stop"; // Untuk BGM
-  bgName?: string; // ID Background (opsional)
+  src?: string;
+  action?: "play" | "stop";
+  bgName?: string;
+  startTime?: number;
+  sfxList?: { src: string; delay: number }[];
 }
 
-interface Episode {
+interface Story {
   id: string;
   title: string;
+  epNum: number;
   fileName: string;
 }
 
-interface EventGroup {
+interface CharacterGroup {
   id: string;
-  title: string;
-  episodes: Episode[];
+  name: string;
+  stories: Story[];
+}
+
+interface StackFrame {
+  script: ScriptLine[];
+  index: number;
 }
 
 // --- CONFIG ---
-const API_BASE = "https://diveidolypapi.my.id/api/lovestory";
+// Pastikan endpoint ini sesuai dengan folder output backend Anda
+const API_BASE = "https://diveidolypapi.my.id/api/mainstory";
 const R2_DOMAIN = "https://api.diveidolypapi.my.id";
 
-// --- MAPPING SPRITE ---
+// --- MAPPING SPRITE (Sama dengan LoveStory) ---
 const SPRITE_MAP: Record<string, string> = {
   rio: "rio",
   aoi: "aoi",
@@ -92,171 +85,212 @@ const SPRITE_MAP: Record<string, string> = {
   stm: "satomi",
 };
 
-// --- ENGINE STATE INTERFACE ---
-interface StackFrame {
-  script: ScriptLine[];
-  index: number;
-}
-
-const LoveStoryPage: React.FC = () => {
+const MainStoryPage: React.FC = () => {
   // Data State
-  const [events, setEvents] = useState<EventGroup[]>([]);
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [characters, setCharacters] = useState<CharacterGroup[]>([]);
+  const [selectedCharId, setSelectedCharId] = useState<string | null>(null);
+
+  const [currentStoryId, setCurrentStoryId] = useState<string | null>(null);
 
   // Stack-Based Engine
   const [executionStack, setExecutionStack] = useState<StackFrame[]>([]);
-  const [currentEpisodeTitle, setCurrentEpisodeTitle] = useState("");
 
   const currentFrame = executionStack[executionStack.length - 1];
   const currentLine = currentFrame
     ? currentFrame.script[currentFrame.index]
     : undefined;
 
-  /// --- LOG & HISTORY STATE (BARU) ---
+  // UI State
   const [history, setHistory] = useState<ScriptLine[]>([]);
   const [showLog, setShowLog] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-
-  // Typewriter State
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-
-  // Controls
   const [isAutoPlay, setIsAutoPlay] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const typeIntervalRef = useRef<number | null>(null);
-
-  const [isSidebarOpen, setSidebarOpen] = useState(true); // Toggle Sidebar
-  //
-  // --- USERNAME STATE ---
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [userName, setUserName] = useState(() => {
     return localStorage.getItem("idoly_username") || "Manager";
   });
-
-  // STATE BARU: Background Image
   const [currentBg, setCurrentBg] = useState<string | null>(null);
 
-  // REF BARU: Background Music
+  // Refs
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const typeIntervalRef = useRef<number | null>(null);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const sfxTimersRef = useRef<number[]>([]);
 
-  // --- 1. FETCH INDEX ---
+  // End Episode State
+  const [isEpisodeFinished, setIsEpisodeFinished] = useState(false);
+  const [nextStories, setNextStories] = useState<Story[]>([]);
+
+  // --- 1. FETCH INDEX (MAIN) ---
   useEffect(() => {
+    // Mengambil index_main.json yang dihasilkan script backend
     axios
-      .get(`${API_BASE}/index.json`)
-      .then((res) => setEvents(res.data))
-      .catch((err) => console.error("Index Error:", err));
+      .get(`${API_BASE}/index_main.json`)
+      .then((res) => setCharacters(res.data))
+      .catch((err) => console.error("Main Index Error:", err));
   }, []);
 
-  // --- 2. LOAD EPISODE ---
-  const loadEpisode = async (episodeId: string, title: string) => {
+  // --- CLEANUP AUDIO ---
+  useEffect(() => {
+    return () => {
+      if (bgmRef.current) {
+        bgmRef.current.pause();
+        bgmRef.current = null;
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      sfxTimersRef.current.forEach((id) => clearTimeout(id));
+    };
+  }, []);
+
+  // --- 2. LOAD STORY ---
+  const loadStory = async (storyId: string, _title: string) => {
     try {
+      // Reset States
       setExecutionStack([]);
       setHistory([]);
       setIsAutoPlay(false);
       setIsTyping(false);
       setDisplayedText("");
+      setIsEpisodeFinished(false);
+      setNextStories([]);
 
-      // Reset BG & BGM
       setCurrentBg(null);
+      // Reset Audio
       if (bgmRef.current) {
         bgmRef.current.pause();
         bgmRef.current = null;
       }
-
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
 
-      const res = await axios.get(`${API_BASE}/stories/${episodeId}.json`);
+      // Fetch JSON Story
+      const res = await axios.get(`${API_BASE}/stories/${storyId}.json`);
       setExecutionStack([{ script: res.data.script, index: 0 }]);
-      setCurrentEpisodeTitle(title);
-      // Auto close sidebar on mobile when playing
+      setCurrentStoryId(storyId);
       if (window.innerWidth < 1024) setSidebarOpen(false);
     } catch (err) {
       console.error("Story Load Error:", err);
     }
   };
 
-  // --- 3. ENGINE LOGIC ---
-  const advance = () => {
-    if (executionStack.length === 0) return;
-    const newStack = [...executionStack];
-    const top = newStack[newStack.length - 1];
-    const line = top.script[top.index];
+  // --- LOGIC: DETEKSI NEXT STORY (LINEAR) ---
+  const handleStoryEnd = () => {
+    if (isEpisodeFinished) return;
+    setIsEpisodeFinished(true);
 
-    if (line && line.type === "choice_selection") return;
+    if (bgmRef.current) {
+      bgmRef.current.pause();
+      bgmRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    sfxTimersRef.current.forEach((id) => clearTimeout(id));
 
-    if (top.index < top.script.length - 1) {
-      top.index++;
-      setExecutionStack(newStack);
-    } else {
-      if (newStack.length > 1) {
-        newStack.pop();
-        const parent = newStack[newStack.length - 1];
-        parent.index++;
-        setExecutionStack(newStack);
-      } else {
-        console.log("End of Story");
-      }
+    if (!selectedCharId || !currentStoryId) return; // Cek ID
+    const currentChar = characters.find((c) => c.id === selectedCharId);
+    if (!currentChar) return;
+
+    // Cari index berdasarkan ID (Pasti Akurat)
+    const currentIndex = currentChar.stories.findIndex(
+      (s) => s.id === currentStoryId,
+    );
+
+    if (currentIndex === -1) return;
+
+    const nextStory = currentChar.stories[currentIndex + 1];
+    if (nextStory) {
+      setNextStories([nextStory]);
     }
   };
 
-  const handleChoice = (route: ScriptLine[]) => {
-    setExecutionStack([...executionStack, { script: route, index: 0 }]);
+  // --- ENGINE LOGIC ---
+  const advance = () => {
+    if (isEpisodeFinished) return;
+
+    setExecutionStack((prevStack) => {
+      const newStack = [...prevStack];
+      const top = { ...newStack[newStack.length - 1] };
+
+      if (top.index >= top.script.length - 1) {
+        // Story Selesai
+        setTimeout(handleStoryEnd, 0);
+        return prevStack;
+      }
+
+      top.index += 1;
+      newStack[newStack.length - 1] = top;
+      return newStack;
+    });
   };
 
-  // --- EFFECT: PLAY LINE (AUDIO + TEXT + HISTORY + BG/BGM) ---
+  // --- EFFECT: PLAY LINE ---
   useEffect(() => {
+    sfxTimersRef.current.forEach((id) => clearTimeout(id));
+    sfxTimersRef.current = [];
+
     if (!currentLine) return;
 
-    // 1. HANDLE BACKGROUND CHANGE
+    // Background
     if (currentLine.type === "background" && currentLine.src) {
       setCurrentBg(currentLine.src);
-      // Beri sedikit delay agar transisi terasa (opsional, bisa dihapus 10ms nya)
-      setTimeout(advance, 10);
+      advance();
       return;
     }
 
-    // 2. HANDLE BGM CHANGE
+    // BGM
     if (currentLine.type === "bgm") {
-      const handleBgm = async () => {
-        if (currentLine.action === "stop") {
-          if (bgmRef.current) {
-            // Fade out simple
-            const fadeAudio = setInterval(() => {
-              if (bgmRef.current && bgmRef.current.volume > 0.05) {
-                bgmRef.current.volume -= 0.05;
-              } else {
-                clearInterval(fadeAudio);
-                bgmRef.current?.pause();
-                bgmRef.current = null;
-              }
-            }, 50);
-          }
-        } else if (currentLine.action === "play" && currentLine.src) {
-          // Stop lagu lama instant
-          if (bgmRef.current) bgmRef.current.pause();
-
-          const newBgm = new Audio(currentLine.src);
-          newBgm.loop = true;
-          newBgm.volume = 0.5;
-          // Play Promise
-          try {
-            await newBgm.play();
-            bgmRef.current = newBgm;
-          } catch (e) {
-            console.warn("Auto-play blocked", e);
-          }
+      if (currentLine.action === "stop") {
+        if (bgmRef.current) {
+          bgmRef.current.pause();
+          bgmRef.current = null;
         }
-        advance(); // Lanjut setelah audio diproses
-      };
-      handleBgm();
+      } else if (currentLine.action === "play" && currentLine.src) {
+        if (bgmRef.current) bgmRef.current.pause();
+        const newBgm = new Audio(currentLine.src);
+        newBgm.loop = true;
+        newBgm.volume = 0.5;
+        newBgm.play().catch((e) => console.warn("BGM Error", e));
+        bgmRef.current = newBgm;
+      }
+      advance();
       return;
     }
 
-    // 1. CLEANUP PREVIOUS STATE
+    // SFX
+    if (
+      currentLine.type === "dialogue" &&
+      currentLine.sfxList &&
+      currentLine.sfxList.length > 0
+    ) {
+      currentLine.sfxList.forEach((sfx) => {
+        const timerId = window.setTimeout(() => {
+          const audio = new Audio(sfx.src);
+          audio.volume = 0.7;
+          audio.play().catch((e) => console.warn("SFX Error", e));
+        }, sfx.delay);
+        sfxTimersRef.current.push(timerId);
+      });
+    }
+
+    if (currentLine.type === "sfx" && currentLine.src) {
+      const sfx = new Audio(currentLine.src);
+      sfx.volume = 0.7;
+      sfx.loop = false;
+      sfx.play().catch((e) => console.warn("SFX Error", e));
+      advance();
+      return;
+    }
+
+    // Reset Audio/Typing
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -266,37 +300,26 @@ const LoveStoryPage: React.FC = () => {
       typeIntervalRef.current = null;
     }
 
-    // 2. DETEKSI APAKAH ADA VOICE/TEXT (Agar AutoPlay tidak jalan duluan)
     const hasVoice = !!currentLine.voiceUrl;
     const hasText = currentLine.type === "dialogue" && !!currentLine.text;
 
-    // Set state "sedang sibuk" SEBELUM proses async dimulai
-    // Ini kunci agar AutoPlay tidak menyela
     setIsPlayingAudio(hasVoice);
     setIsTyping(hasText);
     setDisplayedText("");
 
-    // 3. HANDLE AUDIO
+    // Voice Playback
     if (hasVoice && currentLine.voiceUrl) {
       const audio = new Audio(currentLine.voiceUrl);
       audioRef.current = audio;
-
-      // Play audio
-      audio.play().catch((err) => {
-        console.warn("Audio play failed:", err);
-        setIsPlayingAudio(false); // Matikan flag jika gagal play
-      });
-
+      audio.play().catch(() => setIsPlayingAudio(false));
       audio.onended = () => setIsPlayingAudio(false);
       audio.onerror = () => setIsPlayingAudio(false);
     }
 
-    // 4. HANDLE TEXT (TYPEWRITER)
+    // Text Typewriter
     if (hasText && currentLine.text) {
-      // UBAH DI SINI: Gunakan parseText()
       const fullText = parseText(currentLine.text);
       let charIndex = 0;
-
       typeIntervalRef.current = window.setInterval(() => {
         charIndex++;
         setDisplayedText(fullText.slice(0, charIndex));
@@ -306,17 +329,14 @@ const LoveStoryPage: React.FC = () => {
         }
       }, 25);
 
-      // 5. ADD TO HISTORY
       setHistory((prev) => {
         const last = prev[prev.length - 1];
-        // Kita simpan versi yang SUDAH diproses (parsed) ke dalam history
-        // Agar di Log nanti namanya muncul benar, bukan "{user}"
         const processedLine = {
           ...currentLine,
-          text: fullText, // Text yang sudah diganti
-          speakerName: parseText(currentLine.speakerName), // Speaker juga diganti
+          text: fullText,
+          speakerName: parseText(currentLine.speakerName),
         };
-
+        // Mencegah duplikasi history jika re-render
         if (
           last &&
           last.text === processedLine.text &&
@@ -328,20 +348,15 @@ const LoveStoryPage: React.FC = () => {
       });
     }
 
-    // Cleanup saat component unmount atau ganti line
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      if (typeIntervalRef.current) {
-        clearInterval(typeIntervalRef.current);
-      }
+      if (audioRef.current) audioRef.current.pause();
+      if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
     };
-  }, [currentLine]); // Dependency hanya currentLine
+  }, [currentLine]);
 
+  // Auto Play Logic
   useEffect(() => {
     if (!isAutoPlay || !currentLine) return;
-    if (currentLine.type === "choice_selection") return;
 
     if (!isTyping && !isPlayingAudio) {
       const timer = setTimeout(() => {
@@ -351,43 +366,16 @@ const LoveStoryPage: React.FC = () => {
     }
   }, [isAutoPlay, isTyping, isPlayingAudio, currentLine]);
 
+  // Handle User Click
   const handleBoxClick = () => {
     if (!currentLine) return;
-    if (currentLine.type === "choice_selection") return;
 
     if (isTyping) {
       if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
-      setDisplayedText(currentLine.text || "");
+      setDisplayedText(parseText(currentLine.text) || "");
       setIsTyping(false);
     } else {
       advance();
-    }
-  };
-
-  // --- PERBAIKAN LOGIKA SKIP ---
-  const handleSkip = () => {
-    setIsAutoPlay(false); // Stop autoplay
-
-    // Stop typing & voice saat ini
-    if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
-    if (audioRef.current) audioRef.current.pause();
-
-    const newStack = [...executionStack];
-    const top = newStack[newStack.length - 1];
-
-    // Cari index pilihan berikutnya
-    const nextChoiceIndex = top.script.findIndex(
-      (line, idx) => idx > top.index && line.type === "choice_selection",
-    );
-
-    if (nextChoiceIndex !== -1) {
-      // Jika ada pilihan, lompat tepat ke sana
-      top.index = nextChoiceIndex;
-      setExecutionStack(newStack);
-    } else {
-      // Jika tidak ada pilihan lagi, lompat ke akhir
-      top.index = top.script.length - 1;
-      setExecutionStack(newStack);
     }
   };
 
@@ -399,35 +387,58 @@ const LoveStoryPage: React.FC = () => {
     )
       return null;
     const filename = SPRITE_MAP[lower] || lower;
-    return `${R2_DOMAIN}/spriteCharacter/sprite-${filename}-02.png`;
+    return `${R2_DOMAIN}/spriteCharacter/sprite-${filename}-01.png`;
   };
 
-  // Helper: Replace placeholder {user} dengan nama asli
+  const getSpriteStyle = (code?: string | null) => {
+    if (!code) return "";
+    const lower = code.toLowerCase();
+    if (["kor"].includes(lower)) {
+      let style = "lg:translate-y-80";
+      if (lower === "mhk") {
+        style += "lg:translate-y-96"; //somehow not working
+      } else {
+        style += "";
+      }
+      return style;
+    }
+    return "";
+  };
+
   const parseText = (text?: string) => {
     if (!text) return "";
-    // Regex global (/g) agar mengganti semua {user} jika muncul lebih dari sekali
     return text.replace(/{user}/g, userName);
   };
 
-  // Handler Ganti Nama (Simple Prompt)
   const handleChangeName = () => {
     const newName = window.prompt("Enter your Manager name:", userName);
     if (newName && newName.trim() !== "") {
       setUserName(newName);
       localStorage.setItem("idoly_username", newName);
-      // Opsional: Reload episode agar text ter-refresh jika sedang di tengah dialog
-      if (currentEpisodeTitle) {
-        // Logika refresh ringan (set displayed text ulang)
-        if (currentLine && currentLine.type === "dialogue") {
-          setDisplayedText(currentLine.text?.replace(/{user}/g, newName) || "");
-        }
+      if (currentLine && currentLine.type === "dialogue") {
+        setDisplayedText(currentLine.text?.replace(/{user}/g, newName) || "");
       }
     }
   };
 
   return (
     <div className="flex h-screen bg-[#0f1115] text-white font-sans overflow-hidden relative selection:bg-pink-500 selection:text-white">
-      {/* BACKGROUND TEXTURE (Scanlines/Grid) */}
+      {/* MOBILE BTN */}
+      <button
+        onClick={() => setSidebarOpen(!isSidebarOpen)}
+        className="fixed top-20 left-4 z-[100] lg:hidden p-3 bg-pink-600 text-white rounded-full shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-white/20 transition-transform active:scale-95 hover:bg-pink-500"
+      >
+        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-[40] bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-300"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* BACKGROUND TEXTURE */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
         style={{
@@ -439,28 +450,30 @@ const LoveStoryPage: React.FC = () => {
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed lg:relative z-50 h-full bg-[#161b22]/95 backdrop-blur-md border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out shadow-2xl ${isSidebarOpen ? "w-80 translate-x-0" : "w-0 -translate-x-full lg:w-0 lg:-translate-x-0"}`}
+        className={`
+        fixed inset-y-0 top-16 lg:top-0 left-0 z-[50] w-72 bg-[#0d1117] border-r border-white/10 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl
+        lg:relative lg:translate-x-0 lg:z-0 lg:shadow-none
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
       >
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-pink-900/20 to-transparent">
           <div>
             <div className="flex items-center gap-2 text-pink-400 mb-1">
-              <Volume2 size={16} />
+              <Album size={16} />
               <span className="text-[10px] tracking-[0.2em] font-bold uppercase">
-                Visual Novel
+                Idol Story
               </span>
             </div>
             <h1 className="font-black italic text-2xl tracking-tighter text-white">
-              MOSHIKOI{" "}
+              MAIN{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
-                STORIES&nbsp;
+                STORY&nbsp;
               </span>
             </h1>
           </div>
         </div>
 
-        {/* Sidebar Handler */}
         <div className="p-4 border-t border-white/10 flex flex-col gap-3 bg-[#0d1117]">
-          {/* Tombol Ganti Nama */}
           <button
             onClick={handleChangeName}
             className="flex items-center justify-between w-full text-xs font-bold text-gray-400 hover:text-white transition bg-white/5 p-2 rounded border border-white/5 hover:border-pink-500/50 group"
@@ -472,50 +485,46 @@ const LoveStoryPage: React.FC = () => {
               {userName}
             </span>
           </button>
-
-          <button
-            onClick={() => setShowGuide(!showGuide)}
-            className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-pink-400 transition pl-2"
-          >
-            <Map size={14} /> ROADMAP
-          </button>
         </div>
+
+        {/* CHARACTER LIST */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          {events.map((event) => (
-            <div key={event.id} className="group">
+          {characters.map((char) => (
+            <div key={char.id} className="group">
               <button
                 onClick={() =>
-                  setSelectedEventId(
-                    selectedEventId === event.id ? null : event.id,
-                  )
+                  setSelectedCharId(selectedCharId === char.id ? null : char.id)
                 }
-                className={`w-full text-left px-4 py-3 rounded-none border-l-2 transition-all flex justify-between items-center ${
-                  selectedEventId === event.id
+                className={`w-full text-left px-3 py-3 rounded-lg transition-all flex items-center gap-3 border ${
+                  selectedCharId === char.id
                     ? "border-pink-500 bg-white/5 text-white"
                     : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
+                title={char.name}
               >
-                <span className="font-bold text-sm tracking-wide">
-                  {event.title}
-                </span>
-                <span className="text-[10px] bg-black/40 px-2 py-0.5 rounded text-gray-500 border border-white/10 font-mono">
-                  {event.episodes.length}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="font-bold text-sm tracking-wide block truncate">
+                    {char.name}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-mono">
+                    {char.stories.length} Stories
+                  </span>
+                </div>
               </button>
 
-              {selectedEventId === event.id && (
-                <div className="bg-black/20 py-2">
-                  {event.episodes.map((ep) => (
+              {selectedCharId === char.id && (
+                <div className="ml-6 mt-2 pl-4 border-l-2 border-white/10 space-y-1">
+                  {char.stories.map((story) => (
                     <button
-                      key={ep.id}
-                      onClick={() => loadEpisode(ep.id, ep.title)}
-                      className={`block w-full text-left text-xs px-6 py-2 transition-all border-l-4 ${
-                        currentEpisodeTitle === ep.title
-                          ? "border-pink-500 text-pink-300 bg-pink-500/10 font-bold"
-                          : "border-transparent text-gray-500 hover:text-white hover:pl-7"
+                      key={story.id + story.epNum}
+                      onClick={() => loadStory(story.id, story.title)}
+                      className={`block w-full text-left text-xs px-4 py-2 rounded transition-all ${
+                        currentStoryId === story.id
+                          ? "text-pink-300 bg-pink-500/10 font-bold"
+                          : "text-gray-500 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      {ep.title}
+                      {story.title + story.epNum}
                     </button>
                   ))}
                 </div>
@@ -525,61 +534,38 @@ const LoveStoryPage: React.FC = () => {
         </div>
       </aside>
 
-      {/* TOGGLE BUTTON (Mobile/Collapsed) */}
-      {!isSidebarOpen && (
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="absolute top-4 left-4 z-50 p-3 bg-black/50 backdrop-blur border border-white/10 text-white hover:bg-pink-600 hover:border-pink-500 transition-all rounded-none skew-x-[-12deg]"
-        >
-          <Menu size={20} className="skew-x-[12deg]" />
-        </button>
-      )}
-
       {/* MAIN STAGE */}
       <main className="flex-1 relative bg-black flex flex-col items-center justify-center overflow-hidden">
-        {/* Toggle Sidebar Button (Desktop inside) */}
-        {isSidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="absolute top-1/2 left-0 z-50 p-1 bg-gray-800 text-gray-500 hover:text-white rounded-r-full shadow-lg border border-gray-700 hidden lg:block"
-          >
-            <ChevronLeft size={16} />
-          </button>
-        )}
-
         {!currentLine ? (
           <div className="flex flex-col items-center justify-center h-full opacity-30 select-none animate-pulse">
             <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center mb-6">
               <Play size={32} className="ml-1" />
             </div>
             <p className="text-xl tracking-[0.5em] font-light text-white/50">
-              SELECT EPISODE
+              SELECT STORY
             </p>
           </div>
         ) : (
           <>
-            {/* --- UPDATE: BACKGROUND LAYER --- */}
-            {/* Gunakan currentBg state, bukan hardcoded url */}
+            {/* BACKGROUND */}
             <div className="absolute inset-0 transition-all duration-1000 ease-in-out">
-              {/* Layer Background default/hitam */}
               <div className="absolute inset-0 bg-[#0f1115]"></div>
-
-              {/* Layer Gambar Dinamis */}
               {currentBg && (
                 <div
                   className="absolute inset-0 bg-cover bg-center animate-in fade-in duration-1000"
                   style={{ backgroundImage: `url('${currentBg}')` }}
                 >
-                  {/* Overlay Gelap agar teks terbaca */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 opacity-60"></div>
                 </div>
               )}
             </div>
 
-            {/* SPRITE LAYER */}
+            {/* SPRITE */}
             {currentLine.speakerCode &&
               getSpriteUrl(currentLine.speakerCode) && (
-                <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-10">
+                <div
+                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] translate-y-20 lg:translate-y-60 ${getSpriteStyle(currentLine.speakerCode)}`}
+                >
                   <img
                     key={currentLine.speakerCode}
                     src={getSpriteUrl(currentLine.speakerCode)!}
@@ -589,35 +575,14 @@ const LoveStoryPage: React.FC = () => {
                 </div>
               )}
 
-            {/* CHOICE SELECTION OVERLAY */}
-            {currentLine.type === "choice_selection" && currentLine.choices && (
-              <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
-                <div className="text-pink-400 font-bold tracking-[0.3em] text-sm mb-4 border-b border-pink-500/50 pb-2">
-                  DECISION POINT
-                </div>
-                {currentLine.choices.map((choice, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleChoice(choice.route)}
-                    className="w-[90%] max-w-xl group relative overflow-hidden bg-gray-900 border border-white/20 px-8 py-6 transition-all hover:border-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] skew-x-[-12deg]"
-                  >
-                    <div className="absolute inset-0 w-1 bg-pink-500 -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
-                    <span className="relative z-10 text-lg font-medium text-white/90 group-hover:text-white block skew-x-[12deg] text-center">
-                      {choice.text.replace("text=", " ")}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* DIALOGUE UI */}
+            {/* DIALOGUE */}
             {currentLine.type === "dialogue" && (
               <div
                 onClick={handleBoxClick}
                 className="absolute bottom-0 w-full z-40 cursor-pointer group flex justify-center pb-6 lg:pb-10 px-4"
               >
                 <div className="w-full max-w-5xl relative">
-                  {/* Speaker Name Tag - Geometric & Floating */}
+                  {/* Name Tag */}
                   {currentLine.speakerName && (
                     <div className="absolute -top-6 left-0 lg:left-8 z-50">
                       <div className="relative bg-white text-black px-8 py-1.5 transform skew-x-[-12deg] border-l-[6px] border-pink-600 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
@@ -625,7 +590,7 @@ const LoveStoryPage: React.FC = () => {
                           {currentLine.iconUrl && (
                             <img
                               src={currentLine.iconUrl}
-                              className="w-5 h-5 rounded-full border border-black/20"
+                              className="w-8 h-8 rounded-full border border-black/20"
                               alt="icon"
                               onError={(e) => {
                                 e.currentTarget.src =
@@ -634,7 +599,6 @@ const LoveStoryPage: React.FC = () => {
                             />
                           )}
                           <span className="font-bold tracking-wider text-base uppercase">
-                            {/* UBAH DI SINI */}
                             {parseText(currentLine.speakerName)}
                           </span>
                         </div>
@@ -642,18 +606,16 @@ const LoveStoryPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Main Text Box - Glassmorphism, Sharp Edges */}
+                  {/* Text Box */}
                   <div
                     className="relative bg-[#0f131a]/90 backdrop-blur-lg border-t border-white/10 shadow-2xl p-6 lg:p-8 min-h-[160px] lg:min-h-[180px]"
                     style={{
                       clipPath:
-                        "polygon(0 0, 100% 0, 100% 85%, 98% 100%, 0 100%)", // Potongan sudut kanan bawah
+                        "polygon(0 0, 100% 0, 100% 85%, 98% 100%, 0 100%)",
                     }}
                   >
-                    {/* Decorative Top Line */}
                     <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
 
-                    {/* Text Content */}
                     <div
                       className={`relative z-10 h-full ${!currentLine.speakerName ? "flex items-center justify-center italic text-gray-400" : ""}`}
                     >
@@ -665,14 +627,13 @@ const LoveStoryPage: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Next Indicator */}
                     {!isTyping && (
                       <div className="absolute bottom-4 right-8 animate-bounce text-pink-500">
                         <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-pink-500"></div>
                       </div>
                     )}
 
-                    {/* Control Buttons (Floating inside/near box) */}
+                    {/* Controls (No Skip) */}
                     <div className="absolute top-0 right-0 flex">
                       <div className="bg-black/60 px-4 py-1 flex gap-4 rounded-bl-xl border-l border-b border-white/10 backdrop-blur">
                         <button
@@ -698,15 +659,6 @@ const LoveStoryPage: React.FC = () => {
                           )}{" "}
                           Auto
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSkip();
-                          }}
-                          className="text-[10px] font-bold text-gray-400 hover:text-pink-400 flex items-center gap-1 uppercase tracking-wider"
-                        >
-                          Skip <SkipForward size={12} />
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -715,17 +667,73 @@ const LoveStoryPage: React.FC = () => {
             )}
           </>
         )}
+
+        {/* --- END STORY OVERLAY --- */}
+        {isEpisodeFinished && (
+          <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-500">
+            <div className="max-w-2xl w-full p-8 bg-[#0f131a] border border-white/10 shadow-2xl rounded-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
+
+              <h2 className="text-3xl font-black italic text-white mb-2 tracking-tighter">
+                STORY COMPLETED
+              </h2>
+
+              <div className="space-y-3">
+                {nextStories.length > 0 ? (
+                  <>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+                      Next Story:
+                    </p>
+                    {nextStories.map((ep) => (
+                      <button
+                        key={ep.id}
+                        onClick={() => {
+                          setIsEpisodeFinished(false);
+                          loadStory(ep.id, ep.title);
+                        }}
+                        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500 transition-all group"
+                      >
+                        <span className="font-bold text-lg text-white group-hover:text-pink-400 transition-colors">
+                          {ep.title + ep.epNum}
+                        </span>
+                        <ArrowRight className="text-gray-500 group-hover:text-white transition-transform group-hover:translate-x-1" />
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <div className="p-4 bg-white/5 border border-white/5 text-center text-gray-500">
+                    Character Story Completed.
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8 flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    setIsEpisodeFinished(false);
+                    setExecutionStack([
+                      { script: executionStack[0].script, index: 0 },
+                    ]);
+                  }}
+                  className="text-xs text-gray-500 hover:text-white underline"
+                >
+                  Replay Story
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEpisodeFinished(false);
+                    setExecutionStack([]);
+                  }}
+                  className="text-xs text-gray-500 hover:text-white underline"
+                >
+                  Back to Menu
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
-      {/* STRATEGY GUIDE OVERLAY */}
-      {showGuide && selectedEventId && (
-        <StrategyGuide
-          eventId={selectedEventId}
-          onClose={() => setShowGuide(false)}
-        />
-      )}
-
-      {/* RENDER LOG MODAL (Full Screen Overlay) */}
       {showLog && (
         <LogModal history={history} onClose={() => setShowLog(false)} />
       )}
@@ -733,4 +741,4 @@ const LoveStoryPage: React.FC = () => {
   );
 };
 
-export default LoveStoryPage;
+export default MainStoryPage;

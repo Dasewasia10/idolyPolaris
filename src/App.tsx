@@ -18,6 +18,8 @@ import CardDesign from "./pages/CardDesign";
 import MessagePage from "./pages/MessagePage";
 import LoveStoryPage from "./pages/LoveStory";
 import BondStoryPage from "./pages/BondStory";
+import ExtraStoryPage from "./pages/ExtraStory";
+import MainStoryPage from "./pages/MainStory";
 import IdolyWordlePage from "./pages/IdolyWordlePage";
 import GachaPage from "./pages/GachaPage";
 import GachaSelectPage from "./pages/GachaSelectionPage";
@@ -81,6 +83,8 @@ const App: React.FC = () => {
           <Route path="/messages" element={<MessagePage />} />
           <Route path="/lovestory" element={<LoveStoryPage />} />
           <Route path="/bondstory" element={<BondStoryPage />} />
+          <Route path="/extrastory" element={<ExtraStoryPage />} />
+          <Route path="/mainstory" element={<MainStoryPage />} />
           <Route path="/wordle" element={<IdolyWordlePage />} />
           <Route path="/gacha" element={<GachaSelectPage />} />
           <Route path="/gacha/:id" element={<GachaPage />} />

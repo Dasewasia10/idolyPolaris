@@ -10,16 +10,16 @@ export interface Message {
   name: string;
   icon: string;
   position: "left" | "right";
-  stamp?: string; // Tambahkan stamp opsional
+  stamp?: string;
   replyTo?: ReplyReference;
-  isCall?: boolean; // Tambahkan field baru untuk identifikasi call
-  callDuration?: string; // Durasi panggilan
-  callBgColor?: string; // Tambahkan properti untuk warna background
-  callIconColor?: string; // Tambahkan properti untuk warna icon
+  isCall?: boolean;
+  callDuration?: string;
+  callBgColor?: string;
+  callIconColor?: string;
   reactions?: {
-    [emoji: string]: string[]; // Key: emoji, Value: array of user IDs/names
+    [emoji: string]: string[];
   };
-  image?: string; // Untuk URL gambar
-  isVoiceNote?: boolean; // Penanda pesan suara
-  voiceDuration?: string; // Teks durasi (misal "0:12")
+  image?: string;
+  isVoiceNote?: boolean;
+  voiceDuration?: string;
 }

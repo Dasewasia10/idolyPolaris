@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
-  Volume2,
+  Heart,
   Play,
   Pause,
   SkipForward,
@@ -624,7 +624,7 @@ const LoveStoryPage: React.FC = () => {
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-pink-900/20 to-transparent">
           <div>
             <div className="flex items-center gap-2 text-pink-400 mb-1">
-              <Volume2 size={16} />
+              <Heart size={16} />
               <span className="text-[10px] tracking-[0.2em] font-bold uppercase">
                 Visual Novel
               </span>

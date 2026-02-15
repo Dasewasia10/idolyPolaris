@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   MoreVertical,
   Phone,
+  User,
 } from "lucide-react";
 import Toast from "../components/Toast";
 
@@ -67,6 +68,10 @@ const MessagePage: React.FC = () => {
   const [selectedChoices, setSelectedChoices] = useState<
     Record<number, number>
   >({});
+
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem("idoly_username") || "Manager";
+  });
 
   const [isSidebarOpen, setSidebarOpen] = useState(
     () => window.innerWidth >= 1024,
@@ -148,7 +153,15 @@ const MessagePage: React.FC = () => {
 
   const parseText = (text: string) => {
     if (!text) return "";
-    return text.replace(/\n/g, "<br/>");
+    return text.replace(/{user}/g, userName).replace(/\n/g, "<br/>");
+  };
+
+  const handleChangeName = () => {
+    const newName = window.prompt("Enter your Manager name:", userName);
+    if (newName && newName.trim() !== "") {
+      setUserName(newName);
+      localStorage.setItem("idoly_username", newName);
+    }
   };
 
   return (
@@ -193,6 +206,20 @@ const MessagePage: React.FC = () => {
             className="lg:hidden text-gray-400 hover:text-white transition"
           >
             <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-4 border-t border-white/10 flex flex-col gap-3 bg-[#0d1117]">
+          <button
+            onClick={handleChangeName}
+            className="flex items-center justify-between w-full text-xs font-bold text-gray-400 hover:text-white transition bg-white/5 p-2 rounded border border-white/5 hover:border-pink-500/50 group"
+          >
+            <span className="flex items-center gap-2">
+              <User size={14} /> MANAGER NAME
+            </span>
+            <span className="text-pink-400 group-hover:text-pink-300 truncate max-w-[100px] text-right">
+              {userName}
+            </span>
           </button>
         </div>
 
@@ -297,7 +324,7 @@ const MessagePage: React.FC = () => {
                       Topic
                     </span>
                     <h1 className="text-base font-bold text-white tracking-wide">
-                      {messageData.name}
+                      {messageData.name.replace(/{user}/g, userName)}
                     </h1>
                   </div>
                 </div>

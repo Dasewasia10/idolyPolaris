@@ -8,7 +8,7 @@ import {
   User,
   X,
   ArrowRight,
-  Heart, // Icon baru untuk Bond Story
+  Album,
 } from "lucide-react";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 import LogModal from "../components/LogModal";
@@ -17,7 +17,6 @@ import LogModal from "../components/LogModal";
 interface ScriptLine {
   type:
     | "dialogue"
-    | "choice_selection" // (Jaga-jaga jika ada)
     | "background"
     | "bgm"
     | "sfx";
@@ -474,7 +473,7 @@ const BondStoryPage: React.FC = () => {
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-pink-900/20 to-transparent">
           <div>
             <div className="flex items-center gap-2 text-pink-400 mb-1">
-              <Heart size={16} />
+              <Album size={16} />
               <span className="text-[10px] tracking-[0.2em] font-bold uppercase">
                 Idol Story
               </span>

@@ -652,6 +652,8 @@ const CardOverviewPage: React.FC = () => {
               </p>
             </div>
 
+            <Pagination />
+
             {loading ? (
               <div className="flex flex-col items-center justify-center h-64 text-cyan-500 font-mono tracking-widest animate-pulse">
                 <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4"></div>

@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", ".junk/Chat copy.tsx"]
+  "include": ["src", ".junk/Chat copy.tsx", ".junk/pageJunk", ".junk/hooks", ".junk/DiaryMana.ts", ".junk/FourKoma.ts"]
 }
