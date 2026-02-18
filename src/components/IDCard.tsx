@@ -59,7 +59,7 @@ const IDCard: React.FC<IDCardProps> = ({
 
   const groupImageUrl = matchedGroup
     ? getIdolGroupUrl(matchedGroup.altName)
-    : `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`;
+    : `${import.meta.env.BASE_URL}assets/chara-avatar.png`;
 
   return (
     // Container Utama dengan Clip-Path untuk sudut terpotong khas Idoly Pride

@@ -237,11 +237,11 @@ const MessagePage: React.FC = () => {
                     className={`absolute -inset-0.5 rounded-full blur-[2px] opacity-0 group-hover:opacity-50 transition-opacity bg-cyan-500`}
                   ></div>
                   <img
-                    src={group.groupIcon || "/assets/icon/chara-avatar.png"}
+                    src={group.groupIcon || "/assets/chara-avatar.png"}
                     alt={group.title}
                     className="relative w-10 h-10 rounded-full object-cover border border-white/20 bg-gray-800"
                     onError={(e) =>
-                      (e.currentTarget.src = "/assets/icon/chara-avatar.png")
+                      (e.currentTarget.src = "/assets/chara-avatar.png")
                     }
                   />
                 </div>
@@ -428,7 +428,7 @@ const MessagePage: React.FC = () => {
                                 <img
                                   src={
                                     msg.speaker.icon ||
-                                    "/assets/icon/chara-avatar.png"
+                                    "/assets/chara-avatar.png"
                                   }
                                   alt="Avatar"
                                   className="w-10 h-10 rounded-full object-cover border border-white/10 bg-[#1f2937]"

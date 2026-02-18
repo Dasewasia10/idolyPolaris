@@ -904,7 +904,7 @@ const ChatPage: React.FC = () => {
                 <img
                   src={
                     selectedIcon?.src ||
-                    `${import.meta.env.BASE_URL}assets/icon/chara-avatar.png`
+                    `${import.meta.env.BASE_URL}assets/chara-avatar.png`
                   }
                   alt="Selected"
                   className="w-10 h-10 rounded-full border border-white/20 bg-black object-cover"
