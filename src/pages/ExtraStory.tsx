@@ -48,8 +48,8 @@ interface StackFrame {
 
 // --- CONFIG ---
 // Pastikan endpoint ini sesuai dengan folder output backend Anda
-const API_BASE = "https://diveidolypapi.my.id/api/extrastory";
-const R2_DOMAIN = "https://api.diveidolypapi.my.id";
+const API_BASE = "https://beip.dasewasia.my.id/api/extrastory";
+const R2_DOMAIN = "https://apiip.dasewasia.my.id";
 
 // --- MAPPING SPRITE (Sama dengan LoveStory) ---
 const SPRITE_MAP: Record<string, string> = {

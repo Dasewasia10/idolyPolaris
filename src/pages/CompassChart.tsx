@@ -118,7 +118,7 @@ const CompassChart: React.FC = () => {
     const fetchCharacters = async () => {
       try {
         const response = await axios.get(
-          "https://diveidolypapi.my.id/api/characters",
+          "https://beip.dasewasia.my.id/api/characters",
         );
         const sorted = response.data.sort((a: Character, b: Character) =>
           a.name.localeCompare(b.name),
@@ -138,7 +138,7 @@ const CompassChart: React.FC = () => {
       assetName = "smiku";
     }
 
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${assetName}.png`;
+    return `https://apiip.dasewasia.my.id/iconCharacter/chara-${assetName}.png`;
   };
 
   const handleIconDrag = (id: number, x: number, y: number) => {

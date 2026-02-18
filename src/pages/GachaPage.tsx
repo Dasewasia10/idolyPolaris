@@ -6,9 +6,9 @@ import { Card } from "../interfaces/Card";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 
 // --- CONFIG ---
-const API_BASE = "https://diveidolypapi.my.id/api";
-const BANNER_IMG_BASE = "https://api.diveidolypapi.my.id/gachaBanner";
-const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
+const API_BASE = "https://beip.dasewasia.my.id/api";
+const BANNER_IMG_BASE = "https://apiip.dasewasia.my.id/gachaBanner";
+const IMG_BASE_URL = "https://apiip.dasewasia.my.id";
 
 interface PoolResponse {
   bannerInfo: {

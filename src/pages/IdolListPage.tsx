@@ -26,7 +26,7 @@ const getCharacterImageUrl = (
   characterName: string,
   type: "icon" | "sprite1" | "sprite2" | "banner",
 ) => {
-  const baseUrl = "https://api.diveidolypapi.my.id";
+  const baseUrl = "https://apiip.dasewasia.my.id";
   const formattedName = encodeURIComponent(characterName.toLowerCase());
 
   switch (type) {
@@ -146,7 +146,7 @@ const IdolListPage: React.FC = () => {
     const fetchCharacters = async () => {
       try {
         const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters",
+          "https://beip.dasewasia.my.id/api/characters",
         );
         if (!response.ok) throw new Error("Failed to fetch characters");
         const data: Character[] = await response.json();
@@ -186,8 +186,8 @@ const IdolListPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const [charactersRes, qnaRes] = await Promise.all([
-          fetch("https://diveidolypapi.my.id/api/characters"),
-          fetch("https://diveidolypapi.my.id/api/qnas"),
+          fetch("https://beip.dasewasia.my.id/api/characters"),
+          fetch("https://beip.dasewasia.my.id/api/qnas"),
         ]);
         const charactersData = await charactersRes.json();
         const qnaData = await qnaRes.json();
@@ -371,7 +371,7 @@ const IdolListPage: React.FC = () => {
                       draggable="false"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
-                          "https://diveidolypapi.my.id/api/img/character/sprite2/satomi";
+                          "https://beip.dasewasia.my.id/api/img/character/sprite2/satomi";
                       }}
                     />
                   </AnimatePresence>

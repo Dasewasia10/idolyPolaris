@@ -23,7 +23,7 @@ const BirthdayReminder: React.FC = () => {
     const fetchCharacters = async () => {
       try {
         const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters",
+          "https://beip.dasewasia.my.id/api/characters",
         );
         const data: Character[] = await response.json();
         const nowInJST = toZonedTime(new Date(), "Asia/Tokyo");
@@ -114,7 +114,7 @@ const BirthdayReminder: React.FC = () => {
           <div className="relative shrink-0">
             <div className="absolute inset-0 bg-pink-500 rounded-full blur opacity-50 animate-pulse"></div>
             <img
-              src={`https://diveidolypapi.my.id/api/img/character/icon/${encodeURIComponent(currentCharacter.name.toLowerCase())}`}
+              src={`https://beip.dasewasia.my.id/api/img/character/icon/${encodeURIComponent(currentCharacter.name.toLowerCase())}`}
               alt={currentCharacter.name}
               className="w-14 h-14 rounded-full border-2 border-white relative z-10 bg-gray-800 object-cover"
             />

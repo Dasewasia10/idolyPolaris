@@ -4,7 +4,7 @@ import { ChevronLeft, HelpCircle, Trophy, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // --- CONFIG ---
-const API_BASE = "https://diveidolypapi.my.id/api/wordle";
+const API_BASE = "https://beip.dasewasia.my.id/api/wordle";
 
 const KEYBOARD_ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],

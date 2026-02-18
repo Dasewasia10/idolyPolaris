@@ -54,7 +54,7 @@ const IDCard: React.FC<IDCardProps> = ({
   const accentColor = matchedGroup?.color || "#374151";
 
   const getIdolGroupUrl = (groupName: string) => {
-    return `https://api.diveidolypapi.my.id/idolGroup/group-${groupName}-circle.png`;
+    return `https://apiip.dasewasia.my.id/idolGroup/group-${groupName}-circle.png`;
   };
 
   const groupImageUrl = matchedGroup

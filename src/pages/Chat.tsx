@@ -36,7 +36,7 @@ import Toast from "../components/Toast";
 import exportToJson from "../utils/exportToJson";
 import importFromJson from "../utils/importFromJson";
 
-const API_BASE_URL = "https://diveidolypapi.my.id/api";
+const API_BASE_URL = "https://beip.dasewasia.my.id/api";
 
 const ChatPage: React.FC = () => {
   const emojiRef = useRef(null);
@@ -89,7 +89,7 @@ const ChatPage: React.FC = () => {
   const getStampUrl = (character: string, expression: string) => {
     const formattedCharacter = character.toLowerCase().replace(/\s+/g, "");
     const formattedExpression = expression.toLowerCase().replace(/\s+/g, "");
-    return `https://api.diveidolypapi.my.id/stampChat/stamp_${formattedCharacter}-${formattedExpression}.webp`;
+    return `https://apiip.dasewasia.my.id/stampChat/stamp_${formattedCharacter}-${formattedExpression}.webp`;
   };
 
   const getCharacterIconUrl = (characterName: string) => {
@@ -98,7 +98,7 @@ const ChatPage: React.FC = () => {
     if (characterName.toLowerCase() === "snow") {
       assetName = "smiku";
     }
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${assetName}.png`;
+    return `https://apiip.dasewasia.my.id/iconCharacter/chara-${assetName}.png`;
   };
 
   // --- Data Fetching ---

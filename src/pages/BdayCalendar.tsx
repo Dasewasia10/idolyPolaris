@@ -21,7 +21,7 @@ const getCharacterImageUrl = (
   characterName: string,
   type: "icon" | "sprite1" | "sprite2" | "banner",
 ) => {
-  const baseUrl = "https://api.diveidolypapi.my.id";
+  const baseUrl = "https://apiip.dasewasia.my.id";
   const formattedName = encodeURIComponent(characterName.toLowerCase());
 
   switch (type) {
@@ -61,7 +61,7 @@ const CharacterCalendar: React.FC = () => {
     const fetchCharacters = async () => {
       try {
         const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters",
+          "https://beip.dasewasia.my.id/api/characters",
         );
         if (!response.ok) throw new Error("Failed to fetch characters");
         const data: Character[] = await response.json();

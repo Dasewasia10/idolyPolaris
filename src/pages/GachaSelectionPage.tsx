@@ -13,8 +13,8 @@ import {
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 
 // --- CONFIG ---
-const BANNER_IMG_BASE = "https://api.diveidolypapi.my.id/gachaBanner";
-const API_BASE = "https://diveidolypapi.my.id/api";
+const BANNER_IMG_BASE = "https://apiip.dasewasia.my.id/gachaBanner";
+const API_BASE = "https://beip.dasewasia.my.id/api";
 const ITEMS_PER_PAGE = 15;
 
 interface GachaBanner {

@@ -15,11 +15,7 @@ import LogModal from "../components/LogModal";
 
 // --- TYPES ---
 interface ScriptLine {
-  type:
-    | "dialogue"
-    | "background"
-    | "bgm"
-    | "sfx";
+  type: "dialogue" | "background" | "bgm" | "sfx";
   speakerCode?: string | null;
   speakerName?: string;
   iconUrl?: string | null;
@@ -52,8 +48,8 @@ interface StackFrame {
 
 // --- CONFIG ---
 // Pastikan endpoint ini sesuai dengan folder output backend Anda
-const API_BASE = "https://diveidolypapi.my.id/api/bondstory";
-const R2_DOMAIN = "https://api.diveidolypapi.my.id";
+const API_BASE = "https://beip.dasewasia.my.id/api/bondstory";
+const R2_DOMAIN = "https://apiip.dasewasia.my.id";
 
 // --- MAPPING SPRITE (Sama dengan LoveStory) ---
 const SPRITE_MAP: Record<string, string> = {
@@ -188,7 +184,7 @@ const BondStoryPage: React.FC = () => {
   const handleStoryEnd = () => {
     if (isEpisodeFinished) return;
     setIsEpisodeFinished(true);
-    
+
     if (bgmRef.current) {
       bgmRef.current.pause();
       bgmRef.current = null;
@@ -401,7 +397,7 @@ const BondStoryPage: React.FC = () => {
     if (characterName.toLowerCase() === "snow") {
       assetName = "smiku";
     }
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${assetName}.png`;
+    return `https://apiip.dasewasia.my.id/iconCharacter/chara-${assetName}.png`;
   };
 
   const getSpriteStyle = (code?: string | null) => {

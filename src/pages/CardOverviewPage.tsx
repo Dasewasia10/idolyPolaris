@@ -31,8 +31,8 @@ interface CardWithSourceName extends Card {
   _sourceName: string;
 }
 
-const API_BASE_URL = "https://diveidolypapi.my.id/api";
-const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
+const API_BASE_URL = "https://beip.dasewasia.my.id/api";
+const IMG_BASE_URL = "https://apiip.dasewasia.my.id";
 const ITEMS_PER_PAGE = 30;
 
 // --- HELPER IMAGE URL (Sama) ---

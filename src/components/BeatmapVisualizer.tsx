@@ -103,7 +103,7 @@ const BeatmapVisualizer: React.FC<VisualizerProps> = ({ chartId }) => {
       setError(null);
       try {
         const res = await fetch(
-          `https://diveidolypapi.my.id/api/music/charts/${chartId}`,
+          `https://beip.dasewasia.my.id/api/music/charts/${chartId}`,
         );
         if (!res.ok) throw new Error("Chart data not found");
 

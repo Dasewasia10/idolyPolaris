@@ -28,7 +28,7 @@ const HomeContent = () => {
       name: "Idol Directory",
       path: "/idolList",
       bgImage:
-        "https://api.diveidolypapi.my.id/image3Character/source-suzu-05-premium-01-full.webp",
+        "https://apiip.dasewasia.my.id/image3Character/source-suzu-05-premium-01-full.webp",
       description: "Profiles, Lore & Relationships",
       size: "md:col-span-2 md:row-span-2", // Kotak Besar
       icon: <Users className="w-6 h-6 text-pink-400" />,
@@ -39,7 +39,7 @@ const HomeContent = () => {
       name: "Gacha Simulator",
       path: "/gacha",
       bgImage:
-        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_chs-05-fest-03.webp",
+        "https://apiip.dasewasia.my.id/cardFull/img_card_full_1_chs-05-fest-03.webp",
       description: "Test your luck instantly",
       size: "md:col-span-2 md:row-span-1",
       icon: <Star className="w-5 h-5 text-yellow-400" />,
@@ -50,7 +50,7 @@ const HomeContent = () => {
       name: "Card Database",
       path: "/cardOverview",
       bgImage:
-        "https://api.diveidolypapi.my.id/image3Character/source-mei-05-rock-00-full.webp",
+        "https://apiip.dasewasia.my.id/image3Character/source-mei-05-rock-00-full.webp",
       description: "Browse metadata",
       size: "md:col-span-1 md:row-span-1",
       icon: <CreditCard className="w-5 h-5 text-blue-400" />,
@@ -61,7 +61,7 @@ const HomeContent = () => {
       name: "Stat Battle",
       path: "/cardComparison",
       bgImage:
-        "https://api.diveidolypapi.my.id/image3Character/source-ai-05-rock-00-full.webp",
+        "https://apiip.dasewasia.my.id/image3Character/source-ai-05-rock-00-full.webp",
       description: "Compare units",
       size: "md:col-span-1 md:row-span-1",
       icon: <Gamepad2 className="w-5 h-5 text-purple-400" />,
@@ -74,7 +74,7 @@ const HomeContent = () => {
       name: "Lyrics Library",
       path: "/lyric",
       bgImage:
-        "https://api.diveidolypapi.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
+        "https://apiip.dasewasia.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
       description: "Song translations & MV",
       size: "md:col-span-1 md:row-span-2", // Vertikal
       icon: <Music className="w-5 h-5 text-green-400" />,
@@ -85,7 +85,7 @@ const HomeContent = () => {
       name: "Idoly Chat",
       path: "/chat",
       bgImage:
-        "https://api.diveidolypapi.my.id/image3Character/source-aoi-05-kaito-00-full.webp",
+        "https://apiip.dasewasia.my.id/image3Character/source-aoi-05-kaito-00-full.webp",
       description: "Talk to idols",
       size: "md:col-span-1 md:row-span-1",
       icon: <MessageCircle className="w-5 h-5 text-cyan-400" />,
@@ -96,7 +96,7 @@ const HomeContent = () => {
       name: "Manager ID",
       path: "/ktp",
       bgImage:
-        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_ngs-05-fest-02.webp",
+        "https://apiip.dasewasia.my.id/cardFull/img_card_full_1_ngs-05-fest-02.webp",
       description: "Create your custom ID Card",
       size: "md:col-span-2 md:row-span-1",
       icon: <Crown className="w-5 h-5 text-amber-400" />,
@@ -107,7 +107,7 @@ const HomeContent = () => {
       name: "Calendar",
       path: "/bdayCalendar",
       bgImage:
-        "https://api.diveidolypapi.my.id/image3Character/source-rio-05-fes-03-full.webp",
+        "https://apiip.dasewasia.my.id/image3Character/source-rio-05-fes-03-full.webp",
       description: "Birthdays",
       size: "md:col-span-1 md:row-span-1",
       icon: <Calendar className="w-5 h-5 text-red-400" />,
@@ -118,7 +118,7 @@ const HomeContent = () => {
       name: "Card Studio",
       path: "/cardDesign",
       bgImage:
-        "https://api.diveidolypapi.my.id/cardFull/img_card_full_1_skr-05-idol-03.webp",
+        "https://apiip.dasewasia.my.id/cardFull/img_card_full_1_skr-05-idol-03.webp",
       description: "Design custom cards",
       size: "md:col-span-2 md:row-span-1",
       icon: <PenTool className="w-5 h-5 text-violet-400" />,

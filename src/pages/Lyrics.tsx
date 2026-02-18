@@ -20,7 +20,7 @@ import {
   Mic,
 } from "lucide-react";
 
-const API_BASE_URL = "https://diveidolypapi.my.id/api";
+const API_BASE_URL = "https://beip.dasewasia.my.id/api";
 
 // --- INTERFACES ---
 interface ExtendedLyric extends Lyric {
@@ -31,7 +31,7 @@ interface ExtendedLyric extends Lyric {
 }
 
 const getCharacterIconUrl = (characterName: string) => {
-  return `https://api.diveidolypapi.my.id/iconCharacter/chara-${encodeURIComponent(
+  return `https://apiip.dasewasia.my.id/iconCharacter/chara-${encodeURIComponent(
     characterName,
   )}.png`;
 };
@@ -157,7 +157,7 @@ const SongInfoModal = ({
                 <div className="flex items-center gap-4 bg-gray-800/50 pr-4 rounded-full border border-white/5">
                   <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-cyan-500 to-purple-500">
                     <img
-                      src={`https://api.diveidolypapi.my.id/idolGroup/group-${song.altGroup}-circle.png`}
+                      src={`https://apiip.dasewasia.my.id/idolGroup/group-${song.altGroup}-circle.png`}
                       alt={song.group}
                       className="w-full h-full object-contain rounded-full bg-[#161b22]"
                       onError={(e) => (e.currentTarget.style.display = "none")}

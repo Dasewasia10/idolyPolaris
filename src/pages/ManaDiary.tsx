@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-const API_BASE = "https://diveidolypapi.my.id/api/manaDiary";
-const R2_BASE_URL = "https://api.diveidolypapi.my.id";
+const API_BASE = "https://beip.dasewasia.my.id/api/manaDiary";
+const R2_BASE_URL = "https://apiip.dasewasia.my.id";
 
 interface DiaryEntry {
   filename: string;

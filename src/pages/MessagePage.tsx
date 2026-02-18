@@ -55,7 +55,7 @@ type ProcessedMessage =
   | { type: "normal"; data: ChatDetail }
   | { type: "choice_group"; items: ChatDetail[] };
 
-const API_BASE_URL = "https://diveidolypapi.my.id/api/messages";
+const API_BASE_URL = "https://beip.dasewasia.my.id/api/messages";
 
 const MessagePage: React.FC = () => {
   // --- STATE ---

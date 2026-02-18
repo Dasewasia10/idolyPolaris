@@ -23,7 +23,7 @@ const BeatmapPage: React.FC = () => {
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const res = await fetch("https://diveidolypapi.my.id/api/music/songs");
+        const res = await fetch("https://beip.dasewasia.my.id/api/music/songs");
         if (!res.ok) throw new Error("Failed to fetch songs");
         const data = await res.json();
 

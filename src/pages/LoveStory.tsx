@@ -61,8 +61,8 @@ interface EventGroup {
 }
 
 // --- CONFIG ---
-const API_BASE = "https://diveidolypapi.my.id/api/lovestory";
-const R2_DOMAIN = "https://api.diveidolypapi.my.id";
+const API_BASE = "https://beip.dasewasia.my.id/api/lovestory";
+const R2_DOMAIN = "https://apiip.dasewasia.my.id";
 
 // --- MAPPING SPRITE ---
 const SPRITE_MAP: Record<string, string> = {
@@ -204,7 +204,7 @@ const LoveStoryPage: React.FC = () => {
   const handleEpisodeEnd = () => {
     if (isEpisodeFinished) return;
     setIsEpisodeFinished(true);
-    
+
     if (bgmRef.current) {
       bgmRef.current.pause();
       bgmRef.current = null;

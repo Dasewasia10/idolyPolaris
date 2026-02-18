@@ -35,7 +35,7 @@ const renderWithBr = (text?: string | string[]) => {
   ));
 };
 
-const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
+const IMG_BASE_URL = "https://apiip.dasewasia.my.id";
 
 const getCardImageUrl = (
   card: { initialTitle: string; initial: number; hasAwakening?: boolean },
@@ -96,7 +96,7 @@ const CardComparison: React.FC = () => {
     "japanese" | "global" | "indo"
   >("global");
 
-  const API_BASE_URL = "https://diveidolypapi.my.id/api";
+  const API_BASE_URL = "https://beip.dasewasia.my.id/api";
 
   useEffect(() => {
     document.title = "Polaris Idoly | Card Comparison";

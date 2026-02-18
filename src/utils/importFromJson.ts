@@ -1,6 +1,6 @@
 import { Message } from "../interfaces/Message";
 
-const API_BASE_URL = "https://api.diveidolypapi.my.id";
+const API_BASE_URL = "https://apiip.dasewasia.my.id";
 
 const importFromJson = (
   file: File,

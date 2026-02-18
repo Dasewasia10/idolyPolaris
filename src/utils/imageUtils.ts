@@ -12,10 +12,9 @@ export const getGroupImageUrl = (groupName: string): string => {
     "Mana Nagase":
       "https://res.cloudinary.com/dzxqhtaxf/image/upload/v1724727209/Mana_Logo_ket6vy.png",
     IIIX: "https://res.cloudinary.com/dzxqhtaxf/image/upload/v1724727209/IIIX_Logo_iwc2mt.png",
-    Gochiusa:
-      "https://api.diveidolypapi.my.id/idolGroup/group-gochiusa-full.jpg",
-    Aqours: "https://api.diveidolypapi.my.id/idolGroup/group-aquors-full.png",
-    Miku: "https://api.diveidolypapi.my.id/idolGroup/group-miku-full.png",
+    Gochiusa: "https://apiip.dasewasia.my.id/idolGroup/group-gochiusa-full.jpg",
+    Aqours: "https://apiip.dasewasia.my.id/idolGroup/group-aquors-full.png",
+    Miku: "https://apiip.dasewasia.my.id/idolGroup/group-miku-full.png",
   };
 
   return groupImages[groupName] || "";
@@ -78,16 +77,16 @@ export const getAttributeImageUrl = (typeName: string): string => {
 export const getMusicJacketGroupImageUrl = (groupName: string): string => {
   const groupImages: { [key: string]: string } = {
     "Tsuki no Tempest":
-      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_moon-001.png",
+      "https://apiip.dasewasia.my.id/musicJacket/img_music_jacket_moon-001.png",
     "Sunny Peace":
-      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_sun-001.png",
+      "https://apiip.dasewasia.my.id/musicJacket/img_music_jacket_sun-001.png",
     TRINITYAiLE:
-      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_tri-001.png",
+      "https://apiip.dasewasia.my.id/musicJacket/img_music_jacket_tri-001.png",
     LizNoir:
-      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_liz-001.png",
-    IIIX: "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_thrx-001.png",
+      "https://apiip.dasewasia.my.id/musicJacket/img_music_jacket_liz-001.png",
+    IIIX: "https://apiip.dasewasia.my.id/musicJacket/img_music_jacket_thrx-001.png",
     "Mana Nagase":
-      "https://api.diveidolypapi.my.id/musicJacket/img_music_jacket_mna-003.png",
+      "https://apiip.dasewasia.my.id/musicJacket/img_music_jacket_mna-003.png",
   };
   return groupImages[groupName] || "";
 };
@@ -95,44 +94,44 @@ export const getMusicJacketGroupImageUrl = (groupName: string): string => {
 export const getCharacter3ImageUrl = (characterName: string): string => {
   const characterImages: { [key: string]: string } = {
     Kotono:
-      "https://api.diveidolypapi.my.id/image3Character/source-kotono-05-fes-01-full.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-kotono-05-fes-01-full.webp",
     Nagisa:
-      "https://api.diveidolypapi.my.id/image3Character/source-nagisa-05-fes-02-full.webp",
-    Mei: "https://api.diveidolypapi.my.id/image3Character/source-mei-05-rock-00-full.webp",
-    Suzu: "https://api.diveidolypapi.my.id/image3Character/source-suzu-05-premium-01-full.webp",
-    Saki: "https://api.diveidolypapi.my.id/image3Character/source-saki-05-birthday-01-full.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-nagisa-05-fes-02-full.webp",
+    Mei: "https://apiip.dasewasia.my.id/image3Character/source-mei-05-rock-00-full.webp",
+    Suzu: "https://apiip.dasewasia.my.id/image3Character/source-suzu-05-premium-01-full.webp",
+    Saki: "https://apiip.dasewasia.my.id/image3Character/source-saki-05-birthday-01-full.webp",
     Sakura:
-      "https://api.diveidolypapi.my.id/image3Character/source-sakura-05-cheerleader-00-full.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-sakura-05-cheerleader-00-full.webp",
     Shizuku:
-      "https://api.diveidolypapi.my.id/image3Character/source-shizuku-05-yuru-00-full.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-shizuku-05-yuru-00-full.webp",
     Chisa:
-      "https://api.diveidolypapi.my.id/image3Character/source-chisa-05-pair-00-full.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-chisa-05-pair-00-full.webp",
     Haruko:
-      "https://api.diveidolypapi.my.id/image3Character/source-haruko-05-fes-00-full.webp",
-    Rei: "https://api.diveidolypapi.my.id/image3Character/source-rei-05-rock-00-full.webp",
-    Rui: "https://api.diveidolypapi.my.id/image3Character/source-rui-05-fes-01-full.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-haruko-05-fes-00-full.webp",
+    Rei: "https://apiip.dasewasia.my.id/image3Character/source-rei-05-rock-00-full.webp",
+    Rui: "https://apiip.dasewasia.my.id/image3Character/source-rui-05-fes-01-full.webp",
     Sumire:
-      "https://api.diveidolypapi.my.id/image3Character/source-sumire-05-fes-00-full.webp",
-    Yu: "https://api.diveidolypapi.my.id/image3Character/source-yu-05-fes-00-full.webp",
-    Rio: "https://api.diveidolypapi.my.id/image3Character/source-rio-05-fes-03-full.webp",
-    Aoi: "https://api.diveidolypapi.my.id/image3Character/source-aoi-05-fes-00-full.webp",
-    Ai: "https://api.diveidolypapi.my.id/image3Character/source-ai-05-rock-00-full.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-sumire-05-fes-00-full.webp",
+    Yu: "https://apiip.dasewasia.my.id/image3Character/source-yu-05-fes-00-full.webp",
+    Rio: "https://apiip.dasewasia.my.id/image3Character/source-rio-05-fes-03-full.webp",
+    Aoi: "https://apiip.dasewasia.my.id/image3Character/source-aoi-05-fes-00-full.webp",
+    Ai: "https://apiip.dasewasia.my.id/image3Character/source-ai-05-rock-00-full.webp",
     Kokoro:
-      "https://api.diveidolypapi.my.id/image3Character/source-kokoro-05-fes-00-full.webp",
-    fran: "https://api.diveidolypapi.my.id/image3Character/source-fran-05-idoloutfit-03-full.webp",
-    kana: "https://api.diveidolypapi.my.id/image3Character/source-kana-05-china-00-full.webp",
-    miho: "https://api.diveidolypapi.my.id/image3Character/source-miho-05-idoloutfit-00-full.webp",
-    Mana: "https://api.diveidolypapi.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
-    Miku: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_mku-05-miku-05.webp",
-    Snow: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_ymk-05-miku-01.webp",
+      "https://apiip.dasewasia.my.id/image3Character/source-kokoro-05-fes-00-full.webp",
+    fran: "https://apiip.dasewasia.my.id/image3Character/source-fran-05-idoloutfit-03-full.webp",
+    kana: "https://apiip.dasewasia.my.id/image3Character/source-kana-05-china-00-full.webp",
+    miho: "https://apiip.dasewasia.my.id/image3Character/source-miho-05-idoloutfit-00-full.webp",
+    Mana: "https://apiip.dasewasia.my.id/image3Character/source-mana-05-idoloutfit-00-full.webp",
+    Miku: "https://apiip.dasewasia.my.id/image3Character/img_card_full_1_mku-05-miku-05.webp",
+    Snow: "https://apiip.dasewasia.my.id/image3Character/img_card_full_1_ymk-05-miku-01.webp",
     Chino:
-      "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_chn-05-goch-00.webp",
+      "https://apiip.dasewasia.my.id/image3Character/img_card_full_1_chn-05-goch-00.webp",
     Cocoa:
-      "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_cca-05-goch-00.webp",
+      "https://apiip.dasewasia.my.id/image3Character/img_card_full_1_cca-05-goch-00.webp",
     Chika:
-      "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_chk-05-sush-00.webp",
-    Riko: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_rik-05-sush-00.webp",
-    Yo: "https://api.diveidolypapi.my.id/image3Character/img_card_full_1_yo-05-sush-00.webp",
+      "https://apiip.dasewasia.my.id/image3Character/img_card_full_1_chk-05-sush-00.webp",
+    Riko: "https://apiip.dasewasia.my.id/image3Character/img_card_full_1_rik-05-sush-00.webp",
+    Yo: "https://apiip.dasewasia.my.id/image3Character/img_card_full_1_yo-05-sush-00.webp",
   };
 
   return characterImages[characterName] || "";
@@ -173,7 +172,7 @@ export const getGiftItemImageUrl = (
   const validatedIndex = Math.max(0, Math.min(1, index));
   const indexStr = validatedIndex === 0 ? "01" : "02";
 
-  return `https://api.diveidolypapi.my.id/giftItem/img_item_thumb_enjoy-present-${type}-${indexStr}-01.png`;
+  return `https://apiip.dasewasia.my.id/giftItem/img_item_thumb_enjoy-present-${type}-${indexStr}-01.png`;
 };
 
 export const getSpecialGiftItemImageUrl = (characterName: string): string => {
@@ -204,7 +203,7 @@ export const getSpecialGiftItemImageUrl = (characterName: string): string => {
   const type = characterSpecialGiftTypes[characterName];
   if (!type) return "";
 
-  return `https://api.diveidolypapi.my.id/giftItem/img_item_thumb_enjoy-present-sp-${type}.png`;
+  return `https://apiip.dasewasia.my.id/giftItem/img_item_thumb_enjoy-present-sp-${type}.png`;
 };
 
 export const getPlaceholderImageUrl = (typeName: string): string => {

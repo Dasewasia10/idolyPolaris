@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Character } from "../interfaces/Character";
 import { Icon } from "../interfaces/Icon";
 
-const API_BASE_URL = "https://diveidolypapi.my.id/api";
+const API_BASE_URL = "https://beip.dasewasia.my.id/api";
 
 const CharacterComparisonPage: React.FC = () => {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -62,7 +62,7 @@ const CharacterComparisonPage: React.FC = () => {
 
   const getCharacterIconUrl = (characterName: string) => {
     const formattedName = characterName.toLowerCase().replace(/\s+/g, "");
-    return `https://api.diveidolypapi.my.id/iconCharacter/chara-${formattedName}.png`;
+    return `https://apiip.dasewasia.my.id/iconCharacter/chara-${formattedName}.png`;
   };
 
   const calculateAge = (birthday: string) => {

@@ -33,17 +33,12 @@ const VideoBackground = () => {
 
   const randomVideo = useMemo(() => {
     const index = Math.floor(Math.random() * videoList.length);
-    return `https://api.diveidolypapi.my.id/videoBg/${videoList[index]}`;
+    return `https://apiip.dasewasia.my.id/videoBg/${videoList[index]}`;
   }, []); // hanya dijalankan sekali saat render pertama
 
   return (
     <div className="fixed top-0 left-0 w-full h-full pointer-events-none">
-      <video
-        autoPlay
-        muted
-        playsInline
-        className="object-cover w-full h-full"
-      >
+      <video autoPlay muted playsInline className="object-cover w-full h-full">
         <source src={randomVideo} type="video/mp4" />
       </video>
     </div>

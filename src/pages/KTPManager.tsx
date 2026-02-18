@@ -42,7 +42,7 @@ const KTPManager: React.FC = () => {
     const fetchIcons = async () => {
       try {
         const response = await axios.get(
-          "https://diveidolypapi.my.id/api/characters",
+          "https://beip.dasewasia.my.id/api/characters",
         );
 
         const processedIcons = response.data.map((char: any, index: number) => {
@@ -57,7 +57,7 @@ const KTPManager: React.FC = () => {
           return {
             id: index,
             name: displayName,
-            src: `https://api.diveidolypapi.my.id/iconCharacter/chara-${assetName}.png`,
+            src: `https://apiip.dasewasia.my.id/iconCharacter/chara-${assetName}.png`,
           };
         });
 

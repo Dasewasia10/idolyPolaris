@@ -25,7 +25,7 @@ const CardList: React.FC<CardListProps> = ({
     const fetchCharacters = async () => {
       try {
         const response = await fetch(
-          "https://diveidolypapi.my.id/api/characters",
+          "https://beip.dasewasia.my.id/api/characters",
         );
         if (!response.ok) throw new Error("Failed to fetch characters");
         const data = await response.json();
@@ -37,7 +37,7 @@ const CardList: React.FC<CardListProps> = ({
     fetchCharacters();
   }, []);
 
-  const IMG_BASE_URL = "https://api.diveidolypapi.my.id";
+  const IMG_BASE_URL = "https://apiip.dasewasia.my.id";
 
   const getCardImageUrl = (
     card: { initialTitle: string; initial: number; hasAwakening?: boolean },

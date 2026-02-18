@@ -103,7 +103,7 @@ const CardDesign: React.FC = () => {
     const fetchData = async () => {
       try {
         const [cardsRes] = await Promise.all([
-          axios.get("https://diveidolypapi.my.id/api/cards"),
+          axios.get("https://beip.dasewasia.my.id/api/cards"),
         ]);
 
         // Flatten & Inject Source Name
