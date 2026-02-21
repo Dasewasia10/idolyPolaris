@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
 import {
   Search,
@@ -180,44 +180,30 @@ const CardDesign: React.FC = () => {
   // --- HANDLERS ---
 
   const handleDownload = async () => {
-    if (!cardRef.current || !selectedCard) return;
-    setToastMessage("Generating image...");
+    // Menargetkan elemen canvas langsung seperti pada onclone di html2canvas
+    const node =
+      document.getElementById("card-canvas-target") || cardRef.current;
 
-    try {
-      // Tunggu render
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    if (node) {
+      try {
+        const blob = await domtoimage.toBlob(node, {
+          // Menetapkan ukuran spesifik jika kamu butuh resolusi fix (seperti kodemu sebelumnya)
+          width: 2048,
+          height: 1152,
+          // Menghilangkan efek transform (tilt/hover) saat di-render
+          style: {
+            transform: "none",
+          },
+        });
 
-      const canvas = await html2canvas(cardRef.current, {
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-        // PENTING: Paksa ukuran canvas sesuai ukuran asli kartu (1000x1400)
-        windowWidth: 2048,
-        windowHeight: 1152,
-        // Scale 1 atau 2 tergantung resolusi yang dimau (2 = HD)
-        scale: 1,
-
-        // Fungsi ini memastikan elemen yang dicapture TIDAK terkena scale CSS dari preview
-        onclone: (clonedDoc) => {
-          const el = clonedDoc.getElementById("card-canvas-target");
-          if (el) {
-            // Reset semua transformasi CSS agar gambar tidak gepeng
-            el.style.transform = "none";
-          }
-        },
-      });
-
-      canvas.toBlob((blob) => {
         if (blob) {
-          saveAs(blob, `card_design_${selectedCard.uniqueId}.png`);
-          setToastMessage("Image downloaded!");
-          setIsSuccess(true);
+          // Sesuaikan nama variabel untuk nama file jika diperlukan,
+          // misalnya pakai selectedCard?.title?.global jika ada
+          saveAs(blob, `CardDesign_Export.png`);
         }
-      });
-    } catch (error) {
-      console.error(error);
-      setToastMessage("Failed to generate image.");
-      setIsSuccess(false);
+      } catch (error) {
+        console.error("Download failed:", error);
+      }
     }
   };
 
@@ -512,7 +498,6 @@ const CardDesign: React.FC = () => {
               <img
                 src={getArtUrl()}
                 alt="Art"
-                crossOrigin="anonymous"
                 className="absolute inset-0 w-full h-full object-cover"
               />
 
@@ -525,14 +510,12 @@ const CardDesign: React.FC = () => {
                   <img
                     src={getCardAttributeImageUrl(selectedCard.attribute)}
                     className="w-16 h-16 object-contain"
-                    crossOrigin="anonymous"
                   />
                 </div>
                 <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/30 shadow-lg">
                   <img
                     src={getCardTypeImageUrl(selectedCard.type)}
                     className="w-16 h-16 object-contain"
-                    crossOrigin="anonymous"
                   />
                 </div>
               </div>
@@ -665,7 +648,6 @@ const CardDesign: React.FC = () => {
                             getPlaceholderImageUrl("square")
                           }
                           className="w-full h-full rounded-2xl border-4 border-white/40 bg-black/50 object-cover"
-                          crossOrigin="anonymous"
                         />
                         <div className="absolute -top-6 -right-6 bg-gray-600 text-white text-2xl font-bold w-12 h-12 flex items-center justify-center rounded-full border-4 border-white shadow-md">
                           {skillLevels[idx]}
@@ -747,7 +729,6 @@ const CardDesign: React.FC = () => {
                         src={card.images.icon}
                         className="w-20 h-20 rounded-lg object-cover shadow-lg group-hover:shadow-blue-500/20"
                         loading="lazy"
-                        crossOrigin="anonymous"
                       />
                       <div className="absolute top-0 right-0 -mr-1 -mt-1 w-2 h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>

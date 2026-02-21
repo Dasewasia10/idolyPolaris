@@ -733,7 +733,7 @@ const LoveStoryPage: React.FC = () => {
             {currentLine.speakerCode &&
               getSpriteUrl(currentLine.speakerCode) && (
                 <div
-                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] ${getSpriteStyle(currentLine.speakerCode)}`}
+                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] lg:scale-[150%] translate-y-4 lg:translate-y-32 ${getSpriteStyle(currentLine.speakerCode)}`}
                 >
                   <img
                     key={currentLine.speakerCode}

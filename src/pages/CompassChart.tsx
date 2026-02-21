@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
 import Draggable, { DraggableEventHandler } from "react-draggable";
 import axios from "axios";
@@ -170,16 +170,24 @@ const CompassChart: React.FC = () => {
   const handleDownload = async () => {
     if (chartRef.current) {
       try {
-        // Trik agar background transparan saat download tidak hitam pekat, tapi sesuai style
-        const canvas = await html2canvas(chartRef.current, {
-          backgroundColor: "#0f1115",
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
+        const node = chartRef.current;
+        const scale = 2; // Pengganti scale: 2 dari html2canvas
+
+        const blob = await domtoimage.toBlob(node, {
+          bgcolor: "#0f1115",
+          width: node.clientWidth * scale,
+          height: node.clientHeight * scale,
+          style: {
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            width: `${node.clientWidth}px`,
+            height: `${node.clientHeight}px`,
+          },
         });
-        canvas.toBlob((blob) => {
-          if (blob) saveAs(blob, `compass_chart-${title}.png`);
-        });
+
+        if (blob) {
+          saveAs(blob, `compass_chart-${title}.png`);
+        }
       } catch (error) {
         console.error("Download failed:", error);
       }
