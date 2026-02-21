@@ -80,7 +80,6 @@ const DraggableIcon: React.FC<DraggableIconProps> = ({
           <img
             src={icon.src}
             alt={icon.name}
-            crossOrigin="anonymous"
             className="w-12 h-12 rounded-full border-2 border-white/20 bg-black/50 shadow-[0_0_15px_rgba(34,211,238,0.3)] pointer-events-none select-none object-cover"
           />
         </div>
@@ -175,6 +174,8 @@ const CompassChart: React.FC = () => {
         const canvas = await html2canvas(chartRef.current, {
           backgroundColor: "#0f1115",
           scale: 2,
+          useCORS: true,
+          allowTaint: false,
         });
         canvas.toBlob((blob) => {
           if (blob) saveAs(blob, `compass_chart-${title}.png`);

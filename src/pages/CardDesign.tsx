@@ -189,7 +189,7 @@ const CardDesign: React.FC = () => {
 
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: null,
         // PENTING: Paksa ukuran canvas sesuai ukuran asli kartu (1000x1400)
         windowWidth: 2048,
