@@ -175,7 +175,7 @@ const CompassChart: React.FC = () => {
           backgroundColor: "#0f1115",
           scale: 2,
           useCORS: true,
-          allowTaint: true,
+          allowTaint: false,
         });
         canvas.toBlob((blob) => {
           if (blob) saveAs(blob, `compass_chart-${title}.png`);
