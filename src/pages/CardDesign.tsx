@@ -498,7 +498,6 @@ const CardDesign: React.FC = () => {
               <img
                 src={getArtUrl()}
                 alt="Art"
-                crossOrigin="anonymous"
                 className="absolute inset-0 w-full h-full object-cover"
               />
 
@@ -510,14 +509,12 @@ const CardDesign: React.FC = () => {
                 <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/30 shadow-lg">
                   <img
                     src={getCardAttributeImageUrl(selectedCard.attribute)}
-                    crossOrigin="anonymous"
                     className="w-16 h-16 object-contain"
                   />
                 </div>
                 <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/30 shadow-lg">
                   <img
                     src={getCardTypeImageUrl(selectedCard.type)}
-                    crossOrigin="anonymous"
                     className="w-16 h-16 object-contain"
                   />
                 </div>
@@ -651,7 +648,6 @@ const CardDesign: React.FC = () => {
                             getPlaceholderImageUrl("square")
                           }
                           className="w-full h-full rounded-2xl border-4 border-white/40 bg-black/50 object-cover"
-                          crossOrigin="anonymous"
                         />
                         <div className="absolute -top-6 -right-6 bg-gray-600 text-white text-2xl font-bold w-12 h-12 flex items-center justify-center rounded-full border-4 border-white shadow-md">
                           {skillLevels[idx]}
