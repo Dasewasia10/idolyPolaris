@@ -298,7 +298,7 @@ const CharacterCalendar: React.FC = () => {
       className={`transition-colors duration-500 min-h-screen p-4 flex flex-col items-center ${isDarkMode ? "bg-[#0f1115]" : "bg-gray-100"}`}
     >
       <div
-        className={`flex gap-4 lg:gap-8 z-10 w-full mx-auto p-6 rounded-2xl shadow-xl max-w-7xl max-h-[90vh] relative overflow-hidden flex-col lg:flex-row font-sans transition-colors duration-500 ${
+        className={`flex gap-4 lg:gap-8 z-10 w-full mx-auto p-6 rounded-2xl shadow-xl max-w-7xl max-h-[90vh] relative overflow-auto flex-col lg:flex-row font-sans transition-colors duration-500 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
           isDarkMode
             ? "bg-[#161b22] text-gray-200 border border-white/10"
             : "bg-white text-gray-800"

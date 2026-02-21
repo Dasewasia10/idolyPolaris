@@ -512,7 +512,6 @@ const CardDesign: React.FC = () => {
               <img
                 src={getArtUrl()}
                 alt="Art"
-                crossOrigin="anonymous"
                 className="absolute inset-0 w-full h-full object-cover"
               />
 
@@ -525,14 +524,12 @@ const CardDesign: React.FC = () => {
                   <img
                     src={getCardAttributeImageUrl(selectedCard.attribute)}
                     className="w-16 h-16 object-contain"
-                    crossOrigin="anonymous"
                   />
                 </div>
                 <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/30 shadow-lg">
                   <img
                     src={getCardTypeImageUrl(selectedCard.type)}
                     className="w-16 h-16 object-contain"
-                    crossOrigin="anonymous"
                   />
                 </div>
               </div>
@@ -665,7 +662,6 @@ const CardDesign: React.FC = () => {
                             getPlaceholderImageUrl("square")
                           }
                           className="w-full h-full rounded-2xl border-4 border-white/40 bg-black/50 object-cover"
-                          crossOrigin="anonymous"
                         />
                         <div className="absolute -top-6 -right-6 bg-gray-600 text-white text-2xl font-bold w-12 h-12 flex items-center justify-center rounded-full border-4 border-white shadow-md">
                           {skillLevels[idx]}
@@ -747,7 +743,6 @@ const CardDesign: React.FC = () => {
                         src={card.images.icon}
                         className="w-20 h-20 rounded-lg object-cover shadow-lg group-hover:shadow-blue-500/20"
                         loading="lazy"
-                        crossOrigin="anonymous"
                       />
                       <div className="absolute top-0 right-0 -mr-1 -mt-1 w-2 h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
