@@ -33,6 +33,7 @@ const MENUS = {
     { name: "Bond Story", path: "/bondStory" },
     { name: "Extra Story", path: "/extraStory" },
     { name: "Main Story", path: "/mainStory" },
+    { name: "Card Story", path: "/cardStory" },
   ],
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },

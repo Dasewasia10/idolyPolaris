@@ -788,6 +788,17 @@ const CardOverviewPage: React.FC = () => {
                     <p className="text-sm text-gray-500 font-mono mt-1 uppercase tracking-wide">
                       {selectedCard.initialTitle}
                     </p>
+                    <div
+                      className={`px-4 py-2 rounded-lg border text-sm transition-all bg-[#0d1117] border-white/5 hover:border-white/20 bg-yellow-900/5"`}
+                    >
+                      <div className="flex flex-wrap justify-between items-start mb-2 gap-2"></div>
+                      <p className="text-gray-400 text-md leading-relaxed font-sans border-l-2 border-white/10 pl-2">
+                        {renderWithBr(
+                          selectedCard.description?.[primaryLanguage] ||
+                            selectedCard.description?.global,
+                        )}
+                      </p>
+                    </div>
                   </div>
                   {getCardCosuUrl(selectedCard) !==
                     `${import.meta.env.BASE_URL}assets/default_image.png` &&
