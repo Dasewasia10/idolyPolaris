@@ -98,6 +98,16 @@ const BirthdayReminder: React.FC = () => {
     return `BIRTHDAY IN ${daysDiff} DAYS`;
   };
 
+  const getCharacterIconUrl = (characterName: string) => {
+    let assetName = characterName.toLowerCase().replace(/\s+/g, "");
+
+    if (characterName.toLowerCase() === "snow") {
+      assetName = "smiku";
+    }
+
+    return `https://apiip.dasewasia.my.id/iconCharacter/chara-${assetName}.png`;
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-right duration-500">
       <div className="bg-[#161b22] border border-pink-500/50 w-72 rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)] overflow-hidden relative group">
@@ -114,7 +124,7 @@ const BirthdayReminder: React.FC = () => {
           <div className="relative shrink-0">
             <div className="absolute inset-0 bg-pink-500 rounded-full blur opacity-50 animate-pulse"></div>
             <img
-              src={`https://beip.dasewasia.my.id/api/img/character/icon/${encodeURIComponent(currentCharacter.name.toLowerCase())}`}
+              src={getCharacterIconUrl(currentCharacter.name)}
               alt={currentCharacter.name}
               className="w-14 h-14 rounded-full border-2 border-white relative z-10 bg-gray-800 object-cover"
             />
