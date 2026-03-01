@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import {
   Heart,
@@ -12,6 +12,8 @@ import {
   X,
   ArrowRight,
   CheckCircle,
+  MessageCircle,
+  Monitor,
 } from "lucide-react";
 import { getPlaceholderImageUrl } from "../utils/imageUtils";
 import StrategyGuide from "../components/MoshikoiTimelineGuide";
@@ -107,6 +109,7 @@ const LoveStoryPage: React.FC = () => {
   // Data State
   const [events, setEvents] = useState<EventGroup[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [isChatMode, setIsChatMode] = useState(false);
 
   // Stack-Based Engine
   const [executionStack, setExecutionStack] = useState<StackFrame[]>([]);
@@ -362,6 +365,50 @@ const LoveStoryPage: React.FC = () => {
     setDisplayedText("");
   };
 
+  const processedLoveMessages = useMemo(() => {
+    if (executionStack.length === 0) return [];
+
+    const fullScript = executionStack[0].script;
+    const result: any[] = [];
+
+    const processLines = (lines: ScriptLine[]) => {
+      lines.forEach((line) => {
+        if (line.type === "dialogue") {
+          // Proses penggantian {user} di sini
+          const processedText = line.text?.replace(/{user}/g, userName) || "";
+          const processedSpeaker =
+            line.speakerName?.replace(/{user}/g, userName) || "";
+
+          // Identifikasi apakah ini Manager/Player
+          const isPlayer =
+            line.speakerCode?.toLowerCase() === "manager" ||
+            line.speakerCode?.toLowerCase() === "koh";
+
+          result.push({
+            ...line,
+            text: processedText,
+            speakerName: processedSpeaker,
+            isPlayer, // Flag untuk styling rata kanan
+          });
+        } else if (line.type === "choice_selection") {
+          line.choices?.forEach((choice) => {
+            // Label Pemisah Rute
+            result.push({
+              type: "system_label",
+              text: `ROUTE: ${choice.text.replace(/{user}/g, userName)}`,
+            });
+            if (choice.route) {
+              processLines(choice.route);
+            }
+          });
+        }
+      });
+    };
+
+    processLines(fullScript);
+    return result;
+  }, [executionStack, userName]); // Tambahkan userName sebagai dependency
+
   // --- EFFECT: PLAY LINE ---
   useEffect(() => {
     // Cleanup SFX timer agar tidak bocor ke slide berikutnya
@@ -513,27 +560,60 @@ const LoveStoryPage: React.FC = () => {
     }
   };
 
-  const handleSkip = () => {
-    setIsAutoPlay(false);
-    const top = executionStack[executionStack.length - 1];
+  // const handleSkip = () => {
+  //   setIsAutoPlay(false);
+  //   const top = executionStack[executionStack.length - 1];
 
-    // Cari pilihan berikutnya
-    const nextChoiceIndex = top.script.findIndex(
-      (line, idx) => idx > top.index && line.type === "choice_selection",
-    );
+  //   // Cari pilihan berikutnya
+  //   const nextChoiceIndex = top.script.findIndex(
+  //     (line, idx) => idx > top.index && line.type === "choice_selection",
+  //   );
 
-    const newStack = [...executionStack];
-    if (nextChoiceIndex !== -1) {
-      newStack[newStack.length - 1].index = nextChoiceIndex;
-    } else {
-      // Jika tidak ada pilihan lagi, lompat ke akhir (yang akan men-trigger handleEpisodeEnd)
-      newStack[newStack.length - 1].index = top.script.length - 1;
-    }
+  //   const newStack = [...executionStack];
+  //   if (nextChoiceIndex !== -1) {
+  //     newStack[newStack.length - 1].index = nextChoiceIndex;
+  //   } else {
+  //     // Jika tidak ada pilihan lagi, lompat ke akhir (yang akan men-trigger handleEpisodeEnd)
+  //     newStack[newStack.length - 1].index = top.script.length - 1;
+  //   }
 
-    setExecutionStack(newStack);
+  //   setExecutionStack(newStack);
 
-    // Reset typing state agar tombol skip tidak macet setelah skip selesai
-    setIsTyping(false);
+  //   // Reset typing state agar tombol skip tidak macet setelah skip selesai
+  //   setIsTyping(false);
+  // };
+
+  const fastForwardToChoice = () => {
+    setExecutionStack((prevStack) => {
+      const newStack = [...prevStack];
+      const top = { ...newStack[newStack.length - 1] };
+      const newHistory: ScriptLine[] = [];
+
+      let i = top.index;
+      while (i < top.script.length) {
+        const line = top.script[i];
+
+        // Masukkan ke history sementara agar tidak hilang saat skip
+        if (line.type === "dialogue") {
+          newHistory.push({
+            ...line,
+            text: parseText(line.text),
+            speakerName: parseText(line.speakerName),
+          });
+        }
+
+        // Berhenti jika ketemu pilihan
+        if (line.type === "choice_selection") {
+          top.index = i;
+          break;
+        }
+        i++;
+      }
+
+      setHistory((prev) => [...prev, ...newHistory]);
+      newStack[newStack.length - 1] = top;
+      return newStack;
+    });
   };
 
   const getSpriteUrl = (code?: string | null) => {
@@ -716,150 +796,254 @@ const LoveStoryPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* BACKGROUND */}
-            <div className="absolute inset-0 transition-all duration-1000 ease-in-out">
-              <div className="absolute inset-0 bg-[#0f1115]"></div>
-              {currentBg && (
+            {/* Tombol Switch Mode */}
+            <div className="absolute top-4 right-4 z-50 flex gap-2">
+              <button
+                onClick={() => setIsChatMode(!isChatMode)}
+                className="flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-pink-600 transition-all shadow-xl"
+              >
+                {isChatMode ? (
+                  <>
+                    <Monitor size={14} /> VN Mode
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle size={14} /> Chat Mode
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* --- MODE VN (ORIGINAL) --- */}
+            <div
+              className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 ${isChatMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+            >
+              {/* BACKGROUND */}
+              <div className="absolute inset-0 transition-all duration-1000 ease-in-out">
+                <div className="absolute inset-0 bg-[#0f1115]"></div>
+                {currentBg && (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center animate-in fade-in duration-1000"
+                    style={{ backgroundImage: `url('${currentBg}')` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 opacity-60"></div>
+                  </div>
+                )}
+              </div>
+
+              {/* SPRITE */}
+              {currentLine.speakerCode &&
+                getSpriteUrl(currentLine.speakerCode) && (
+                  <div
+                    className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] lg:scale-[150%] translate-y-4 lg:translate-y-32 ${getSpriteStyle(currentLine.speakerCode)}`}
+                  >
+                    <img
+                      key={currentLine.speakerCode}
+                      src={getSpriteUrl(currentLine.speakerCode)!}
+                      alt={currentLine.speakerCode}
+                      className="h-[85%] lg:h-[95%] object-contain drop-shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500"
+                    />
+                  </div>
+                )}
+
+              {/* CHOICE SELECTION */}
+              {currentLine.type === "choice_selection" &&
+                currentLine.choices && (
+                  <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
+                    <div className="text-pink-400 font-bold tracking-[0.3em] text-sm mb-4 border-b border-pink-500/50 pb-2">
+                      DECISION POINT
+                    </div>
+                    {currentLine.choices.map((choice, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleChoice(idx)}
+                        className="w-[90%] max-w-xl group relative overflow-hidden bg-gray-900 border border-white/20 px-8 py-6 transition-all hover:border-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] skew-x-[-12deg]"
+                      >
+                        <div className="absolute inset-0 w-1 bg-pink-500 -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
+                        <span className="relative z-10 text-lg font-medium text-white/90 group-hover:text-white block skew-x-[12deg] text-center">
+                          {choice.text.replace("text=", " ")}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+              {/* DIALOGUE */}
+              {currentLine.type === "dialogue" && (
                 <div
-                  className="absolute inset-0 bg-cover bg-center animate-in fade-in duration-1000"
-                  style={{ backgroundImage: `url('${currentBg}')` }}
+                  onClick={handleBoxClick}
+                  className="absolute bottom-0 w-full z-40 cursor-pointer group flex justify-center pb-6 lg:pb-10 px-4"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40 opacity-60"></div>
+                  <div className="w-full max-w-5xl relative">
+                    {/* Name Tag */}
+                    {currentLine.speakerName && (
+                      <div className="absolute -top-6 left-0 lg:left-8 z-50">
+                        <div className="relative bg-white text-black px-8 py-1.5 transform skew-x-[-12deg] border-l-[6px] border-pink-600 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+                          <div className="transform skew-x-[12deg] flex items-center gap-2">
+                            {currentLine.iconUrl && (
+                              <img
+                                src={currentLine.iconUrl}
+                                className="w-8 h-8 rounded-full border border-black/20"
+                                alt="icon"
+                                onError={(e) => {
+                                  e.currentTarget.src =
+                                    getPlaceholderImageUrl("square");
+                                }}
+                              />
+                            )}
+                            <span className="font-bold tracking-wider text-base uppercase">
+                              {parseText(currentLine.speakerName)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Text Box */}
+                    <div
+                      className="relative bg-[#0f131a]/90 backdrop-blur-lg border-t border-white/10 shadow-2xl p-6 lg:p-8 min-h-[160px] lg:min-h-[180px]"
+                      style={{
+                        clipPath:
+                          "polygon(0 0, 100% 0, 100% 85%, 98% 100%, 0 100%)",
+                      }}
+                    >
+                      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+
+                      <div
+                        className={`relative z-10 h-full ${!currentLine.speakerName ? "flex items-center justify-center italic text-gray-400" : ""}`}
+                      >
+                        <p className="text-lg lg:text-xl font-medium leading-relaxed text-gray-100 whitespace-pre-line drop-shadow-md">
+                          {displayedText}
+                          {isTyping && (
+                            <span className="inline-block w-2 h-5 bg-pink-500 ml-1 animate-pulse align-sub"></span>
+                          )}
+                        </p>
+                      </div>
+
+                      {!isTyping && (
+                        <div className="absolute bottom-4 right-8 animate-bounce text-pink-500">
+                          <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-pink-500"></div>
+                        </div>
+                      )}
+
+                      {/* Controls */}
+                      <div className="absolute top-0 right-0 flex">
+                        <div className="bg-black/60 px-4 py-1 flex gap-4 rounded-bl-xl border-l border-b border-white/10 backdrop-blur">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowLog(true);
+                            }}
+                            className="text-[10px] font-bold text-gray-400 hover:text-white flex items-center gap-1 uppercase tracking-wider"
+                          >
+                            <History size={12} /> Log
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsAutoPlay(!isAutoPlay);
+                            }}
+                            className={`text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider transition ${isAutoPlay ? "text-green-400 animate-pulse" : "text-gray-400 hover:text-white"}`}
+                          >
+                            {isAutoPlay ? (
+                              <Pause size={12} />
+                            ) : (
+                              <Play size={12} />
+                            )}{" "}
+                            Auto
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fastForwardToChoice();
+                            }}
+                            className="text-[10px] font-bold text-gray-400 hover:text-pink-400 flex items-center gap-1 uppercase tracking-wider"
+                          >
+                            Skip <SkipForward size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* SPRITE */}
-            {currentLine.speakerCode &&
-              getSpriteUrl(currentLine.speakerCode) && (
-                <div
-                  className={`absolute inset-0 flex items-end justify-center pointer-events-none z-10 scale-[200%] lg:scale-[150%] translate-y-4 lg:translate-y-32 ${getSpriteStyle(currentLine.speakerCode)}`}
-                >
-                  <img
-                    key={currentLine.speakerCode}
-                    src={getSpriteUrl(currentLine.speakerCode)!}
-                    alt={currentLine.speakerCode}
-                    className="h-[85%] lg:h-[95%] object-contain drop-shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500"
-                  />
+            {/* --- MODE CHAT (TAMBAHAN BARU) --- */}
+            {isChatMode && (
+              <div className="absolute inset-0 z-40 bg-[#0a0c10] flex flex-col animate-in fade-in duration-500">
+                {/* Header Tetap Sama */}
+                <div className="p-4 border-b border-white/10 bg-[#161b22]/90 backdrop-blur-md">
+                  <h2 className="text-sm font-bold text-pink-400 tracking-widest uppercase">
+                    Transcript Mode
+                  </h2>
                 </div>
-              )}
 
-            {/* CHOICE SELECTION */}
-            {currentLine.type === "choice_selection" && currentLine.choices && (
-              <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
-                <div className="text-pink-400 font-bold tracking-[0.3em] text-sm mb-4 border-b border-pink-500/50 pb-2">
-                  DECISION POINT
-                </div>
-                {currentLine.choices.map((choice, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleChoice(idx)}
-                    className="w-[90%] max-w-xl group relative overflow-hidden bg-gray-900 border border-white/20 px-8 py-6 transition-all hover:border-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] skew-x-[-12deg]"
-                  >
-                    <div className="absolute inset-0 w-1 bg-pink-500 -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
-                    <span className="relative z-10 text-lg font-medium text-white/90 group-hover:text-white block skew-x-[12deg] text-center">
-                      {choice.text.replace("text=", " ")}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
+                <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                  <div className="max-w-4xl mx-auto flex flex-col gap-6">
+                    {processedLoveMessages.map((msg, idx) => {
+                      // Tampilan Label Rute
+                      if (msg.type === "system_label") {
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-4 my-4 opacity-50"
+                          >
+                            <div className="h-[1px] flex-1 bg-pink-500/20"></div>
+                            <span className="text-[9px] font-black tracking-[0.3em] text-pink-500 uppercase">
+                              {msg.text}
+                            </span>
+                            <div className="h-[1px] flex-1 bg-pink-500/20"></div>
+                          </div>
+                        );
+                      }
 
-            {/* DIALOGUE */}
-            {currentLine.type === "dialogue" && (
-              <div
-                onClick={handleBoxClick}
-                className="absolute bottom-0 w-full z-40 cursor-pointer group flex justify-center pb-6 lg:pb-10 px-4"
-              >
-                <div className="w-full max-w-5xl relative">
-                  {/* Name Tag */}
-                  {currentLine.speakerName && (
-                    <div className="absolute -top-6 left-0 lg:left-8 z-50">
-                      <div className="relative bg-white text-black px-8 py-1.5 transform skew-x-[-12deg] border-l-[6px] border-pink-600 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-                        <div className="transform skew-x-[12deg] flex items-center gap-2">
-                          {currentLine.iconUrl && (
-                            <img
-                              src={currentLine.iconUrl}
-                              className="w-8 h-8 rounded-full border border-black/20"
-                              alt="icon"
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  getPlaceholderImageUrl("square");
-                              }}
-                            />
-                          )}
-                          <span className="font-bold tracking-wider text-base uppercase">
-                            {parseText(currentLine.speakerName)}
-                          </span>
+                      const align = msg.isPlayer ? "items-end" : "items-start";
+                      const justify = msg.isPlayer
+                        ? "justify-end text-right"
+                        : "justify-start text-left";
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex ${justify} animate-in fade-in duration-300`}
+                        >
+                          <div
+                            className={`flex ${align} max-w-[85%] lg:max-w-[70%] gap-3 ${msg.isPlayer ? "flex-row-reverse" : "flex-row"}`}
+                          >
+                            {/* Avatar Karakter (Hanya muncul jika bukan Player) */}
+                            {!msg.isPlayer && (
+                              <div className="flex-shrink-0 w-10 h-10">
+                                <img
+                                  src={
+                                    msg.iconUrl || "/assets/chara-avatar.png"
+                                  }
+                                  className="w-10 h-10 rounded-full object-cover border border-pink-500/20 bg-[#1f2937]"
+                                  alt=""
+                                />
+                              </div>
+                            )}
+
+                            <div className={`flex flex-col ${align}`}>
+                              <span
+                                className={`text-[10px] mb-1 font-bold tracking-wider uppercase ${msg.isPlayer ? "text-gray-400" : "text-pink-400"}`}
+                              >
+                                {msg.speakerName}
+                              </span>
+                              <div
+                                className={`px-4 py-2.5 text-sm lg:text-base leading-relaxed rounded-xl shadow-sm border ${
+                                  msg.isPlayer
+                                    ? "bg-gradient-to-br from-pink-600 to-purple-700 text-white rounded-tr-sm border-pink-400/30"
+                                    : "bg-[#1f2937] text-gray-200 rounded-tl-sm border-white/5"
+                                }`}
+                              >
+                                {msg.text}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Text Box */}
-                  <div
-                    className="relative bg-[#0f131a]/90 backdrop-blur-lg border-t border-white/10 shadow-2xl p-6 lg:p-8 min-h-[160px] lg:min-h-[180px]"
-                    style={{
-                      clipPath:
-                        "polygon(0 0, 100% 0, 100% 85%, 98% 100%, 0 100%)",
-                    }}
-                  >
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-
-                    <div
-                      className={`relative z-10 h-full ${!currentLine.speakerName ? "flex items-center justify-center italic text-gray-400" : ""}`}
-                    >
-                      <p className="text-lg lg:text-xl font-medium leading-relaxed text-gray-100 whitespace-pre-line drop-shadow-md">
-                        {displayedText}
-                        {isTyping && (
-                          <span className="inline-block w-2 h-5 bg-pink-500 ml-1 animate-pulse align-sub"></span>
-                        )}
-                      </p>
-                    </div>
-
-                    {!isTyping && (
-                      <div className="absolute bottom-4 right-8 animate-bounce text-pink-500">
-                        <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-pink-500"></div>
-                      </div>
-                    )}
-
-                    {/* Controls */}
-                    <div className="absolute top-0 right-0 flex">
-                      <div className="bg-black/60 px-4 py-1 flex gap-4 rounded-bl-xl border-l border-b border-white/10 backdrop-blur">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowLog(true);
-                          }}
-                          className="text-[10px] font-bold text-gray-400 hover:text-white flex items-center gap-1 uppercase tracking-wider"
-                        >
-                          <History size={12} /> Log
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsAutoPlay(!isAutoPlay);
-                          }}
-                          className={`text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider transition ${isAutoPlay ? "text-green-400 animate-pulse" : "text-gray-400 hover:text-white"}`}
-                        >
-                          {isAutoPlay ? (
-                            <Pause size={12} />
-                          ) : (
-                            <Play size={12} />
-                          )}{" "}
-                          Auto
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSkip();
-                          }}
-                          className="text-[10px] font-bold text-gray-400 hover:text-pink-400 flex items-center gap-1 uppercase tracking-wider"
-                        >
-                          Skip <SkipForward size={12} />
-                        </button>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
