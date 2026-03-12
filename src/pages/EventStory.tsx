@@ -103,7 +103,7 @@ const MessagePage: React.FC = () => {
       try {
         // Menggunakan format .json karena itu yang di-generate backend
         const res = await axios.get(
-          `${API_BASE_URL}/detail/${selectedEpisodeId}.json`,
+          `${API_BASE_URL}/stories/${selectedEpisodeId}.json`,
         );
         setStoryData(res.data);
         if (window.innerWidth < 1024) {
