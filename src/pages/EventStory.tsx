@@ -55,7 +55,7 @@ type ProcessedMessage =
   | { type: "normal"; data: ChatDetail }
   | { type: "choice_group"; items: ChatDetail[] };
 
-const API_BASE_URL = "https://beip.dasewasia.my.id/api/cardstory";
+const API_BASE_URL = "https://beip.dasewasia.my.id/api/eventstory";
 
 const MessagePage: React.FC = () => {
   // --- STATE ---
@@ -145,7 +145,7 @@ const MessagePage: React.FC = () => {
   }, [messageData]);
 
   useEffect(() => {
-    document.title = "Polaris Idoly | Card Story";
+    document.title = "Polaris Idoly | Event Story";
     return () => {
       document.title = "Polaris Idoly";
     };

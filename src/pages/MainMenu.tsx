@@ -34,6 +34,7 @@ const MENUS = {
     { name: "Extra Story", path: "/extraStory" },
     { name: "Main Story", path: "/mainStory" },
     { name: "Card Story", path: "/cardStory" },
+    { name: "Event Story", path: "/eventStory" },
   ],
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },
