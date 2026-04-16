@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, Lock } from "lucide-react"; // Gunakan Lucide Icons
+import { Menu, X, ChevronDown, Lock, ExternalLink } from "lucide-react"; // Gunakan Lucide Icons
 import BirthdayReminder from "../components/birthdayReminder";
 
 // --- 1. DATA DEFINITION ---
@@ -28,14 +28,14 @@ const MENUS = {
     { name: "Idol Messages", path: "/messages" },
     { name: "Beatmap", path: "/beatmaps" },
   ],
-  stories: [
-    { name: "Love Story", path: "/loveStory" },
-    { name: "Bond Story", path: "/bondStory" },
-    { name: "Extra Story", path: "/extraStory" },
-    { name: "Main Story", path: "/mainStory" },
-    { name: "Card Story", path: "/cardStory" },
-    { name: "Event Story", path: "/eventStory" },
-  ],
+  // stories: [
+  //   { name: "Love Story", path: "/loveStory" },
+  //   { name: "Bond Story", path: "/bondStory" },
+  //   { name: "Extra Story", path: "/extraStory" },
+  //   { name: "Main Story", path: "/mainStory" },
+  //   { name: "Card Story", path: "/cardStory" },
+  //   { name: "Event Story", path: "/eventStory" },
+  // ],
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },
     { name: "Event Tracker", path: "/eventTracker" },
@@ -148,6 +148,11 @@ const MainMenu: React.FC = () => {
     setShowMobileMenu(false);
   };
 
+  const handleExternalNav = (url: string) => {
+    window.open(url, "_blank");
+    setShowMobileMenu(false);
+  };
+
   // Tutup menu mobile saat resize ke desktop
   useEffect(() => {
     const handleResize = () => {
@@ -218,12 +223,18 @@ const MainMenu: React.FC = () => {
                 currentPath={location.pathname}
                 navigate={handleNav}
               />
-              <DesktopDropdown
-                title="Stories"
-                items={MENUS.stories}
-                currentPath={location.pathname}
-                navigate={handleNav}
-              />
+              <button
+                onClick={() =>
+                  handleExternalNav("https://polaristories.dasewasia.my.id")
+                }
+                className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg text-cyan-400 hover:bg-slate-700 hover:text-cyan-300 transition-all duration-200 whitespace-nowrap group"
+              >
+                Stories
+                <ExternalLink
+                  size={14}
+                  className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+                />
+              </button>
             </div>
 
             {/* RIGHT: LOCKED / MOBILE TOGGLE */}
@@ -261,55 +272,64 @@ const MainMenu: React.FC = () => {
                 </button>
               ))}
 
-              {/* Mobile Accordions */}
-              {["Cards", "Playground", "Add-Ons", "Stories"].map(
-                (section, _idx) => {
-                  const items =
-                    section === "Cards"
-                      ? MENUS.card
-                      : section === "Playground"
-                        ? MENUS.playground
-                        : section === "Stories"
-                          ? MENUS.stories
-                          : MENUS.addOn;
-                  const isExpanded = mobileExpanded === section;
+              {/* Mobile Accordions (Tanpa Stories) */}
+              {["Cards", "Playground", "Add-Ons"].map((section) => {
+                const items =
+                  section === "Cards"
+                    ? MENUS.card
+                    : section === "Playground"
+                      ? MENUS.playground
+                      : MENUS.addOn;
+                const isExpanded = mobileExpanded === section;
 
-                  return (
-                    <div
-                      key={section}
-                      className="border-t border-slate-800 pt-2 mt-2"
+                return (
+                  <div
+                    key={section}
+                    className="border-t border-slate-800 pt-2 mt-2"
+                  >
+                    <button
+                      onClick={() =>
+                        setMobileExpanded(isExpanded ? null : section)
+                      }
+                      className="flex items-center justify-between w-full px-3 py-2 text-base font-bold text-gray-400 uppercase tracking-wider hover:text-white"
                     >
-                      <button
-                        onClick={() =>
-                          setMobileExpanded(isExpanded ? null : section)
-                        }
-                        className="flex items-center justify-between w-full px-3 py-2 text-base font-bold text-gray-400 uppercase tracking-wider hover:text-white"
-                      >
-                        {section}
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                        />
-                      </button>
+                      {section}
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                      />
+                    </button>
 
-                      {isExpanded && (
-                        <div className="pl-4 space-y-1 mt-1 bg-slate-900/50">
-                          {items.map((item: any) => (
-                            <button
-                              key={item.path}
-                              onClick={() => handleNav(item.path)}
-                              className={`block w-full text-left px-3 py-2 rounded-md text-sm
+                    {isExpanded && (
+                      <div className="pl-4 space-y-1 mt-1 bg-slate-900/50">
+                        {items.map((item: any) => (
+                          <button
+                            key={item.path}
+                            onClick={() => handleNav(item.path)}
+                            className={`block w-full text-left px-3 py-2 rounded-md text-sm
                               ${location.pathname === item.path ? "text-blue-400 font-semibold" : "text-gray-400 hover:text-white"}`}
-                            >
-                              {item.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                },
-              )}
+                          >
+                            {item.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* EXTERNAL LINK MOBILE: STORIES */}
+              <div className="border-t border-slate-800 pt-2 mt-2">
+                <button
+                  onClick={() =>
+                    handleExternalNav("https://polaristories.dasewasia.my.id")
+                  }
+                  className="flex items-center justify-between w-full px-3 py-3 text-base font-bold text-cyan-400 uppercase tracking-wider hover:text-cyan-300 hover:bg-slate-800 rounded-md"
+                >
+                  <span>Stories</span>
+                  <ExternalLink size={18} />
+                </button>
+              </div>
             </div>
           </div>
         )}

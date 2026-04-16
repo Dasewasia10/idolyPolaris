@@ -16,12 +16,12 @@ import ChatPage from "./pages/Chat";
 import CharacterStatsPage from "./pages/CharacterStatPage";
 import CardDesign from "./pages/CardDesign";
 import MessagePage from "./pages/MessagePage";
-import LoveStoryPage from "./pages/LoveStory";
-import BondStoryPage from "./pages/BondStory";
-import ExtraStoryPage from "./pages/ExtraStory";
-import MainStoryPage from "./pages/MainStory";
-import CardStoryPage from "./pages/CardStory";
-import EventStoryPage from "./pages/EventStory";
+// import LoveStoryPage from "./pages/LoveStory";
+// import BondStoryPage from "./pages/BondStory";
+// import ExtraStoryPage from "./pages/ExtraStory";
+// import MainStoryPage from "./pages/MainStory";
+// import CardStoryPage from "./pages/CardStory";
+// import EventStoryPage from "./pages/EventStory";
 import IdolyWordlePage from "./pages/IdolyWordlePage";
 import GachaPage from "./pages/GachaPage";
 import GachaSelectPage from "./pages/GachaSelectionPage";
@@ -83,12 +83,12 @@ const App: React.FC = () => {
           <Route path="/stat" element={<CharacterStatsPage />} />
           <Route path="/cardDesign" element={<CardDesign />} />
           <Route path="/messages" element={<MessagePage />} />
-          <Route path="/lovestory" element={<LoveStoryPage />} />
+          {/* <Route path="/lovestory" element={<LoveStoryPage />} />
           <Route path="/bondstory" element={<BondStoryPage />} />
           <Route path="/extrastory" element={<ExtraStoryPage />} />
           <Route path="/mainstory" element={<MainStoryPage />} />
           <Route path="/cardstory" element={<CardStoryPage />} />
-          <Route path="/eventstory" element={<EventStoryPage />} />
+          <Route path="/eventstory" element={<EventStoryPage />} /> */}
           <Route path="/wordle" element={<IdolyWordlePage />} />
           <Route path="/gacha" element={<GachaSelectPage />} />
           <Route path="/gacha/:id" element={<GachaPage />} />
