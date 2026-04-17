@@ -47,7 +47,7 @@ const CardList: React.FC<CardListProps> = ({
     const assetId = card.initialTitle;
     const rarity = card.initial;
     const hasAwakening = card.hasAwakening ?? false;
-    const config = { upper: { folder: "cardUpper", ext: "png" } };
+    const config = { upper: { folder: "cardUpper", ext: "webp" } };
     const { folder, ext } = config[type];
     let index = 1;
     if (rarity < 5) {

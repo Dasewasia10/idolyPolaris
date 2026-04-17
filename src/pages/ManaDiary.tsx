@@ -55,8 +55,8 @@ const ManaDiaryPage: React.FC = () => {
     if (language === "jp") {
       return `${R2_BASE_URL}/diaryManaJapanese/${entry.filename}`;
     } else {
-      const jpgFilename = entry.filename.replace(".png", ".jpg");
-      return `${R2_BASE_URL}/diaryManaGlobal/${jpgFilename}`;
+      // const jpgFilename = entry.filename.replace(".png", ".jpg");
+      return `${R2_BASE_URL}/diaryManaGlobal/${entry.filename}`;
     }
   };
 

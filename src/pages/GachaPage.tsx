@@ -141,8 +141,8 @@ const GachaPage: React.FC = () => {
     // Config folder & ext
     const config = {
       full: { folder: "cardFull", ext: "webp" },
-      thumb: { folder: "cardThumb", ext: "png" },
-      upper: { folder: "cardUpper", ext: "png" },
+      thumb: { folder: "cardThumb", ext: "webp" },
+      upper: { folder: "cardUpper", ext: "webp" },
     };
     const { folder, ext } = config[type];
 
@@ -218,7 +218,7 @@ const GachaPage: React.FC = () => {
               {/* Banner Image */}
               <div className="aspect-[2/1] w-full relative">
                 <img
-                  src={`${BANNER_IMG_BASE}/img_banner_l_gacha-${bannerData.bannerInfo.assetId}.png`}
+                  src={`${BANNER_IMG_BASE}/img_banner_l_gacha-${bannerData.bannerInfo.assetId}.webp`}
                   alt="Banner"
                   className="w-full h-full object-cover"
                   onError={(e) => {

@@ -46,8 +46,8 @@ const getCardImageUrl = (
   const hasAwakening = card.hasAwakening ?? false;
   const config = {
     full: { folder: "cardFull", ext: "webp" },
-    thumb: { folder: "cardThumb", ext: "png" },
-    upper: { folder: "cardUpper", ext: "png" },
+    thumb: { folder: "cardThumb", ext: "webp" },
+    upper: { folder: "cardUpper", ext: "webp" },
   };
   const { folder, ext } = config[type];
   let index = 1;

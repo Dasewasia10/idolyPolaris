@@ -33,11 +33,11 @@ const getCharacterImageUrl = (
     case "icon":
       return `${baseUrl}/iconCharacter/chara-${formattedName}.png`;
     case "banner":
-      return `${baseUrl}/bannerCharacter/banner-${formattedName}.png`;
+      return `${baseUrl}/bannerCharacter/banner-${formattedName}.webp`;
     case "sprite1":
-      return `${baseUrl}/spriteCharacter/sprite-${formattedName}-01.png`;
+      return `${baseUrl}/spriteCharacter/sprite-${formattedName}-01.webp`;
     case "sprite2":
-      return `${baseUrl}/spriteCharacter/sprite-${formattedName}-02.png`;
+      return `${baseUrl}/spriteCharacter/sprite-${formattedName}-02.webp`;
     default:
       // Fallback aman jika tipe tidak dikenali
       return "";

@@ -45,7 +45,7 @@ const getCardImageUrl = (
   const assetId = card.initialTitle;
   const rarity = card.initial;
   const hasAwakening = card.hasAwakening ?? false;
-  const config = { thumb: { folder: "cardThumb", ext: "png" } };
+  const config = { thumb: { folder: "cardThumb", ext: "webp" } };
   const { folder, ext } = config[type];
   let index = 1;
   if (rarity < 5) {

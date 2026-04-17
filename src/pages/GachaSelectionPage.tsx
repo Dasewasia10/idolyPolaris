@@ -304,7 +304,7 @@ const GachaSelectPage: React.FC = () => {
                   {/* Image Container */}
                   <div className="aspect-[2/1] w-full overflow-hidden bg-gray-900 relative">
                     <img
-                      src={`${BANNER_IMG_BASE}/img_banner_l_gacha-${banner.assetId}.png`}
+                      src={`${BANNER_IMG_BASE}/img_banner_l_gacha-${banner.assetId}.webp`}
                       alt={banner.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       onError={(e) => {
