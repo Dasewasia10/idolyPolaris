@@ -28,14 +28,6 @@ const MENUS = {
     { name: "Idol Messages", path: "/messages" },
     { name: "Beatmap", path: "/beatmaps" },
   ],
-  // stories: [
-  //   { name: "Love Story", path: "/loveStory" },
-  //   { name: "Bond Story", path: "/bondStory" },
-  //   { name: "Extra Story", path: "/extraStory" },
-  //   { name: "Main Story", path: "/mainStory" },
-  //   { name: "Card Story", path: "/cardStory" },
-  //   { name: "Event Story", path: "/eventStory" },
-  // ],
   upcoming: [
     { name: "Book Reader", path: "/bookreader" },
     { name: "Event Tracker", path: "/eventTracker" },
