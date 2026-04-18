@@ -21,6 +21,7 @@ import {
   MessageSquare,
   Users,
   Sticker,
+  PhoneCall
 } from "lucide-react";
 
 import { Message } from "../interfaces/Message";
@@ -29,7 +30,6 @@ import { Stamp } from "../interfaces/Stamp";
 import { Character } from "../interfaces/Character";
 import { CallLog } from "../interfaces/CallLog";
 
-import CallIcon from "../components/CallIcon";
 import CallLogModal from "../components/CallLogModal";
 import Toast from "../components/Toast";
 
@@ -719,7 +719,7 @@ const ChatPage: React.FC = () => {
                         >
                           {msg.isCall ? (
                             <div className="flex flex-col items-center min-w-[100px]">
-                              <CallIcon
+                              <PhoneCall
                                 color={msg.callIconColor || "white"}
                                 size={24}
                               />
@@ -980,7 +980,7 @@ const ChatPage: React.FC = () => {
                   title="Call"
                 >
                   {" "}
-                  <CallIcon color="currentColor" size={16} />{" "}
+                  <PhoneCall color="currentColor" size={16} />{" "}
                 </button>
               </div>
 
