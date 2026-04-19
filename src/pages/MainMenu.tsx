@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, Lock, ExternalLink } from "lucide-react"; // Gunakan Lucide Icons
+import { Menu, X, ChevronDown, Lock, ExternalLink } from "lucide-react";
 import BirthdayReminder from "../components/birthdayReminder";
 
 // --- 1. DATA DEFINITION ---
@@ -163,7 +163,7 @@ const MainMenu: React.FC = () => {
         className="absolute inset-0 w-full h-full object-contain p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
       />
       <img
-        src={`${import.meta.env.BASE_URL}assets/white_logo.png`} // Asumsi logo putih untuk default state
+        src={`${import.meta.env.BASE_URL}assets/white_logo.png`}
         alt="Home"
         className="absolute inset-0 w-full h-full object-contain p-2 group-hover:opacity-0 transition-opacity duration-300 invert"
       />

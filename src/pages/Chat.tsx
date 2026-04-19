@@ -21,7 +21,7 @@ import {
   MessageSquare,
   Users,
   Sticker,
-  PhoneCall
+  PhoneCall,
 } from "lucide-react";
 
 import { Message } from "../interfaces/Message";
@@ -485,7 +485,7 @@ const ChatPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden mb-16 lg:mb-0">
       {/* Background Grid */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -932,8 +932,8 @@ const ChatPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-              <div className="flex gap-2 items-center">
+            <div className="flex items-center justify-between lg:flex-row flex-col mt-3 pt-3 border-t border-white/5">
+              <div className="flex gap-4 lg:gap-2 items-center">
                 <div className="bg-[#0f1115] p-1 rounded-lg flex border border-white/5">
                   <button
                     onClick={() => setPosition("left")}
@@ -986,7 +986,7 @@ const ChatPage: React.FC = () => {
 
               <button
                 onClick={() => handleSendMessage()}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-lg text-sm font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all my-2 w-full lg:w-fit"
               >
                 SEND
               </button>

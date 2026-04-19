@@ -166,7 +166,7 @@ const IdolyWordlePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white font-sans flex flex-col items-center relative overflow-hidden selection:bg-pink-500 selection:text-white">
+    <div className="min-h-screen bg-[#0f1115] text-white font-sans flex flex-col items-center relative overflow-hidden selection:bg-pink-500 selection:text-white pb-16">
       {/* Background Decor */}
       <div className="absolute inset-0 pointer-events-none opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>

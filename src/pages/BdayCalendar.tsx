@@ -34,7 +34,6 @@ const getCharacterImageUrl = (
     case "sprite2":
       return `${baseUrl}/spriteCharacter/sprite-${formattedName}-02.webp`;
     default:
-      // Fallback aman jika tipe tidak dikenali
       return "";
   }
 };
@@ -45,14 +44,11 @@ const CharacterCalendar: React.FC = () => {
   const [, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
 
-  // --- STATE DARK MODE DENGAN LOCAL STORAGE ---
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Cek localStorage saat pertama kali render
     const savedTheme = localStorage.getItem("idolyCalendarTheme");
-    return savedTheme === "dark"; // Default false jika null
+    return savedTheme === "dark";
   });
 
-  // Efek untuk menyimpan tema setiap kali berubah
   useEffect(() => {
     localStorage.setItem("idolyCalendarTheme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
@@ -103,38 +99,23 @@ const CharacterCalendar: React.FC = () => {
     let days = [];
 
     const SPECIAL_EVENTS = [
-      {
-        day: 1,
-        month: 0,
-        name: "Oshougatsu (New Year)",
-        color: "text-red-500",
-      },
-      { day: 14, month: 1, name: "Valentine's Day", color: "text-pink-400" },
+      { day: 1, month: 0, name: "Oshougatsu", color: "text-red-500" },
+      { day: 14, month: 1, name: "Valentine's", color: "text-pink-400" },
       { day: 14, month: 2, name: "White Day", color: "text-blue-300" },
-      {
-        day: 29,
-        month: 3,
-        name: "Golden Week Starts",
-        color: "text-yellow-500",
-      },
-      {
-        day: 5,
-        month: 4,
-        name: "Children's Day (GW End)",
-        color: "text-yellow-600",
-      },
+      { day: 29, month: 3, name: "GW Starts", color: "text-yellow-500" },
+      { day: 5, month: 4, name: "Children's Day", color: "text-yellow-600" },
       { day: 7, month: 6, name: "Tanabata", color: "text-purple-400" },
       { day: 31, month: 9, name: "Halloween", color: "text-orange-500" },
-      { day: 24, month: 11, name: "Christmas Eve", color: "text-green-500" },
-      { day: 25, month: 11, name: "Christmas Day", color: "text-red-600" },
+      { day: 24, month: 11, name: "Xmas Eve", color: "text-green-500" },
+      { day: 25, month: 11, name: "Christmas", color: "text-red-600" },
     ];
 
-    // Empty cells at start
+    // Mengubah tinggi cell menjadi responsif (h-14 di mobile, h-20 di tablet, h-24 di desktop)
     for (let i = 0; i < startDay; i++) {
       days.push(
         <div
           key={`empty-${i}`}
-          className={`h-20 lg:h-24 border-r border-b ${
+          className={`h-16 sm:h-20 lg:h-24 border-r border-b ${
             isDarkMode
               ? "bg-gray-900/30 border-gray-800"
               : "bg-gray-50/50 border-gray-100"
@@ -151,10 +132,7 @@ const CharacterCalendar: React.FC = () => {
         currentMonth === today.getMonth() &&
         currentDate.getFullYear() === today.getFullYear();
 
-      // Cek apakah hari ini Anniversary (24 Juni)
       const isAnniversary = day === 24 && currentMonth === 5;
-
-      // Cek event jepang lainnya
       const holiday = SPECIAL_EVENTS.find(
         (e) => e.day === day && e.month === currentMonth,
       );
@@ -162,7 +140,7 @@ const CharacterCalendar: React.FC = () => {
       days.push(
         <div
           key={`day-${day}`}
-          className={`h-20 lg:h-24 p-1 border-r border-b relative group transition-all hover:z-10 
+          className={`h-16 sm:h-20 lg:h-24 p-0.5 sm:p-1 border-r border-b relative group transition-all hover:z-10 overflow-hidden
             ${
               isDarkMode
                 ? "border-gray-800 bg-gray-900 hover:bg-gray-800 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
@@ -177,20 +155,21 @@ const CharacterCalendar: React.FC = () => {
             }
           `}
         >
-          {/* Day Number */}
-          <div className="flex justify-end">
-            {isAnniversary && (
-              <span className="text-[7px] lg:text-[9px] font-black text-yellow-500 leading-none uppercase">
-                ✨ {getAnniversaryText(currentYear)}
-              </span>
-            )}
-            {holiday && (
-              <span className="text-[7px] lg:text-[8px] font-bold text-pink-500 leading-none uppercase">
-                {holiday.name}
-              </span>
-            )}
+          <div className="flex justify-end items-start gap-1">
+            <div className="flex-col items-end hidden sm:flex">
+              {isAnniversary && (
+                <span className="text-[6px] lg:text-[9px] font-black text-yellow-500 leading-none uppercase text-right truncate max-w-[40px] lg:max-w-none">
+                  ✨ {getAnniversaryText(currentYear)}
+                </span>
+              )}
+              {holiday && (
+                <span className="text-[6px] lg:text-[8px] font-bold text-pink-500 leading-none uppercase text-right truncate max-w-[40px] lg:max-w-none">
+                  {holiday.name}
+                </span>
+              )}
+            </div>
             <span
-              className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+              className={`text-[10px] sm:text-xs font-mono px-1 py-0.5 rounded leading-none ${
                 isToday
                   ? "bg-blue-600 text-white font-bold"
                   : isDarkMode
@@ -202,23 +181,22 @@ const CharacterCalendar: React.FC = () => {
             </span>
           </div>
 
-          {/* Character Icons */}
-          <div className="flex flex-wrap content-end gap-1 h-full pb-4 px-1">
+          <div className="flex flex-wrap content-end gap-0.5 sm:gap-1 h-full pb-3 sm:pb-4 px-0.5 sm:px-1">
             {birthdayChars.map((char) => (
               <div
                 key={char.id}
                 className="relative group/avatar transition-transform hover:scale-125 hover:z-20"
               >
+                {/* Ukuran icon diatur responsif */}
                 <img
                   src={getCharacterImageUrl(char.name, "icon")}
                   alt={char.name}
-                  className={`w-12 h-12 rounded-full border-2 object-cover ${
+                  className={`w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full border sm:border-2 object-cover ${
                     isDarkMode
                       ? "border-gray-700 bg-gray-800"
                       : "border-white bg-gray-100 shadow-md"
                   }`}
                 />
-                {/* Tooltip */}
                 <div
                   className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/avatar:block px-2 py-1 rounded text-[10px] whitespace-nowrap z-50 font-bold shadow-xl ${
                     isDarkMode
@@ -240,14 +218,13 @@ const CharacterCalendar: React.FC = () => {
       );
 
       if ((day + startDay) % 7 === 0 || day === daysInMonth) {
-        // Pad end
         if (day === daysInMonth && (day + startDay) % 7 !== 0) {
           const remaining = 7 - ((day + startDay) % 7);
           for (let j = 0; j < remaining; j++) {
             days.push(
               <div
                 key={`empty-end-${j}`}
-                className={`h-20 lg:h-24 border-r border-b ${
+                className={`h-16 sm:h-20 lg:h-24 border-r border-b ${
                   isDarkMode
                     ? "bg-gray-900/30 border-gray-800"
                     : "bg-gray-50/50 border-gray-100"
@@ -284,27 +261,29 @@ const CharacterCalendar: React.FC = () => {
 
     if (yearDiff <= 0) return "Game Launch";
 
-    // Logika penambahan suffix (st, nd, rd, th)
     const j = yearDiff % 10,
       k = yearDiff % 100;
-    if (j === 1 && k !== 11) return `${yearDiff}st Anniversary`;
-    if (j === 2 && k !== 12) return `${yearDiff}nd Anniversary`;
-    if (j === 3 && k !== 13) return `${yearDiff}rd Anniversary`;
-    return `${yearDiff}th Anniversary`;
+    if (j === 1 && k !== 11) return `${yearDiff}st Anniv`;
+    if (j === 2 && k !== 12) return `${yearDiff}nd Anniv`;
+    if (j === 3 && k !== 13) return `${yearDiff}rd Anniv`;
+    return `${yearDiff}th Anniv`;
   };
 
   return (
     <div
-      className={`transition-colors duration-500 min-h-screen p-4 flex flex-col items-center ${isDarkMode ? "bg-[#0f1115]" : "bg-gray-100"}`}
+      className={`transition-colors duration-500 min-h-screen p-2 sm:p-4 flex flex-col items-center ${isDarkMode ? "bg-[#0f1115]" : "bg-gray-100"} mb-16 lg:mb-0`}
     >
+      {/* PERBAIKAN UTAMA CONTAINER:
+        1. max-h-[90vh] diubah menjadi min-h-[85vh] lg:max-h-[90vh] agar di mobile bisa memanjang natural.
+        2. Padding dikurangi di mobile (p-3) dan dibesarkan di desktop (lg:p-6).
+      */}
       <div
-        className={`flex gap-4 lg:gap-8 z-10 w-full mx-auto p-6 rounded-2xl shadow-xl max-w-7xl max-h-[90vh] relative overflow-auto flex-col lg:flex-row font-sans transition-colors duration-500 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
+        className={`flex gap-4 lg:gap-8 z-10 w-full mx-auto p-3 sm:p-4 lg:p-6 rounded-2xl shadow-xl max-w-7xl min-h-[85vh] lg:h-[90vh] lg:max-h-[90vh] relative flex-col lg:flex-row font-sans transition-colors duration-500 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
           isDarkMode
             ? "bg-[#161b22] text-gray-200 border border-white/10"
             : "bg-white text-gray-800"
         }`}
       >
-        {/* --- TOGGLE DARK MODE --- */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`absolute top-4 right-4 z-50 p-2 rounded-full transition-all duration-300 ${
@@ -314,11 +293,9 @@ const CharacterCalendar: React.FC = () => {
           }`}
           title="Toggle Theme"
         >
-          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
-        {/* --- BACKGROUND ELEMENTS --- */}
-        {/* Grid Pattern */}
         <div
           className={`absolute inset-0 opacity-10 pointer-events-none transition-opacity duration-500 ${isDarkMode ? "opacity-5" : "opacity-10"}`}
           style={{
@@ -329,7 +306,6 @@ const CharacterCalendar: React.FC = () => {
           }}
         />
 
-        {/* Trapezoid Decoration */}
         <div
           className={`absolute w-full h-[36rem] clip-trapezoid-outer 
             [background-size:var(--spacing)_var(--spacing)] 
@@ -341,7 +317,6 @@ const CharacterCalendar: React.FC = () => {
           }}
         />
 
-        {/* Gradient Overlay */}
         <div
           className={`absolute inset-0 bg-gradient-to-r pointer-events-none transition-colors duration-500 ${
             isDarkMode
@@ -350,38 +325,36 @@ const CharacterCalendar: React.FC = () => {
           }`}
         />
 
-        {/* Side Accent */}
-        <div className="absolute inset-0 bottom-0 left-0 w-2 h-full bg-blue-500" />
+        <div className="absolute inset-0 bottom-0 left-0 w-1 sm:w-2 h-full bg-blue-500" />
 
-        {/* Top Right Triangle */}
-        <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none opacity-20">
+        <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 pointer-events-none opacity-20">
           <svg viewBox="0 0 100 100" className="w-full h-full">
             <polygon points="100,0 100,100 0,0" className="fill-blue-400" />
           </svg>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 w-full overflow-hidden relative z-10">
+        <div className="flex flex-col lg:flex-row gap-6 w-full relative z-10 lg:overflow-hidden h-full">
           {/* --- MAIN CALENDAR SECTION --- */}
-          <section className="flex flex-col flex-[3] h-full overflow-hidden">
-            {/* Header Controls */}
+          {/* Dihapus h-full dan overflow-hidden di layar kecil agar bisa memanjang natural */}
+          <section className="flex flex-col flex-[3] lg:h-full lg:overflow-hidden">
             <div
-              className={`flex justify-between items-center mb-6 p-4 rounded-xl shadow-lg border transition-colors duration-300 ${
+              className={`flex justify-between items-center mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl shadow-lg border transition-colors duration-300 mt-8 sm:mt-0 ${
                 isDarkMode
                   ? "bg-[#0d1117] border-white/10"
                   : "bg-gray-900 text-white border-gray-700"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-600 rounded-lg text-white shadow-md">
-                  <CalIcon size={20} />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-600 rounded-lg text-white shadow-md">
+                  <CalIcon size={18} className="sm:w-5 sm:h-5" />
                 </div>
                 <div>
                   <h2
-                    className={`text-xl font-bold tracking-tight uppercase ${isDarkMode ? "text-white" : "text-white"}`}
+                    className={`text-lg sm:text-xl font-bold tracking-tight uppercase ${isDarkMode ? "text-white" : "text-white"}`}
                   >
                     {format(currentDate, "MMMM yyyy")}
                   </h2>
-                  <span className="text-[10px] text-gray-400 font-mono tracking-widest">
+                  <span className="text-[8px] sm:text-[10px] text-gray-400 font-mono tracking-widest hidden sm:block">
                     SCHEDULE SYSTEM
                   </span>
                 </div>
@@ -396,26 +369,25 @@ const CharacterCalendar: React.FC = () => {
               >
                 <button
                   onClick={() => changeMonth(-1)}
-                  className="p-2 hover:bg-gray-700 rounded transition-colors text-gray-300 hover:text-white"
+                  className="p-1.5 sm:p-2 hover:bg-gray-700 rounded transition-colors text-gray-300 hover:text-white"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </button>
                 <div className="w-[1px] bg-gray-700 my-1"></div>
                 <button
                   onClick={() => changeMonth(1)}
-                  className="p-2 hover:bg-gray-700 rounded transition-colors text-gray-300 hover:text-white"
+                  className="p-1.5 sm:p-2 hover:bg-gray-700 rounded transition-colors text-gray-300 hover:text-white"
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </button>
               </div>
             </div>
 
-            {/* Weekday Header */}
-            <div className="grid grid-cols-7 text-center mb-2">
+            <div className="grid grid-cols-7 text-center mb-1 sm:mb-2">
               {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d, i) => (
                 <div
                   key={d}
-                  className={`text-xs font-black tracking-widest py-2 rounded-t-md ${
+                  className={`text-[9px] sm:text-xs font-black tracking-widest py-1 sm:py-2 rounded-t-md ${
                     i === 0
                       ? "text-red-500"
                       : i === 6
@@ -425,14 +397,15 @@ const CharacterCalendar: React.FC = () => {
                           : "text-gray-400"
                   }`}
                 >
+                  {/* Singkat nama hari di mobile sangat kecil jika diperlukan, tapi 3 huruf biasanya aman */}
                   {d}
                 </div>
               ))}
             </div>
 
-            {/* Calendar Grid Container */}
+            {/* Berikan min-h agar grid kalender tidak hilang saat diload */}
             <div
-              className={`border rounded-xl shadow-inner scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent flex-1 transition-colors duration-300 ${
+              className={`border rounded-xl shadow-inner flex-1 transition-colors duration-300 overflow-y-auto lg:overflow-y-hidden ${
                 isDarkMode
                   ? "bg-[#0d1117] border-gray-800"
                   : "bg-white border-gray-200"
@@ -443,25 +416,26 @@ const CharacterCalendar: React.FC = () => {
           </section>
 
           {/* --- SIDEBAR LIST --- */}
+          {/* Memberikan tinggi fix di mobile (h-[300px]) agar bisa scroll mandiri, dan h-full di desktop */}
           <aside
-            className={`flex flex-col flex-1 min-w-[280px] border rounded-xl p-4 shadow-lg h-full overflow-hidden transition-colors duration-300 ${
+            className={`flex flex-col flex-1 w-full lg:w-auto lg:min-w-[280px] border rounded-xl p-3 sm:p-4 shadow-lg h-[350px] lg:h-full overflow-hidden transition-colors duration-300 ${
               isDarkMode
                 ? "bg-[#0d1117] border-white/10"
                 : "bg-gray-50 border-gray-200"
             }`}
           >
             <div
-              className={`flex items-center gap-2 mb-4 pb-3 border-b ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
+              className={`flex items-center gap-2 mb-3 sm:mb-4 pb-2 sm:pb-3 border-b ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
             >
-              <Gift className="text-pink-500" size={20} />
+              <Gift className="text-pink-500" size={18} />
               <h3
-                className={`font-bold uppercase tracking-wide text-sm ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+                className={`font-bold uppercase tracking-wide text-xs sm:text-sm ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
               >
                 Birthdays List
               </h3>
             </div>
 
-            <div className="flex flex-col gap-3 overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+            <div className="flex flex-col gap-2 sm:gap-3 overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
               {characters
                 .filter(
                   (char) =>
@@ -476,45 +450,42 @@ const CharacterCalendar: React.FC = () => {
                 .map((char) => (
                   <div
                     key={char.id}
-                    className={`flex items-center gap-3 p-3 rounded-xl transition-all border shadow-sm hover:shadow-md group ${
+                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl transition-all border shadow-sm hover:shadow-md group ${
                       isDarkMode
                         ? "bg-[#161b22] border-white/5 hover:border-blue-500/30 hover:bg-[#1f2937]"
                         : "bg-white border-gray-100 hover:border-blue-200 hover:bg-blue-50"
                     }`}
                   >
-                    {/* Date Badge */}
                     <div
-                      className={`flex flex-col items-center justify-center min-w-[3rem] h-12 rounded-lg transition-colors ${
+                      className={`flex flex-col items-center justify-center min-w-[2.5rem] sm:min-w-[3rem] h-10 sm:h-12 rounded-lg transition-colors ${
                         isDarkMode
                           ? "bg-gray-800 text-gray-400 group-hover:bg-blue-900/30 group-hover:text-blue-400"
                           : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
                       }`}
                     >
-                      <span className="text-lg font-black leading-none">
+                      <span className="text-base sm:text-lg font-black leading-none">
                         {parseISO(char.birthdayDate).getDate()}
                       </span>
-                      <span className="text-[9px] uppercase font-bold opacity-60">
+                      <span className="text-[8px] sm:text-[9px] uppercase font-bold opacity-60">
                         {format(parseISO(char.birthdayDate), "MMM")}
                       </span>
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p
-                        className={`font-bold text-sm truncate ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+                        className={`font-bold text-xs sm:text-sm truncate ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
                       >
                         {char.name}
                       </p>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-mono mt-0.5">
+                      <p className="text-[8px] sm:text-[10px] text-gray-500 uppercase tracking-wider font-mono mt-0.5">
                         Idoly Pride
                       </p>
                     </div>
 
-                    {/* Mini Avatar */}
                     <img
                       src={getCharacterImageUrl(char.name, "icon")}
                       alt={char.name}
-                      className={`w-8 h-8 rounded-full border bg-gray-50 ${isDarkMode ? "border-gray-600" : "border-gray-200"}`}
+                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border bg-gray-50 flex-shrink-0 ${isDarkMode ? "border-gray-600" : "border-gray-200"}`}
                     />
                   </div>
                 ))}
@@ -524,7 +495,7 @@ const CharacterCalendar: React.FC = () => {
                   parseISO(char.birthdayDate).getMonth() ===
                   currentDate.getMonth(),
               ).length === 0 && (
-                <div className="text-center py-10 text-gray-400 text-sm italic">
+                <div className="text-center py-6 sm:py-10 text-gray-400 text-xs sm:text-sm italic">
                   No birthdays this month.
                 </div>
               )}

@@ -80,7 +80,7 @@ const DraggableIcon: React.FC<DraggableIconProps> = ({
           <img
             src={icon.src}
             alt={icon.name}
-            className="w-12 h-12 rounded-full border-2 border-white/20 bg-black/50 shadow-[0_0_15px_rgba(34,211,238,0.3)] pointer-events-none select-none object-cover"
+            className="w-10 lg:w-12 h-10 lg:h-12 rounded-full border-2 border-white/20 bg-black/50 shadow-[0_0_15px_rgba(34,211,238,0.3)] pointer-events-none select-none object-cover"
           />
         </div>
 
@@ -199,7 +199,7 @@ const CompassChart: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 font-sans overflow-hidden relative selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 pb-20 font-sans overflow-hidden relative selection:bg-cyan-500 selection:text-black">
       {/* Background Texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -339,25 +339,26 @@ const CompassChart: React.FC = () => {
         {/* --- RIGHT PANEL: CHART AREA --- */}
         <div className="lg:col-span-8">
           <div className="bg-[#0a0c10] border border-white/10 rounded-xl p-1 shadow-2xl relative overflow-hidden group">
-            {/* Header Overlay */}
-            <div className="absolute top-4 left-4 z-10 pointer-events-none opacity-50">
-              <div className="text-[10px] font-mono text-cyan-500">
-                COORDINATE SYSTEM // V.2026
-              </div>
-              <div className="text-[10px] font-mono text-gray-500">
-                IDOLY PRIDE DATABASE
-              </div>
-            </div>
-
             {/* CHART CANVAS */}
             <div
               ref={chartRef}
-              className="relative w-full aspect-square bg-[#0a0c10] overflow-hidden"
-              style={{ minHeight: "600px" }}
+              // PERBAIKAN: Gunakan aspect-square (wajib)
+              // min-h-[300px] atau min-h-[100vw] agar di mobile menyesuaikan lebar layar, tapi tetap ada batas di desktop
+              className="relative w-full aspect-square bg-[#0a0c10] overflow-hidden min-h-[320px] lg:min-h-[600px]"
             >
+              {/* Header Overlay */}
+              <div className="absolute bottom-1 lg:top-4 left-3 lg:left-4 z-10 pointer-events-none opacity-50 -rotate-90 lg:rotate-0 -translate-x-16 lg:translate-x-0 -translate-y-16 lg:translate-y-0">
+                <div className="text-[9px] lg:text-xs font-mono text-cyan-500">
+                  COORDINATE SYSTEM // V.2026
+                </div>
+                <div className="text-[9px] lg:text-xs font-mono text-gray-500">
+                  IDOLY PRIDE DATABASE
+                </div>
+              </div>
               {/* Radar Grid Background */}
               <div className="absolute inset-0 pointer-events-none">
                 {/* Circular Grids */}
+                {/* Agar bundaran benar-benar bulat, biarkan aspect ratio parent bekerja, dan gunakan width & height dalam persentase yang sama */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] h-[30%] rounded-full border border-white/5"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full border border-white/5"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] rounded-full border border-white/5"></div>
@@ -372,23 +373,27 @@ const CompassChart: React.FC = () => {
               </div>
 
               {/* Title Overlay in Chart */}
-              <div className="absolute top-4 right-4 text-right pointer-events-none opacity-40">
-                <h3 className="text-xl font-black text-white italic tracking-tighter uppercase">
+              {/* PERBAIKAN: Tambahkan max-w-[45%] dan atur leading serta ukuran font */}
+              <div className="absolute top-3 md:top-4 right-3 md:right-4 max-w-[45%] md:max-w-[40%] text-right pointer-events-none opacity-40 flex flex-col items-end z-0">
+                <h3 className="text-[10px] sm:text-xs md:text-xl font-black text-white italic tracking-tighter uppercase leading-tight md:leading-none break-words">
                   {title}
                 </h3>
               </div>
 
-              {/* Axis Labels (Styled) */}
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/60 border border-cyan-500/30 rounded-full text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm">
+              {/* Axis Labels (Styled & Responsive Adjustments) */}
+              <div className="absolute top-2 md:top-6 left-1/2 -translate-x-1/2 px-2 md:px-3 py-0.5 md:py-1 bg-black/60 border border-cyan-500/30 rounded-full text-[10px] md:text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm whitespace-nowrap">
                 {labels.top}
               </div>
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/60 border border-cyan-500/30 rounded-full text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm">
+              <div className="absolute bottom-2 md:bottom-6 left-1/2 -translate-x-1/2 px-2 md:px-3 py-0.5 md:py-1 bg-black/60 border border-cyan-500/30 rounded-full text-[10px] md:text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm whitespace-nowrap">
                 {labels.bottom}
               </div>
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 py-1 bg-black/60 border border-cyan-500/30 rounded-full text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm">
+
+              {/* PERBAIKAN POSISI LABEL KIRI/KANAN */}
+              {/* Di mobile, jarak ke pinggir diperkecil (left-1/right-1) agar tidak terpotong. Origin & rotasi dipertahankan. */}
+              <div className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 -rotate-90 origin-center px-2 md:px-3 py-0.5 md:py-1 bg-black/60 border border-cyan-500/30 rounded-full text-[10px] md:text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm whitespace-nowrap z-10">
                 {labels.left}
               </div>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 py-1 bg-black/60 border border-cyan-500/30 rounded-full text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm">
+              <div className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 rotate-90 origin-center px-2 md:px-3 py-0.5 md:py-1 bg-black/60 border border-cyan-500/30 rounded-full text-[10px] md:text-xs font-bold text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] pointer-events-none backdrop-blur-sm whitespace-nowrap z-10">
                 {labels.right}
               </div>
 

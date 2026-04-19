@@ -11,6 +11,7 @@ import {
 } from "../utils/imageUtils";
 import { QnASource } from "../interfaces/QnA";
 import {
+  X,
   ChevronLeft,
   ChevronRight,
   Mic2,
@@ -77,9 +78,6 @@ const IdolListPage: React.FC = () => {
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
   const [qnaSources, setQnaSources] = useState<any[]>([]);
   const [isRightMenuOpen, setIsRightMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "gifts" | "desc">(
-    "desc",
-  );
 
   // Deteksi Mobile
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -270,7 +268,7 @@ const IdolListPage: React.FC = () => {
       ></div>
 
       {/* --- HEADER NAVIGATION (GROUP SELECTOR) --- */}
-      <div className="flex items-center justify-between bg-[#161b22]/80 backdrop-blur-md border border-white/10 rounded-2xl p-2 shadow-xl z-20 relative">
+      <div className="flex items-center justify-between bg-[#161b22]/80 backdrop-blur-md border border-white/10 rounded-2xl p-2 shadow-xl relative">
         <button
           onClick={prevGroup}
           className="p-3 bg-[#0d1117] hover:bg-[#1f2937] rounded-xl text-gray-400 hover:text-white transition-all border border-white/5 active:scale-95"
@@ -297,7 +295,7 @@ const IdolListPage: React.FC = () => {
 
       <div className="flex flex-col lg:flex-row gap-6 relative z-10 flex-1">
         {/* --- MAIN DISPLAY AREA --- */}
-        <div className="w-full relative min-h-[600px] lg:h-[750px] flex-1 mb-20">
+        <div className="w-full relative min-h-[600px] lg:h-[750px] flex-1 mb-36">
           {selectedIdol && (
             <section className="relative h-full w-full">
               {/* GIFT ICONS (Floating) */}
@@ -329,22 +327,19 @@ const IdolListPage: React.FC = () => {
                   borderColor: `#${selectedIdol.color}40`,
                 }}
               >
-                {!isMobile && (
-                  <img
-                    src={getCharacter3ImageUrl(selectedIdol.name)}
-                    alt={selectedIdol.name}
-                    className={`absolute w-full h-max object-cover object-top opacity-50 select-none ${
-                      isMobile ? "hidden" : "block"
-                    }`}
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable="false"
-                    onDragStart={(e) => e.preventDefault()}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/placeholder-idol.png";
-                    }}
-                  />
-                )}
+                <img
+                  src={getCharacter3ImageUrl(selectedIdol.name)}
+                  alt={selectedIdol.name}
+                  className="absolute inset-0 w-full h-full object-cover object-center opacity-50 select-none block"
+                  onContextMenu={(e) => e.preventDefault()}
+                  draggable="false"
+                  onDragStart={(e) => e.preventDefault()}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/placeholder-idol.png";
+                  }}
+                />
+
                 {/* IDOL SPRITE (BG) */}
                 <div className="absolute inset-0 z-0 -translate-x-96 lg:translate-x-0">
                   {/* Gradient Overlay based on chara color */}
@@ -439,7 +434,7 @@ const IdolListPage: React.FC = () => {
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-white border border-white/10 uppercase tracking-wider">
                           {selectedIdol.groupName}
                         </span>
-                        <div className="h-px w-10 bg-white/20"></div>
+                        <div className="h-px w-3/4 bg-white/20"></div>
                       </div>
                       <h1
                         className="text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-none"
@@ -460,7 +455,7 @@ const IdolListPage: React.FC = () => {
                     </div>
 
                     {/* Badges CV/School */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1f2937] border border-white/10 text-xs text-gray-300">
                         <Mic2 size={14} className="text-pink-500" />
                         <span className="font-bold">
@@ -498,7 +493,7 @@ const IdolListPage: React.FC = () => {
 
                     {/* Column 2: Physical Stats */}
                     <div className="lg:col-span-1 grid grid-cols-2 gap-y-2 gap-x-4">
-                      <div className="flex justify-between border-b border-white/5 pb-1">
+                      <div className="flex justify-between border-b border-white/5 pb-1 flex-wrap">
                         <span className="text-gray-500 text-xs uppercase">
                           Birthday
                         </span>{" "}
@@ -506,7 +501,7 @@ const IdolListPage: React.FC = () => {
                           {formatDateToDM(selectedIdol.birthdayDate) || "-"}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
+                      <div className="flex justify-between border-b border-white/5 pb-1 flex-wrap">
                         <span className="text-gray-500 text-xs uppercase">
                           Height
                         </span>{" "}
@@ -514,7 +509,7 @@ const IdolListPage: React.FC = () => {
                           {selectedIdol.numeralStat.height || "-"} cm
                         </span>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
+                      <div className="flex justify-between border-b border-white/5 pb-1 flex-wrap">
                         <span className="text-gray-500 text-xs uppercase">
                           Weight
                         </span>{" "}
@@ -522,7 +517,7 @@ const IdolListPage: React.FC = () => {
                           {selectedIdol.numeralStat.weight || "-"} kg
                         </span>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
+                      <div className="flex justify-between border-b border-white/5 pb-1 flex-wrap">
                         <span className="text-gray-500 text-xs uppercase">
                           B-W-H
                         </span>{" "}
@@ -558,7 +553,7 @@ const IdolListPage: React.FC = () => {
 
         {/* --- CAROUSEL (BOTTOM) --- */}
         <div className="fixed bottom-10 left-0 right-0 z-40 p-4 bg-gradient-to-t from-black via-black/90 to-transparent lg:static lg:bg-transparent lg:p-0 lg:w-auto lg:h-[750px] lg:flex lg:flex-col lg:justify-center">
-          <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden scrollbar-minimal p-2 lg:max-h-[600px] lg:w-24">
+          <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden scrollbar-minimal p-2 lg:max-h-screen lg:w-24 mb-10">
             {currentGroupMembers.map((idol: Character, _index: number) => (
               <button
                 key={idol.name}
@@ -601,66 +596,43 @@ const IdolListPage: React.FC = () => {
               {isRightMenuOpen ? <ChevronRight /> : <ChevronLeft />}
             </button>
 
-            <div className="h-full overflow-y-auto p-6">
+            <div className="h-full overflow-y-auto p-6 flex gap-4 flex-col">
               <h2 className="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-4">
                 {selectedIdol.name}
               </h2>
 
-              {/* Tabs Mobile */}
-              <div className="flex gap-2 mb-6 mt-40">
-                {["desc", "profile"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab as any)}
-                    className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg border ${activeTab === tab ? "bg-white text-black border-white" : "text-gray-400 border-white/10"}`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
+              <button
+                onClick={() => setIsRightMenuOpen(false)}
+                className="w-8 h-8 bg-[#161b22] border border-white/10 flex items-center justify-center text-white"
+              >
+                <X size={16} />
+              </button>
 
-              {activeTab === "desc" && (
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  {selectedIdol.desc}
-                </p>
-              )}
-
-              {activeTab === "profile" && (
-                <div className="space-y-4 text-sm text-gray-300">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-gray-500 text-xs block">
-                        Height
-                      </span>{" "}
-                      {selectedIdol.numeralStat.height} cm
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-xs block">
-                        Weight
-                      </span>{" "}
-                      {selectedIdol.numeralStat.weight} kg
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-xs block">
-                      Birthday
-                    </span>{" "}
-                    {formatDateToDM(selectedIdol.birthdayDate)}
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-xs block">Likes</span>{" "}
-                    {selectedIdol.like}
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-xs block">
-                      Dislikes
-                    </span>{" "}
-                    {selectedIdol.dislike}
-                  </div>
+              {getGiftItemImageUrl(selectedIdol.name) && (
+                <div className="z-30 flex gap-2 p-4 bg-black/40 backdrop-blur-md rounded-xl border border-white/10 justify-evenly">
+                  <img
+                    src={getSpecialGiftItemImageUrl(selectedIdol.name)}
+                    alt="Gift"
+                    className="w-14 h-14 object-cover bg-white/10 rounded-lg"
+                  />
+                  <img
+                    src={getGiftItemImageUrl(selectedIdol.name, 1)}
+                    alt="Gift"
+                    className="w-14 h-14 object-cover bg-white/10 rounded-lg"
+                  />
+                  <img
+                    src={getGiftItemImageUrl(selectedIdol.name)}
+                    alt="Gift"
+                    className="w-14 h-14 object-cover bg-white/10 rounded-lg"
+                  />
                 </div>
               )}
 
-              <div className="mt-8 flex flex-col gap-3">
+              <p className="text-sm text-gray-300 leading-relaxed">
+                {selectedIdol.desc}
+              </p>
+
+              <div className="flex flex-col gap-3">
                 {hasQnAData(selectedIdol.name, qnaSources) && (
                   <button
                     onClick={() => openQnA(selectedIdol)}

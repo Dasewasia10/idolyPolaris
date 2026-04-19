@@ -92,7 +92,7 @@ const CardList: React.FC<CardListProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-20">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {cardAfterFilter.length === 0 ? (
         <p className="col-span-full text-center text-gray-500 font-mono py-10">
           NO DATA FOUND

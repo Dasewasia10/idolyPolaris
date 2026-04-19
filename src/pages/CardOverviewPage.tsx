@@ -10,7 +10,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Mic,
-  Music,
+  Footprints,
   Ribbon,
   Heart,
   Activity,
@@ -33,7 +33,7 @@ interface CardWithSourceName extends Card {
 
 const API_BASE_URL = "https://beip.dasewasia.my.id/api";
 const IMG_BASE_URL = "https://apiip.dasewasia.my.id";
-const ITEMS_PER_PAGE = 30;
+const ITEMS_PER_PAGE = 32;
 
 // --- HELPER IMAGE URL (Sama) ---
 const getCardImageUrl = (
@@ -97,7 +97,7 @@ const getStatColorInfo = (type: "vocal" | "dance" | "visual" | "stamina") => {
       return {
         color: "bg-blue-500",
         text: "text-blue-400",
-        icon: <Music size={14} />,
+        icon: <Footprints size={14} />,
       };
     case "visual":
       return {
@@ -152,6 +152,21 @@ const customSelectStyles = {
   }),
   input: (base: any) => ({ ...base, color: "white" }),
   placeholder: (base: any) => ({ ...base, color: "#6b7280" }),
+  menuList: (base: any) => ({
+    ...base,
+    /* Menambahkan class Tailwind via selector string */
+    scrollbarWidth: "thin", // Untuk Firefox
+    "&::-webkit-scrollbar": {
+      width: "6px",
+    },
+    "&::-webkit-scrollbar-track": {
+      background: "transparent",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      background: "rgba(255, 255, 255, 0.2)",
+      borderRadius: "10px",
+    },
+  }),
 };
 
 const processCardSources = (cardSources: Source[], characters: any[]) => {
@@ -685,6 +700,7 @@ const CardOverviewPage: React.FC = () => {
             )}
 
             <Pagination />
+            <div className="mb-16"></div>
           </div>
         </main>
       </div>
@@ -788,11 +804,11 @@ const CardOverviewPage: React.FC = () => {
                     <p className="text-sm text-gray-500 font-mono mt-1 uppercase tracking-wide">
                       {selectedCard.initialTitle}
                     </p>
+                    <div className="flex flex-wrap justify-between items-start mb-2 gap-2"></div>
                     <div
                       className={`px-4 py-2 rounded-lg border text-sm transition-all bg-[#0d1117] border-white/5 hover:border-white/20 bg-yellow-900/5"`}
                     >
-                      <div className="flex flex-wrap justify-between items-start mb-2 gap-2"></div>
-                      <p className="text-gray-400 text-md leading-relaxed font-sans border-l-2 border-white/10 pl-2">
+                      <p className="text-gray-400 text-md leading-relaxed font-sans border-l-2 border-white/10 pl-2 py-1">
                         {renderWithBr(
                           selectedCard.description?.[primaryLanguage] ||
                             selectedCard.description?.global,
@@ -815,41 +831,99 @@ const CardOverviewPage: React.FC = () => {
                 <div className="bg-[#0d1117] p-4 rounded-xl border border-white/10">
                   <div className="flex justify-between items-end mb-4 border-b border-white/5 pb-2">
                     <span className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                      {" "}
-                      <Activity size={14} className="text-cyan-500" />{" "}
                       Performance
+                      <Activity size={14} className="text-cyan-500" />
                     </span>
-                    <span className="text-xl font-black text-white font-mono">
+                    {/* <span className="text-xl font-black text-white font-mono">
                       {selectedCard.stats.total.toLocaleString()}
-                    </span>
+                    </span> */}
                   </div>
-                  {(["vocal", "dance", "visual", "stamina"] as const).map(
-                    (stat) => {
-                      const info = getStatColorInfo(stat);
-                      const value = selectedCard.stats[stat];
-                      const percent = Math.min((value / 150000) * 100, 100);
-                      return (
-                        <div key={stat} className="mb-3 last:mb-0">
-                          <div className="flex justify-between text-[10px] uppercase font-bold mb-1">
-                            <span
-                              className={`flex items-center gap-1 ${info.text}`}
-                            >
-                              {info.icon} {stat}
-                            </span>
-                            <span className="text-white font-mono">
-                              {value.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="h-1.5 bg-[#1f2937] rounded-full overflow-hidden">
+
+                  {/* Flex Container: Kiri Grid, Kanan Pie Chart */}
+                  <div className="flex flex-col md:flex-row items-center gap-6 mt-4">
+                    {/* KIRI: Grid 2x2 untuk Stat */}
+                    <div className="grid grid-cols-2 gap-3 w-full md:w-3/5">
+                      {(["vocal", "dance", "visual", "stamina"] as const).map(
+                        (stat) => {
+                          const info = getStatColorInfo(stat);
+                          const value = selectedCard.stats[stat];
+                          return (
                             <div
-                              className={`h-full ${info.color} rounded-full`}
-                              style={{ width: `${percent}%` }}
-                            ></div>
+                              key={stat}
+                              className="bg-[#161b22] p-3 rounded-lg border border-white/5 flex flex-col items-center justify-center text-center shadow-inner"
+                            >
+                              <span
+                                className={`flex items-center gap-1 text-[10px] uppercase font-bold mb-1 ${info.text}`}
+                              >
+                                {info.icon} {stat}
+                              </span>
+                              <span className="text-lg font-black text-white font-mono tracking-tight">
+                                {value.toLocaleString()}
+                              </span>
+                            </div>
+                          );
+                        },
+                      )}
+                    </div>
+
+                    {/* KANAN: Pie (Doughnut) Chart */}
+                    <div className="w-full md:w-2/5 flex justify-center items-center">
+                      {(() => {
+                        // Kalkulasi Total & Rata-rata
+                        const statsList = [
+                          "vocal",
+                          "dance",
+                          "visual",
+                          "stamina",
+                        ] as const;
+                        const totalStat = statsList.reduce(
+                          (acc, stat) => acc + selectedCard.stats[stat],
+                          0,
+                        );
+                        // const averageStat = Math.round(totalStat / 4);
+
+                        // Mapping warna Hex untuk conic-gradient (Sesuaikan jika tema Anda berbeda)
+                        const statColors: Record<string, string> = {
+                          vocal: "#ec4899", // Pink
+                          dance: "#3b82f6", // Blue
+                          visual: "#eab308", // Yellow
+                          stamina: "#22c55e", // Green
+                        };
+
+                        // Kalkulasi posisi stop untuk gradient
+                        let cumulativePercent = 0;
+                        const gradientStops = statsList
+                          .map((stat) => {
+                            const percent =
+                              (selectedCard.stats[stat] / totalStat) * 100;
+                            const start = cumulativePercent;
+                            cumulativePercent += percent;
+                            return `${statColors[stat]} ${start}% ${cumulativePercent}%`;
+                          })
+                          .join(", ");
+
+                        return (
+                          <div
+                            className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.3)] transition-transform hover:scale-105"
+                            style={{
+                              background: `conic-gradient(${gradientStops})`,
+                            }}
+                          >
+                            {/* Lingkaran dalam untuk efek Doughnut (Cincin) */}
+                            <div className="absolute inset-2 bg-[#0d1117] rounded-full flex flex-col items-center justify-center shadow-inner">
+                              {/* <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">
+                                Average
+                              </span> */}
+                              <span className="text-sm font-black text-white font-mono">
+                                {selectedCard.stats.total.toLocaleString()}{" "}
+                                {/* {averageStat.toLocaleString()} */}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    },
-                  )}
+                        );
+                      })()}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Skills */}
@@ -880,7 +954,7 @@ const CardOverviewPage: React.FC = () => {
                             >
                               {isYell && (
                                 <span className="text-[9px] bg-purple-600 text-white px-1 rounded mr-2">
-                                  PASSIVE
+                                  YELL / CHEER
                                 </span>
                               )}
                               {skill?.name?.[primaryLanguage] ||

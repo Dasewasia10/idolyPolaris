@@ -371,7 +371,7 @@ const CardDesign: React.FC = () => {
                   type="number"
                   value={level}
                   onChange={(e) => setLevel(Number(e.target.value))}
-                  className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center"
+                  className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
               <div>
@@ -382,7 +382,7 @@ const CardDesign: React.FC = () => {
                   type="number"
                   value={photoQuality}
                   onChange={(e) => setPhotoQuality(Number(e.target.value))}
-                  className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center"
+                  className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -399,7 +399,7 @@ const CardDesign: React.FC = () => {
                     onChange={(e) =>
                       setStats({ ...stats, [key]: Number(e.target.value) })
                     }
-                    className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-right"
+                    className="w-full bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               ))}
@@ -420,7 +420,7 @@ const CardDesign: React.FC = () => {
                       newLevels[idx] = Number(e.target.value);
                       setSkillLevels(newLevels);
                     }}
-                    className="w-full bg-black/40 border border-white/20 rounded px-1 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center"
+                    className="w-full bg-black/40 border border-white/20 rounded px-1 py-2 text-sm text-white focus:border-green-500 focus:outline-none font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 ))}
               </div>
