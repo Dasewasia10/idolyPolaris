@@ -5,7 +5,7 @@ import { HashRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import KTPManager from "./pages/KTPManager";
 import CompassChart from "./pages/CompassChart";
 import Lyrics from "./pages/Lyrics";
-import MainMenu from "./pages/MainMenu";
+import MainMenu from "./components/MainMenu";
 import IdolListPage from "./pages/IdolListPage";
 import VideoBackground from "./components/videoBackground";
 import HomeContent from "./pages/HomeContent";
@@ -21,17 +21,26 @@ import GachaPage from "./pages/GachaPage";
 import GachaSelectPage from "./pages/GachaSelectionPage";
 import BeatmapPage from "./pages/BeatmapPage";
 import ManaDiary from "./pages/ManaDiary";
+import SoulResonancePage from "./pages/SoulResonancePage";
+import GroupDetailPage from "./pages/GroupDetailPage";
 
 const MainLayout = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-[#0f1115] text-white relative font-sans selection:bg-pink-500 selection:text-white">
+    // 1. Ganti max-h-screen menjadi h-screen overflow-hidden agar body web tidak akan pernah bisa di-scroll
+    <div className="flex flex-col h-screen overflow-hidden bg-[#0f1115] text-white relative font-sans selection:bg-pink-500 selection:text-white">
       <div className="fixed inset-0 z-0 opacity-20 pointer-events-none">
         <VideoBackground />
       </div>
 
-      <MainMenu />
+      {/* 2. Pisahkan MainMenu ke div tersendiri dengan shrink-0 agar mengambil tinggi alaminya tanpa tertekan */}
+      <div className="z-20 relative shrink-0">
+        <MainMenu />
+      </div>
 
-      <div className="flex-grow z-10 w-full">
+      {/* 3. Outlet berada di div flex-grow dengan overflow-y-auto. 
+          Jika konten terlalu panjang, HANYA area ini yang akan scroll, bukan seluruh layar.
+          Tambahkan pb-12 agar konten paling bawah tidak tertutup oleh footer yang fixed. */}
+      <div className="flex-grow z-10 w-full overflow-y-auto">
         <Outlet />
       </div>
 
@@ -76,6 +85,8 @@ const App: React.FC = () => {
           <Route path="/gacha/:id" element={<GachaPage />} />
           <Route path="/beatmaps" element={<BeatmapPage />} />
           <Route path="/diary" element={<ManaDiary />} />
+          <Route path="/resonance" element={<SoulResonancePage />} />
+          <Route path="/groupDetail" element={<GroupDetailPage />} />
         </Route>
       </Routes>
     </Router>

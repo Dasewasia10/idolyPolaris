@@ -171,7 +171,7 @@ const CompassChart: React.FC = () => {
     if (chartRef.current) {
       try {
         const node = chartRef.current;
-        const scale = 2; // Pengganti scale: 2 dari html2canvas
+        const scale = 3; // Pengganti scale: 2 dari html2canvas
 
         const blob = await domtoimage.toBlob(node, {
           bgcolor: "#0f1115",
@@ -199,7 +199,7 @@ const CompassChart: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 pb-20 font-sans overflow-hidden relative selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-full bg-[#0f1115] text-white p-4 lg:p-8 pb-20 font-sans overflow-hidden relative selection:bg-cyan-500 selection:text-black">
       {/* Background Texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -212,7 +212,7 @@ const CompassChart: React.FC = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         {/* --- LEFT PANEL: CONTROLS --- */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-6 space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-cyan-600 rounded text-black shadow-[0_0_15px_rgba(34,211,238,0.5)]">
               <Share2 size={24} />
@@ -337,14 +337,12 @@ const CompassChart: React.FC = () => {
         </div>
 
         {/* --- RIGHT PANEL: CHART AREA --- */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-start-7 lg:col-span-6">
           <div className="bg-[#0a0c10] border border-white/10 rounded-xl p-1 shadow-2xl relative overflow-hidden group">
             {/* CHART CANVAS */}
             <div
               ref={chartRef}
-              // PERBAIKAN: Gunakan aspect-square (wajib)
-              // min-h-[300px] atau min-h-[100vw] agar di mobile menyesuaikan lebar layar, tapi tetap ada batas di desktop
-              className="relative w-full aspect-square bg-[#0a0c10] overflow-hidden min-h-[320px] lg:min-h-[600px]"
+              className="relative w-full aspect-square bg-[#0a0c10] overflow-hidden"
             >
               {/* Header Overlay */}
               <div className="absolute bottom-1 lg:top-4 left-3 lg:left-4 z-10 pointer-events-none opacity-50 -rotate-90 lg:rotate-0 -translate-x-16 lg:translate-x-0 -translate-y-16 lg:translate-y-0">
@@ -357,8 +355,6 @@ const CompassChart: React.FC = () => {
               </div>
               {/* Radar Grid Background */}
               <div className="absolute inset-0 pointer-events-none">
-                {/* Circular Grids */}
-                {/* Agar bundaran benar-benar bulat, biarkan aspect ratio parent bekerja, dan gunakan width & height dalam persentase yang sama */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] h-[30%] rounded-full border border-white/5"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full border border-white/5"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] rounded-full border border-white/5"></div>

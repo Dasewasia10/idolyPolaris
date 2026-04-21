@@ -473,13 +473,13 @@ const CardComparison: React.FC = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center text-cyan-500 font-mono tracking-widest animate-pulse">
+      <div className="h-full bg-[#0f1115] flex items-center justify-center text-cyan-500 font-mono tracking-widest animate-pulse">
         LOADING CARD DATA...
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white p-4 md:p-8 font-sans selection:bg-cyan-500 selection:text-white">
+    <div className="min-h-full bg-[#0f1115] text-white p-4 md:p-8 font-sans selection:bg-cyan-500 selection:text-white">
       <div className="max-w-[1600px] mx-auto h-full flex flex-col">
         {/* HEADER */}
         <div className="flex flex-col lg:flex-row justify-between items-center mb-8 gap-4 pb-6 border-b border-white/10">
@@ -563,8 +563,8 @@ const CardComparison: React.FC = () => {
 
       {/* --- MODAL SELECTOR (Desain Premium ala CardList) --- */}
       {activeSlotIndex !== null && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4 animate-in fade-in duration-200 backdrop-blur-sm">
-          <div className="bg-[#0f1115] border border-white/10 w-full max-w-5xl h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-2 md:px-4 animate-in fade-in duration-200 backdrop-blur-sm my-auto">
+          <div className="bg-[#0f1115] border border-white/10 w-full max-w-5xl h-4/5 max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
             {/* Modal Header */}
             <div className="p-4 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-blue-900/20 to-transparent">
               <h2 className="text-lg font-bold text-white flex items-center gap-2 uppercase tracking-wider">

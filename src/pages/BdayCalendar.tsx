@@ -115,7 +115,7 @@ const CharacterCalendar: React.FC = () => {
       days.push(
         <div
           key={`empty-${i}`}
-          className={`h-16 sm:h-20 lg:h-24 border-r border-b ${
+          className={`h-16 sm:h-20 lg:h-20 border-r border-b ${
             isDarkMode
               ? "bg-gray-900/30 border-gray-800"
               : "bg-gray-50/50 border-gray-100"
@@ -140,7 +140,7 @@ const CharacterCalendar: React.FC = () => {
       days.push(
         <div
           key={`day-${day}`}
-          className={`h-16 sm:h-20 lg:h-24 p-0.5 sm:p-1 border-r border-b relative group transition-all hover:z-10 overflow-hidden
+          className={`h-16 sm:h-20 lg:h-20 p-0.5 sm:p-1 border-r border-b relative group transition-all hover:z-10 overflow-hidden
             ${
               isDarkMode
                 ? "border-gray-800 bg-gray-900 hover:bg-gray-800 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
@@ -224,7 +224,7 @@ const CharacterCalendar: React.FC = () => {
             days.push(
               <div
                 key={`empty-end-${j}`}
-                className={`h-16 sm:h-20 lg:h-24 border-r border-b ${
+                className={`h-16 sm:h-20 lg:h-20 border-r border-b ${
                   isDarkMode
                     ? "bg-gray-900/30 border-gray-800"
                     : "bg-gray-50/50 border-gray-100"
@@ -271,14 +271,14 @@ const CharacterCalendar: React.FC = () => {
 
   return (
     <div
-      className={`transition-colors duration-500 min-h-screen p-2 sm:p-4 flex flex-col items-center ${isDarkMode ? "bg-[#0f1115]" : "bg-gray-100"} mb-16 lg:mb-0`}
+      className={`transition-colors duration-500 min-h-full p-2 sm:p-4 flex flex-col items-center ${isDarkMode ? "bg-[#0f1115]" : "bg-gray-100"} mb-16 lg:mb-0`}
     >
       {/* PERBAIKAN UTAMA CONTAINER:
         1. max-h-[90vh] diubah menjadi min-h-[85vh] lg:max-h-[90vh] agar di mobile bisa memanjang natural.
         2. Padding dikurangi di mobile (p-3) dan dibesarkan di desktop (lg:p-6).
       */}
       <div
-        className={`flex gap-4 lg:gap-8 z-10 w-full mx-auto p-3 sm:p-4 lg:p-6 rounded-2xl shadow-xl max-w-7xl min-h-[85vh] lg:h-[90vh] lg:max-h-[90vh] relative flex-col lg:flex-row font-sans transition-colors duration-500 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
+        className={`flex gap-4 lg:gap-8 z-10 w-full mx-auto p-3 sm:p-4 lg:p-6 rounded-2xl shadow-xl max-w-7xl h-auto lg:max-h-[90vh] relative flex-col lg:flex-row font-sans transition-colors duration-500 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
           isDarkMode
             ? "bg-[#161b22] text-gray-200 border border-white/10"
             : "bg-white text-gray-800"

@@ -166,7 +166,7 @@ const IdolyWordlePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white font-sans flex flex-col items-center relative overflow-hidden selection:bg-pink-500 selection:text-white pb-16">
+    <div className="min-h-full bg-[#0f1115] text-white font-sans flex flex-col items-center relative overflow-hidden selection:bg-pink-500 selection:text-white pb-16 lg:pb-0">
       {/* Background Decor */}
       <div className="absolute inset-0 pointer-events-none opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
@@ -207,7 +207,7 @@ const IdolyWordlePage: React.FC = () => {
       {/* GAME BOARD */}
       <main className="flex-1 flex flex-col items-center justify-center w-full max-w-lg p-4 z-10">
         <div
-          className="grid gap-2 mb-4 w-full aspect-[5/6] max-h-[450px]"
+          className="grid gap-2 mb-4 w-full aspect-[5/6] max-h-[400px]"
           style={{
             gridTemplateRows: `repeat(6, 1fr)`,
             gridTemplateColumns: `repeat(${wordLength}, 1fr)`,

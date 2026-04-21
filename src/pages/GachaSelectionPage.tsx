@@ -365,7 +365,9 @@ const GachaSelectPage: React.FC = () => {
             {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex flex-col items-center gap-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
-                <div className="flex gap-2">{renderPaginationButtons()}</div>
+                <div className="flex gap-1 scale-75 lg:scale-100">
+                  {renderPaginationButtons()}
+                </div>
                 <div className="text-[10px] text-gray-500 font-mono">
                   DISPLAYING {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
                   {Math.min(

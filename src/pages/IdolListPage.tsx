@@ -244,19 +244,19 @@ const IdolListPage: React.FC = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center text-cyan-500 font-mono tracking-widest animate-pulse">
+      <div className="min-h-full bg-[#0f1115] flex items-center justify-center text-cyan-500 font-mono tracking-widest animate-pulse">
         LOADING DATABASE...
       </div>
     );
   if (error)
     return (
-      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center text-red-500 font-mono">
+      <div className="min-h-full bg-[#0f1115] flex items-center justify-center text-red-500 font-mono">
         ERROR: {error}
       </div>
     );
 
   return (
-    <div className="p-4 lg:p-8 min-h-screen bg-[#0f1115] text-white font-sans relative overflow-hidden selection:bg-pink-500 selection:text-white flex flex-col gap-6">
+    <div className="p-4 lg:p-8 h-full bg-[#0f1115] text-white font-sans relative overflow-hidden selection:bg-pink-500 selection:text-white flex flex-col gap-6">
       {/* Background Texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -293,9 +293,9 @@ const IdolListPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 relative z-10 flex-1">
+      <div className="flex flex-col-reverse lg:flex-row gap-6 relative z-10 flex-1 overflow-y-auto lg:overflow-y-hidden mb-16 lg:mb-0 scrollbar-none">
         {/* --- MAIN DISPLAY AREA --- */}
-        <div className="w-full relative min-h-[600px] lg:h-[750px] flex-1 mb-36">
+        <div className="w-full relative h-[75vh] flex-1 mb-2 lg:mb-0">
           {selectedIdol && (
             <section className="relative h-full w-full">
               {/* GIFT ICONS (Floating) */}
@@ -321,7 +321,7 @@ const IdolListPage: React.FC = () => {
 
               {/* CARD CONTAINER */}
               <div
-                className="relative rounded-2xl overflow-hidden h-screen w-full border border-white/10 shadow-2xl bg-[#161b22] transition-all duration-500"
+                className="relative rounded-2xl overflow-hidden min-h-[70vh] max-h-full w-full border border-white/10 shadow-2xl bg-[#161b22] transition-all duration-500"
                 style={{
                   boxShadow: `0 0 30px -10px #${selectedIdol.color}`,
                   borderColor: `#${selectedIdol.color}40`,
@@ -361,7 +361,7 @@ const IdolListPage: React.FC = () => {
                       exit={{ opacity: 0, x: -50 }}
                       transition={{ duration: 0.4 }}
                       className={`absolute w-auto h-[120%] max-w-none object-cover select-none z-0
-                            ${isMobile ? "left-1/2 -translate-x-1/2" : "right-[-10%] top-[-10%]"}
+                            ${isMobile ? "left-[90%]" : "right-[-5%] top-[-10%]"}
                         `}
                       draggable="false"
                       onError={(e) => {
@@ -426,7 +426,7 @@ const IdolListPage: React.FC = () => {
                 </div>
 
                 {/* --- INFO PANEL (Overlay Bottom) --- */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent pt-32 pb-8 px-6 lg:px-10 z-20">
+                <div className="absolute bottom-0 left-0 right-0 max-h-full bg-gradient-to-t from-black via-black/80 to-transparent pb-8 px-6 lg:px-10 z-20">
                   {/* Name & Header */}
                   <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-white/10 pb-4 mb-4">
                     <div>
@@ -434,10 +434,10 @@ const IdolListPage: React.FC = () => {
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-white border border-white/10 uppercase tracking-wider">
                           {selectedIdol.groupName}
                         </span>
-                        <div className="h-px w-3/4 bg-white/20"></div>
+                        <div className="flex-1 h-px w-3/4 bg-white/20"></div>
                       </div>
                       <h1
-                        className="text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-none"
+                        className="text-xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-none max-w-40 lg:max-w-full flex-wrap"
                         style={{
                           textShadow: `0 0 30px #${selectedIdol.color}`,
                         }}
@@ -455,7 +455,7 @@ const IdolListPage: React.FC = () => {
                     </div>
 
                     {/* Badges CV/School */}
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap scale-75 lg:scale-100 origin-bottom-left">
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1f2937] border border-white/10 text-xs text-gray-300">
                         <Mic2 size={14} className="text-pink-500" />
                         <span className="font-bold">
@@ -551,9 +551,9 @@ const IdolListPage: React.FC = () => {
           )}
         </div>
 
-        {/* --- CAROUSEL (BOTTOM) --- */}
-        <div className="fixed bottom-10 left-0 right-0 z-40 p-4 bg-gradient-to-t from-black via-black/90 to-transparent lg:static lg:bg-transparent lg:p-0 lg:w-auto lg:h-[750px] lg:flex lg:flex-col lg:justify-center">
-          <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden scrollbar-minimal p-2 lg:max-h-screen lg:w-24 mb-10">
+        {/* --- CAROUSEL (BOTTOM / SCROLL NATURAL) --- */}
+        <div className="w-full z-40 lg:w-auto lg:flex lg:flex-col lg:justify-center lg:overflow-y-auto">
+          <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-hidden scrollbar-none p-2 lg:max-h-screen lg:w-24">
             {currentGroupMembers.map((idol: Character, _index: number) => (
               <button
                 key={idol.name}
@@ -561,7 +561,7 @@ const IdolListPage: React.FC = () => {
                 className={`relative flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 group
                     ${
                       selectedIdol?.name === idol.name
-                        ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] scale-110 z-10"
+                        ? "border-white scale-110 z-10"
                         : "border-white/20 opacity-60 hover:opacity-100 hover:scale-105"
                     }
                   `}

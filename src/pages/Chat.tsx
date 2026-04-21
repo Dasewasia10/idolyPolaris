@@ -381,6 +381,7 @@ const ChatPage: React.FC = () => {
 
   const saveAsPng = async () => {
     const element = document.getElementById("idolyMessage");
+    const scale = 3;
     if (!element) return;
     const originalStyle = {
       height: element.style.height,
@@ -390,9 +391,16 @@ const ChatPage: React.FC = () => {
       element.style.height = "auto";
       element.style.overflow = "visible";
       const blob = await domtoimage.toBlob(element, {
+        width: element.clientWidth * scale,
+        height: element.clientHeight * scale,
         quality: 1,
         cacheBust: true,
-        style: { transform: "none" },
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          width: element.clientWidth + "px",
+          height: element.clientHeight + "px",
+        },
         filter: (_node: any) => true,
         imagePlaceholder:
           "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
@@ -485,7 +493,7 @@ const ChatPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden mb-16 lg:mb-0">
+    <div className="min-h-full bg-[#0f1115] text-white p-4 lg:p-8 font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden mb-16 lg:mb-0">
       {/* Background Grid */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -1006,7 +1014,7 @@ const ChatPage: React.FC = () => {
         </section>
 
         {/* --- RIGHT SIDEBAR: ASSETS --- */}
-        <section className="flex flex-col gap-4 h-[calc(100vh-100px)] lg:sticky lg:top-4">
+        <section className="flex flex-col gap-4 lg:sticky lg:top-4">
           {/* Character Selector */}
           <div
             className={`bg-[#161b22]/90 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden flex flex-col transition-all duration-300 ${iconGroupVisible ? "flex-1" : "h-auto"}`}

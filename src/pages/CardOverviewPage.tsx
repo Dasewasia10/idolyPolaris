@@ -497,7 +497,7 @@ const CardOverviewPage: React.FC = () => {
     };
 
     return (
-      <div className="flex justify-center items-center gap-2 py-6">
+      <div className="flex justify-center items-center gap-0.5 lg:gap-2 py-6">
         <button
           onClick={() => handlePageChange(1)}
           disabled={currentPage === 1}
@@ -556,7 +556,7 @@ const CardOverviewPage: React.FC = () => {
 
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Header & Filters */}
-        <header className="sticky top-0 z-30 bg-[#0f1115]/90 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <header className="lg:sticky top-0 z-30 bg-[#0f1115]/90 backdrop-blur-md border-b border-white/10 shadow-lg">
           <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
             {/* Title & Search */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -700,7 +700,6 @@ const CardOverviewPage: React.FC = () => {
             )}
 
             <Pagination />
-            <div className="mb-16"></div>
           </div>
         </main>
       </div>
@@ -738,7 +737,7 @@ const CardOverviewPage: React.FC = () => {
               {/* Left: Image (Dark) */}
               <div className="lg:w-1/2 bg-[#0a0c10] flex items-center justify-center p-6 relative group">
                 {/* Grid Pattern */}
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                <div className="lg:absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
 
                 <div className="relative w-full max-w-md">
                   <img

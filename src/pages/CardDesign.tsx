@@ -180,25 +180,37 @@ const CardDesign: React.FC = () => {
   // --- HANDLERS ---
 
   const handleDownload = async () => {
-    // Menargetkan elemen canvas langsung seperti pada onclone di html2canvas
     const node =
       document.getElementById("card-canvas-target") || cardRef.current;
 
     if (node) {
+      // Tentukan target resolusi tinggi Anda
+      const targetWidth = 2048;
+      const targetHeight = 1152;
+
+      // Hitung rasio antara ukuran layar saat ini dengan target
+      const scaleX = targetWidth / node.offsetWidth;
+      const scaleY = targetHeight / node.offsetHeight;
+
       try {
         const blob = await domtoimage.toBlob(node, {
-          // Menetapkan ukuran spesifik jika kamu butuh resolusi fix (seperti kodemu sebelumnya)
-          width: 2048,
-          height: 1152,
-          // Menghilangkan efek transform (tilt/hover) saat di-render
+          width: targetWidth,
+          height: targetHeight,
           style: {
-            transform: "none",
+            // 1. Hilangkan efek miring/hover
+            transform: `scale(${scaleX}, ${scaleY})`,
+            // 2. Pastikan titik pusat pembesaran ada di pojok kiri atas agar tidak geser
+            transformOrigin: "top left",
+            // 3. Paksa ukuran elemen di dalam 'snapshot' agar tidak overflow
+            width: `${node.offsetWidth}px`,
+            height: `${node.offsetHeight}px`,
+            margin: "0",
           },
+          imagePlaceholder:
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
         });
 
         if (blob) {
-          // Sesuaikan nama variabel untuk nama file jika diperlukan,
-          // misalnya pakai selectedCard?.title?.global jika ada
           saveAs(blob, `CardDesign_Export.png`);
         }
       } catch (error) {
@@ -222,7 +234,7 @@ const CardDesign: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 flex flex-col lg:flex-row gap-8 font-sans relative selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-full pb-16 bg-[#0f1115] text-white p-4 lg:p-8 flex flex-col lg:flex-row gap-8 font-sans relative selection:bg-cyan-500 selection:text-black">
       {/* Background Texture (Sama seperti halaman lain) */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -234,7 +246,7 @@ const CardDesign: React.FC = () => {
       ></div>
 
       {/* --- LEFT COLUMN: CONTROLS (Updated Design) --- */}
-      <div className="w-full lg:w-1/3 space-y-6 relative z-10">
+      <div className="w-full lg:w-1/3 space-y-6 relative z-10 pb-16">
         {/* Header Title */}
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-600 rounded text-black shadow-[0_0_15px_rgba(37,99,235,0.5)]">
@@ -439,7 +451,7 @@ const CardDesign: React.FC = () => {
 
       {/* --- RIGHT COLUMN: PREVIEW CANVAS (UPDATED CONTAINER ONLY) --- */}
       <div
-        className="w-full lg:w-2/3 bg-[#0a0c10] rounded-3xl border border-white/10 flex flex-col items-center justify-center p-8 relative overflow-hidden group shadow-2xl z-10"
+        className="w-full lg:w-2/3 bg-[#0a0c10] rounded-3xl border border-white/10 flex flex-col items-center justify-center p-8 relative overflow-hidden group shadow-2xl z-10 mb-16"
         ref={containerRef}
       >
         {/* Decorative Grid on Preview Background */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown, Lock, ExternalLink } from "lucide-react";
-import BirthdayReminder from "../components/birthdayReminder";
+import BirthdayReminder from "./birthdayReminder";
 
 // --- 1. DATA DEFINITION ---
 const MENUS = {
@@ -21,9 +21,11 @@ const MENUS = {
     { name: "Card Design", path: "/cardDesign" },
     { name: "Idoly Wordle", path: "/wordle" },
     { name: "Gacha Simulator", path: "/gacha" },
+    { name: "Resonance Test", path: "/resonance" },
   ],
   addOn: [
     { name: "Mana's Diary", path: "/diary" },
+    { name: "Group Details", path: "/groupDetail" },
     { name: "Character Comparison", path: "/stat" },
     { name: "Idol Messages", path: "/messages" },
     { name: "Beatmap", path: "/beatmaps" },

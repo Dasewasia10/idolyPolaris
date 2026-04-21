@@ -165,7 +165,7 @@ const MessagePage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#0f1115] text-white overflow-hidden font-sans relative selection:bg-cyan-500 selection:text-black">
+    <div className="flex h-full bg-[#0f1115] text-white overflow-hidden font-sans relative selection:bg-cyan-500 selection:text-black">
       {/* Background Texture (Grid Halus) */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -187,7 +187,7 @@ const MessagePage: React.FC = () => {
       {/* --- SIDEBAR --- */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-80 bg-[#161b22]/95 backdrop-blur-md border-r border-white/10 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl
+          fixed inset-y-0 top-16 lg:top-0 left-0 z-50 w-80 bg-[#161b22]/95 backdrop-blur-md border-r border-white/10 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:relative lg:translate-x-0
         `}

@@ -63,7 +63,7 @@ const BeatmapPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#0f1115] text-white overflow-hidden relative font-sans selection:bg-pink-500 selection:text-white">
+    <div className="flex min-h-full bg-[#0f1115] text-white overflow-hidden relative font-sans selection:bg-pink-500 selection:text-white">
       {/* Background Tech Grid */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -128,7 +128,7 @@ const BeatmapPage: React.FC = () => {
         </div>
 
         {/* List Lagu */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent p-3 space-y-1">
+        <div className="flex-1 max-h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent p-3 space-y-1">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 text-gray-500 animate-pulse">
               <Disc className="animate-spin" size={24} />
@@ -191,7 +191,7 @@ const BeatmapPage: React.FC = () => {
       </aside>
 
       {/* MAIN CONTENT: Visualizer Stage */}
-      <div className="flex-1 flex flex-col relative bg-[#0a0c10] w-full">
+      <div className="flex flex-col relative bg-[#0a0c10] w-full">
         {/* Toggle Sidebar Button (Mobile) */}
         {!isSidebarOpen && (
           <button

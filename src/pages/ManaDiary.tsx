@@ -99,13 +99,13 @@ const ManaDiaryPage: React.FC = () => {
 
   if (loading)
     return (
-      <div className="flex h-screen items-center justify-center bg-[#0f172a] text-pink-400 font-mono tracking-widest animate-pulse">
+      <div className="flex min-h-full items-center justify-center bg-[#0f172a] text-pink-400 font-mono tracking-widest animate-pulse">
         ACCESSING ARCHIVE...
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-slate-200 font-sans pb-20 relative overflow-hidden">
+    <div className="min-h-full bg-[#0f1115] text-slate-200 font-sans pb-20 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div
@@ -123,7 +123,7 @@ const ManaDiaryPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-10 relative z-10">
         {/* HEADER SECTION */}
-        <header className="flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-6 mb-10 gap-4">
+        <header className="flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-6 mb-10 gap-4 px-8">
           <div>
             <div className="flex items-center gap-2 text-pink-400 mb-1">
               <span className="text-[10px] tracking-[0.3em] font-bold uppercase">
@@ -163,12 +163,12 @@ const ManaDiaryPage: React.FC = () => {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="flex items-start justify-between space-y-4 lg:space-y-0 flex-col lg:flex-row">
           {/* --- LEFT COLUMN: CALENDAR (5 cols) --- */}
-          <div className="lg:col-span-5 sticky top-24">
+          <div className="flex w-[50vh] max-w-full">
             {/* Calendar Container */}
             <div
-              className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 shadow-2xl overflow-hidden"
+              className="bg-[#161b22]/90 backdrop-blur-md border border-white/10 shadow-2xl overflow-hidden w-full"
               style={{
                 clipPath: "polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%)",
               }}
@@ -270,9 +270,9 @@ const ManaDiaryPage: React.FC = () => {
           </div>
 
           {/* --- RIGHT COLUMN: IMAGE VIEWER (7 cols) --- */}
-          <div className="lg:col-span-7">
+          <div className="flex">
             {selectedEntry ? (
-              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500 ">
                 {/* Meta Info Bar */}
                 <div className="flex items-center justify-between bg-white/5 border border-white/10 px-4 py-2 rounded-t-lg backdrop-blur">
                   <div className="flex items-center gap-4">
@@ -309,14 +309,14 @@ const ManaDiaryPage: React.FC = () => {
                   <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-pink-500/50"></div>
                   <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-pink-500/50"></div>
 
-                  <div className="bg-[#fdfbf7] relative overflow-hidden flex items-center justify-center min-h-[400px]">
+                  <div className="bg-[#fdfbf7] relative overflow-hidden flex items-center justify-center h-[50vh] max-h-[600px]">
                     {/* Paper Texture Overlay */}
                     <div className="absolute inset-0 bg-yellow-900/5 pointer-events-none mix-blend-multiply opacity-50" />
 
                     <img
                       src={getImageUrl(selectedEntry)}
                       alt={`Diary ${selectedEntry.date}`}
-                      className="w-full h-auto max-h-[70vh] object-contain shadow-inner"
+                      className="w-full h-full p-4 object-contain shadow-inner"
                       loading="lazy"
                     />
                   </div>
@@ -333,7 +333,7 @@ const ManaDiaryPage: React.FC = () => {
               </div>
             ) : (
               // Empty State
-              <div className="h-[400px] flex flex-col items-center justify-center text-gray-600 bg-white/5 rounded-xl border border-white/10 border-dashed">
+              <div className="h-[50vh] lg:h-[60vh] max-h-[600px] flex flex-col items-center justify-center text-gray-600 bg-white/5 rounded-xl border border-white/10 border-dashed">
                 <BookOpen size={48} className="mb-4 opacity-20" />
                 <p className="font-mono text-sm tracking-widest uppercase">
                   Select data to retrieve

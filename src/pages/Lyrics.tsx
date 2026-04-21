@@ -341,7 +341,7 @@ const Lyrics: React.FC = () => {
 
   // --- RENDER ---
   return (
-    <div className="flex h-screen bg-[#0f1115] text-white font-sans overflow-hidden relative selection:bg-cyan-500 selection:text-white">
+    <div className="flex h-full bg-[#0f1115] text-white font-sans overflow-hidden relative selection:bg-cyan-500 selection:text-white">
       {/* Background Texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5 z-0"
@@ -383,7 +383,7 @@ const Lyrics: React.FC = () => {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent mb-16">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-10 text-cyan-500 animate-pulse gap-2">
               <Disc className="animate-spin" size={24} />

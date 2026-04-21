@@ -33,11 +33,11 @@ const QnAModal: React.FC<QnAModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200 mt-8"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-[#161b22] border border-white/10 w-full max-w-3xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative"
+        className="bg-[#161b22] border border-white/10 w-full max-w-3xl h-3/4 lg:h-full lg:mt-8 max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Decoration Line */}

@@ -160,14 +160,14 @@ const GachaPage: React.FC = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center text-pink-400 font-mono tracking-widest animate-pulse">
+      <div className="min-h-full bg-[#0f1115] flex items-center justify-center text-pink-400 font-mono tracking-widest animate-pulse">
         INITIALIZING TERMINAL...
       </div>
     );
   if (!bannerData) return null;
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white p-4 lg:p-8 font-sans selection:bg-pink-500 selection:text-white">
+    <div className="min-h-full bg-[#0f1115] text-white p-4 lg:p-8 font-sans selection:bg-pink-500 selection:text-white">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
@@ -192,24 +192,11 @@ const GachaPage: React.FC = () => {
               </h1>
             </div>
           </div>
-
-          {/* Points Counter */}
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-              Exchange Pts
-            </span>
-            <div className="flex items-baseline gap-1 text-pink-400">
-              <span className="text-3xl font-black font-mono">{points}</span>
-              <span className="text-sm font-bold text-gray-600">
-                / {exchangeLimit}
-              </span>
-            </div>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* --- LEFT: BANNER DISPLAY (7 Cols) --- */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-6 space-y-6">
             <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-[#161b22] shadow-2xl">
               {/* Tech Borders */}
               <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-pink-500 z-20 rounded-tl-lg"></div>
@@ -225,14 +212,14 @@ const GachaPage: React.FC = () => {
                     e.currentTarget.src = getPlaceholderImageUrl("rect");
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] via-transparent to-transparent opacity-80 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-pink-500/60 via-transparent to-transparent opacity-80 pointer-events-none"></div>
               </div>
 
               {/* Rate Up Mini Icons */}
               {bannerData.rateUpCards.length > 0 && (
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between z-10">
                   <div>
-                    <span className="text-[10px] text-pink-300 font-bold uppercase tracking-widest mb-2 block items-center gap-1">
+                    <span className="text-[10px] text-[#0f1115] font-bold uppercase tracking-widest mb-2 block items-center gap-1">
                       <Sparkles size={12} /> Rate Up Idols
                     </span>
                     <div className="flex gap-2">
@@ -281,7 +268,7 @@ const GachaPage: React.FC = () => {
           </div>
 
           {/* --- RIGHT: CONTROL DECK (5 Cols) --- */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="lg:col-span-6 lg:col-start-7 flex flex-col gap-4">
             {/* Control Panel */}
             <div className="bg-[#161b22] border border-white/10 rounded-xl p-6 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-5">
@@ -293,7 +280,7 @@ const GachaPage: React.FC = () => {
                 <span className="text-green-500 font-mono">ONLINE</span>
               </h2>
 
-              <div className="space-y-4 relative z-10">
+              <div className="flex space-y-2 lg:space-y-0 relative z-10 flex-col lg:flex-row items-stretch gap-4">
                 {/* 1x Pull Button */}
                 <button
                   onClick={() => handleGacha(1)}
@@ -302,7 +289,7 @@ const GachaPage: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="text-left">
-                      <span className="block text-[10px] text-gray-400 font-mono mb-1">
+                      <span className="block text-[10px] text-gray-400 font-mono">
                         SINGLE PULL
                       </span>
                       <span className="block text-lg font-bold text-white group-hover:text-blue-300 transition-colors">
@@ -321,11 +308,8 @@ const GachaPage: React.FC = () => {
                 <button
                   onClick={() => handleGacha(10)}
                   disabled={isAnimating}
-                  className="w-full group relative overflow-hidden bg-gradient-to-r from-pink-900/40 to-purple-900/40 border border-pink-500/30 hover:border-pink-500 rounded-lg p-5 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(236,72,153,0.1)] hover:shadow-[0_0_30px_rgba(236,72,153,0.3)]"
+                  className="w-full group relative bg-gradient-to-r from-pink-900/40 to-purple-900/40 border border-pink-500/30 hover:border-pink-500 rounded-lg p-5 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(236,72,153,0.1)] hover:shadow-[0_0_30px_rgba(236,72,153,0.3)]"
                 >
-                  {/* Glint Animation */}
-                  <div className="absolute top-0 -left-[100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg] group-hover:animate-[shine_1s_infinite]"></div>
-
                   <div className="flex items-center justify-between relative z-10">
                     <div className="text-left">
                       <span className="block text-[10px] text-pink-300 font-mono mb-1 tracking-widest">
@@ -360,6 +344,33 @@ const GachaPage: React.FC = () => {
                 </p>
               </div>
             )}
+            {!isAnimating && (
+              <div className="flex items-center justify-between px-4">
+                {/* Points Counter */}
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                    Exchange Pts
+                  </span>
+                  <div className="flex items-baseline gap-1 text-pink-400">
+                    <span className="text-3xl font-black font-mono">
+                      {points}
+                    </span>
+                    <span className="text-sm font-bold text-gray-600">
+                      / {exchangeLimit}
+                    </span>
+                  </div>
+                </div>
+                {history.length > 0 && (
+                  <button
+                    onClick={() => setHistory([])}
+                    className="flex items-center gap-2 px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-bold text-gray-300 transition-all hover:text-white"
+                  >
+                    <span className="sr-only">Clear</span>
+                    RESET TERMINAL
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -367,7 +378,7 @@ const GachaPage: React.FC = () => {
         {!isAnimating && history.length > 0 && (
           <div className="mt-12 border-t border-white/10 pt-8 animate-in slide-in-from-bottom-8 fade-in duration-700">
             {/* Header Section */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-col lg:flex-row space-y-4 lg:space-y-0">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-pink-900/30 rounded-lg border border-pink-500/30 text-pink-400">
                   <History size={20} />
@@ -381,13 +392,6 @@ const GachaPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setHistory([])}
-                className="flex items-center gap-2 px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-bold text-gray-300 transition-all hover:text-white"
-              >
-                <span className="sr-only">Clear</span>
-                RESET TERMINAL
-              </button>
             </div>
 
             {/* GRID LAYOUT:

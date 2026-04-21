@@ -152,17 +152,25 @@ const KTPManager: React.FC = () => {
 
   // Handler Download Kartu
   const handleDownload = async () => {
+    const scale = 5;
     if (!cardRef.current) return;
 
     try {
       const node = cardRef.current;
       const blob = await domtoimage.toBlob(node, {
+        width: node.clientWidth * scale,
+        height: node.clientHeight * scale,
         quality: 1,
         cacheBust: true,
         style: {
-          transform: "none",
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          width: node.clientWidth + "px",
+          height: node.clientHeight + "px",
           margin: "0",
         },
+        imagePlaceholder:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
       });
 
       if (blob) {
