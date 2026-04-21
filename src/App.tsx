@@ -1,5 +1,6 @@
 import React from "react";
 import { HashRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 
 // Pages Import
 import KTPManager from "./pages/KTPManager";
@@ -42,6 +43,7 @@ const MainLayout = () => {
           Tambahkan pb-12 agar konten paling bawah tidak tertutup oleh footer yang fixed. */}
       <div className="flex-grow z-10 w-full overflow-y-auto">
         <Outlet />
+        <Analytics />
       </div>
 
       <footer className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1115]/80 backdrop-blur-md border-t border-white/10 py-2">
