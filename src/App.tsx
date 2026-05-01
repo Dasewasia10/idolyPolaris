@@ -24,6 +24,7 @@ import BeatmapPage from "./pages/BeatmapPage";
 import ManaDiary from "./pages/ManaDiary";
 import SoulResonancePage from "./pages/SoulResonancePage";
 import GroupDetailPage from "./pages/GroupDetailPage";
+import RelationshipPage from "./pages/RelationshipPage";
 
 const MainLayout = () => {
   return (
@@ -89,6 +90,7 @@ const App: React.FC = () => {
           <Route path="/diary" element={<ManaDiary />} />
           <Route path="/resonance" element={<SoulResonancePage />} />
           <Route path="/groupDetail" element={<GroupDetailPage />} />
+          <Route path="/relationships" element={<RelationshipPage />} />
         </Route>
       </Routes>
     </Router>

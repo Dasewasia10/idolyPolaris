@@ -26,6 +26,7 @@ const MENUS = {
   addOn: [
     { name: "Mana's Diary", path: "/diary" },
     { name: "Group Details", path: "/groupDetail" },
+    { name: "Relationship Chart", path: "/relationships" },
     { name: "Character Comparison", path: "/stat" },
     { name: "Idol Messages", path: "/messages" },
     { name: "Beatmap", path: "/beatmaps" },
